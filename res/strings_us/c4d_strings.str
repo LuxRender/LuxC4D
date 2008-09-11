@@ -1,0 +1,10 @@
+STRINGTABLE 
+{
+  IDS_LUXC4D        "LuxC4D";
+  IDS_LUXC4D_DESCR  "LuxRender exporter";
+  
+  IDS_ERROR_INITIALISE_LUXAPIWRITER "Could not initialise export to file '#'!";
+  IDS_ERROR_IO                      "Writing to file failed!";
+  IDS_ERROR_CONVERSION              "Converting the scene failed!";
+  IDS_ERROR_INTERNAL                "An internal error occured!";
+}

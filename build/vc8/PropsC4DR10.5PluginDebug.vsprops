@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="PropsC4DR10.5PluginDebug"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalOptions="/vmg /vms"
+		AdditionalIncludeDirectories="..\..\res;&quot;$(C4D_ROOT)\resource\_api&quot;;&quot;$(C4D_ROOT)\resource\_api\c4d_customgui&quot;;&quot;$(C4D_ROOT)\resource\_api\c4d_libs&quot;;&quot;$(C4D_ROOT)\resource\_api\c4d_preview&quot;;&quot;$(C4D_ROOT)\resource\_api\c4d_scaling&quot;;&quot;$(C4D_ROOT)\resource\_api\c4d_gv&quot;"
+		PreprocessorDefinitions="__PC;_WINDOWS"
+		DisableSpecificWarnings="4100"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		IgnoreImportLibrary="true"
+		AdditionalDependencies=" _api_Win32_Debug.lib"
+		OutputFile="$(OutDir)\$(ProjectName).cdl"
+		LinkIncremental="1"
+		AdditionalLibraryDirectories="$(C4D_ROOT)\resource\_api_lib"
+		GenerateManifest="false"
+		ManifestFile=""
+		IgnoreDefaultLibraryNames=""
+		GenerateDebugInformation="true"
+		ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb"
+		GenerateMapFile="true"
+		OptimizeReferences="2"
+		EnableCOMDATFolding="2"
+		OptimizeForWindows98="1"
+		ImportLibrary="$(OutDir)\$(ProjectName).lib"
+		TargetMachine="1"
+	/>
+	<UserMacro
+		Name="C4D_ROOT"
+		Value="..\..\..\..\C4D_R10.5"
+	/>
+</VisualStudioPropertySheet>

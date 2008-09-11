@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="PropsPluginInstall"
+	>
+	<Tool
+		Name="VCPostBuildEventTool"
+		CommandLine="rmdir /q /s &quot;$(C4D_ROOT)\plugins\$(ProjectName)&quot;&#x0D;&#x0A;xcopy /q /i &quot;$(TargetPath)&quot; &quot;$(C4D_ROOT)\plugins\$(ProjectName)\&quot;&#x0D;&#x0A;xcopy /q /i /s &quot;$(SolutionDir)\..\..\res&quot; &quot;$(C4D_ROOT)\plugins\$(ProjectName)\res&quot;&#x0D;&#x0A;"
+	/>
+</VisualStudioPropertySheet>
