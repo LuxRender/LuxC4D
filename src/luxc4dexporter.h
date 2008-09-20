@@ -23,54 +23,33 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
+#ifndef __LUXC4DEXPORTER_H__
+#define __LUXC4DEXPORTER_H__  1
+
+
+
 #include "c4d.h"
-#include "luxc4dexporter.h"
+#include "c4d_symbols.h"
 
 
 
-/// Hook that is called during the launch of CINEMA 4D, when the DLL
-/// was loaded and the plugins should be initialised and registered.
-///
-/// @return
-///   TRUE if successful, otherwise FALSE.
-Bool PluginStart(void)
+#define PID_LUXC4D_EXPORTER  1022831
+
+
+
+/***************************************************************************//*!
+ The CommandData plugin that triggers the actual export.
+*//****************************************************************************/
+class LuxC4DExporter : public CommandData
 {
-  LuxC4DExporter* exporter(0);
+public:
 
-  // initialize global resource object
-  if (!resource.Init()) {
-    GePrint("Global resource object could not be initialized.");
-    goto ERROR;
-  }
+  LuxC4DExporter(void);
 
-  // register QuantumExporter
-  exporter = gNewNC LuxC4DExporter;
-  if (!exporter) {
-    GePrint("Could not allocate LuxC4DExporter plugin.");
-    goto ERROR;
-  }
-  if (!exporter->registerPlugin()) {
-    GePrint("Could not register LuxC4DExporter plugin.");
-    goto ERROR;
-  }
-
-  return TRUE;
-
-ERROR:
-
-    gDelete(exporter);
-    return FALSE;
-}
+  Bool registerPlugin(void);
+  virtual Bool Execute(BaseDocument* doc);
+};
 
 
-/// Hook that is called during the shut down of CINEMA 4D. Here we can
-/// deallocate all resources, that are not owned by CINEMA 4D.
-void PluginEnd(void)
-{}
 
-
-/// Hook that is called for different messages.
-Bool PluginMessage(LONG id, void *data)
-{
-  return FALSE;
-}
+#endif  // #ifndef __LUXC4DEXPORTER_H__

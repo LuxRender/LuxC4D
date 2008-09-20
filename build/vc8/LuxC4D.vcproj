@@ -182,6 +182,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\luxapiconverter.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\luxapiconverter.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\luxapiwriter.cpp"
 			>
 		</File>
@@ -190,11 +198,11 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\luxc4d.cpp"
+			RelativePath="..\..\src\luxc4dexporter.cpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\luxc4d.h"
+			RelativePath="..\..\src\luxc4dexporter.h"
 			>
 		</File>
 		<File
@@ -202,11 +210,11 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\luxexporter.cpp"
+			RelativePath="..\..\src\luxc4dsettings.cpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\luxexporter.h"
+			RelativePath="..\..\src\luxc4dsettings.h"
 			>
 		</File>
 		<File

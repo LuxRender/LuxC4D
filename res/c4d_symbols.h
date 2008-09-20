@@ -6,8 +6,8 @@
 enum
 {
   // basic strings for initialization
-  IDS_LUXC4D = 1,
-  IDS_LUXC4D_DESCR,
+  IDS_LUXC4D_EXPORTER = 1,
+  IDS_LUXC4D_EXPORTER_DESCR,
 
   IDS_ERROR_INITIALISE_LUXAPIWRITER,
   IDS_ERROR_IO,
