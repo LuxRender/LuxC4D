@@ -31,6 +31,8 @@
 #include <cstring>
 #include <cassert>
 
+#include "utilities.h"
+
 
 
 /*******************************************************************************
@@ -103,7 +105,7 @@ Bool FixArray1D<T>::init(SizeT size)
   erase();
   if (size > 0) {
     if ((mData = bNewNC T[size]) == 0) {
-      GePrint("FixArray1D<T>::init(): could not allocate array of size " + LLongToString(size));
+      ERRLOG("FixArray1D<T>::init(): could not allocate array of size " + LLongToString(size));
       return FALSE;
     }
     mSize = size;

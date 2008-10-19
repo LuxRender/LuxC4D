@@ -26,10 +26,9 @@
 #include "customgui_datetime.h"
 
 #include "luxapiconverter.h"
-
-
-
-#define ERRLOG_RETURN(msg)   { GePrint((msg)); return FALSE; }
+#include "luxc4dsettings.h"
+#include "vpluxc4dsettings.h"
+#include "utilities.h"
 
 
 
@@ -74,14 +73,29 @@ LuxAPIConverter::~LuxAPIConverter(void)
 Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
 {
   // init internal data
-  mDocument = &document;
-  mReceiver = &receiver;
-  mXResolution = 0;
-  mYResolution = 0;
+  mDocument     = &document;
+  mReceiver     = &receiver;
   mCachedObject = 0;
   mPolygonCache.erase();
   mPointCache.erase();
   mNormalCache.erase();
+
+  // obtain active render settings
+  RenderData* renderData = document.GetActiveRenderData();
+  if (!renderData)  ERRLOG_RETURN_FALSE("LuxAPIConverter::convertScene(): could not obtain render data");
+  mC4DRenderSettings = renderData->GetDataInstance();
+  if (!mC4DRenderSettings)  ERRLOG_RETURN_FALSE("LuxAPIConverter::convertScene(): could not obtain render settings");
+
+  // get base container of LuxC4DSettings video post effect node - if available
+  mLuxC4DSettings = 0;
+  PluginVideoPost* videoPost = renderData->GetFirstVideoPost();
+  for (; videoPost; videoPost = videoPost->GetNext()) {
+    if (videoPost->GetType() == PID_LUXC4D_SETTINGS) {
+      mLuxC4DSettings = (LuxC4DSettings*)videoPost->GetNodeData();
+      break;
+    }
+  }
+  if (!videoPost)  ERRLOG_RETURN_FALSE("LuxAPIConverter::convertScene(): could not obtain LuxC4DSettings base container");
 
   // create file head (only important for file export)
   tagDateTime time;
@@ -91,31 +105,31 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
                   (int)time.lDay, (int)time.lDay, (int)time.lYear);
 
   // start the scene
-  if (!receiver.startScene(buffer))  return FALSE;
+  if (!mReceiver->startScene(buffer))  return FALSE;
 
   // export global data
-  if (!exportFilm(document, receiver) ||
-      !exportCamera(document, receiver) ||
-      !exportPixelFilter(document, receiver) ||
-      !exportSampler(document, receiver) ||
-      !exportSurfaceIntegrator(document, receiver) ||
-      !exportAccelerator(document, receiver))
+  if (!exportFilm() ||
+      !exportCamera() ||
+      !exportPixelFilter() ||
+      !exportSampler() ||
+      !exportSurfaceIntegrator() ||
+      !exportAccelerator())
   {
     return FALSE;
   }
 
   // export scene description
-  if (!receiver.worldBegin() ||
-      !exportLights(document, receiver) ||
-      !exportTextures(document, receiver) ||
-      !exportGeometry(document, receiver) ||
-      !receiver.worldEnd())
+  if (!mReceiver->worldBegin() ||
+      !exportLights() ||
+      !exportTextures() ||
+      !exportGeometry() ||
+      !mReceiver->worldEnd())
   {
     return FALSE;
   }
 
   // close scene
-  if (!receiver.endScene())  return FALSE;
+  if (!mReceiver->endScene())  return FALSE;
 
   return TRUE;
 }
@@ -196,7 +210,7 @@ Bool LuxAPIConverter::Do(void*          data,
       const LayerData* layerData = object->GetLayerData(mDocument);
       if (!layerData || layerData->render) {
         // export the object
-        return exportPolygonObject(*((PolygonObject*)object), *mReceiver);
+        return exportPolygonObject(*((PolygonObject*)object));
       }
     }
   }
@@ -209,47 +223,47 @@ Bool LuxAPIConverter::Do(void*          data,
  * Implementation of private member functions of class LuxAPIConverter.
  *****************************************************************************/
 
-/// NOT FINISHED ...
 /// Determines the film resolution and converts it into a Lux "Film" statement.
 ///
-/// @param[in]  document
-///   The C4D scene to export.
-/// @param[in]  receiver
-///   The implementation of LuxAPI that will consume the statement.
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportFilm(BaseDocument& document, LuxAPI& receiver)
+Bool LuxAPIConverter::exportFilm(void)
 {
-  // obtain render data container
-  RenderData* renderData = document.GetActiveRenderData();
-  if (!renderData)  ERRLOG_RETURN("LuxAPIConverter::exportFilm(): could not obtain render data");
-  BaseContainer* renderSettings = renderData->GetDataInstance();
-  if (!renderSettings)  ERRLOG_RETURN("LuxAPIConverter::exportFilm(): could not obtain render settings");
-  mXResolution = renderSettings->GetLong(RDATA_XRES);
-  mYResolution = renderSettings->GetLong(RDATA_YRES);
+  // safety checks
+  GeAssert(mDocument);
+  GeAssert(mReceiver);
+  GeAssert(mC4DRenderSettings);
 
-  // obtain film resolution and output filename
-  LuxIntegerT xResolution = (LuxIntegerT)mXResolution;
-  LuxIntegerT yResolution = (LuxIntegerT)mYResolution;
-  LuxBoolT    writeTonemappedTGA = TRUE;
-  String  filenameC4D = renderSettings->GetString(RDATA_PATH);
-  GePrint(filenameC4D);
+  // obtain film resolution from C4D render settings
+  LuxIntegerT xResolution = (LuxIntegerT)mC4DRenderSettings->GetLong(RDATA_XRES);
+  LuxIntegerT yResolution = (LuxIntegerT)mC4DRenderSettings->GetLong(RDATA_YRES);
+
+  // obtain output filename
+  String filenameC4D = mC4DRenderSettings->GetString(RDATA_PATH);
   if (!filenameC4D.Content()) {
-    filenameC4D = document.GetDocumentName().GetString();
+    filenameC4D = mDocument->GetDocumentName().GetString();
   }
   CHAR filenameCString[64];
   filenameC4D.GetCString(filenameCString, (sizeof(filenameCString)-1)/sizeof(filenameCString[0]), St7bit);
   LuxStringT  filename(filenameCString);
 
-  // fill parameter set
+  // fill parameter set with parameters not coming from the settings object
   mTempParamSet.clear();
   mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "xresolution",           &xResolution);
   mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "yresolution",           &yResolution);
-  mTempParamSet.addParam(LuxParamSet::LUX_BOOL,    "write_tonemapped_tga ", &writeTonemappedTGA);
   mTempParamSet.addParam(LuxParamSet::LUX_STRING,  "filename",              &filename);
 
-  // send instruction to Lux API
-  return receiver.film("fleximage", mTempParamSet);
+  // if no settings object found, use defaults
+  if (!mLuxC4DSettings) {
+    LuxBoolT writeTonemappedTGA = TRUE;
+    mTempParamSet.addParam(LuxParamSet::LUX_BOOL, "write_tonemapped_tga ", &writeTonemappedTGA);
+    return mReceiver->film("fleximage", mTempParamSet);
+  }
+  
+  // otherwise, obtain settings from object
+  const char *name;
+  mLuxC4DSettings->GetFilm(name, mTempParamSet);
+  return mReceiver->film(name, mTempParamSet);
 }
 
 
@@ -258,29 +272,25 @@ Bool LuxAPIConverter::exportFilm(BaseDocument& document, LuxAPI& receiver)
 /// Lux "LookAt" statement. Then the camera settings are determined and
 /// converted into a "Camera" statement.
 ///
-/// @param[in]  document
-///   The C4D scene to export.
-/// @param[in]  receiver
-///   The implementation of LuxAPI that will consume the statement.
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportCamera(BaseDocument& document, LuxAPI& receiver)
+Bool LuxAPIConverter::exportCamera(void)
 {
-  // check if needed data is available
-  if (!mXResolution && !mYResolution) {
-    ERRLOG_RETURN("LuxAPIConverter::exportCamera(): frame resolution wasn't calculated yet");
-  }
+  // safety checks
+  GeAssert(mDocument);
+  GeAssert(mReceiver);
+  GeAssert(mC4DRenderSettings);
 
   // obtain camera object and its container
-  BaseDraw* view = document.GetRenderBaseDraw();
-  if (!view)  ERRLOG_RETURN("LuxAPIConverter::exportCamera(): could not obtain render base draw");
-  BaseObject* cameraObj = view->GetSceneCamera(&document);
+  BaseDraw* view = mDocument->GetRenderBaseDraw();
+  if (!view)  ERRLOG_RETURN_FALSE("LuxAPIConverter::exportCamera(): could not obtain render base draw");
+  BaseObject* cameraObj = view->GetSceneCamera(mDocument);
   if (!cameraObj)  cameraObj = view->GetEditorCamera();
-  if (!cameraObj)  ERRLOG_RETURN("LuxAPIConverter::exportCamera(): could not obtain camera");
-  if (cameraObj->GetType() != Ocamera)  ERRLOG_RETURN("LuxAPIConverter::exportCamera(): obtained camera object is no camera");
+  if (!cameraObj)  ERRLOG_RETURN_FALSE("LuxAPIConverter::exportCamera(): could not obtain camera");
+  if (cameraObj->GetType() != Ocamera)  ERRLOG_RETURN_FALSE("LuxAPIConverter::exportCamera(): obtained camera object is no camera");
   CameraObject* camera = (CameraObject*)cameraObj;
   BaseContainer* cameraData = camera->GetDataInstance();
-  if (!cameraData)  ERRLOG_RETURN("LuxAPIConverter::exportCamera(): couldn't obtain container from camera object");
+  if (!cameraData)  ERRLOG_RETURN_FALSE("LuxAPIConverter::exportCamera(): couldn't obtain container from camera object");
 
   // obtain camera position and orientation in Lux-style
   Matrix camMat = camera->GetMgn();
@@ -292,7 +302,7 @@ Bool LuxAPIConverter::exportCamera(BaseDocument& document, LuxAPI& receiver)
   Vector upVec = camMat.v2;
 
   // send "LookAt" instruction to Lux API
-  if (!receiver.lookAt(LuxVectorT(camPos), LuxVectorT(trgPos), LuxVectorT(upVec))) {
+  if (!mReceiver->lookAt(LuxVectorT(camPos), LuxVectorT(trgPos), LuxVectorT(upVec))) {
     return FALSE;
   }
 
@@ -302,9 +312,15 @@ Bool LuxAPIConverter::exportCamera(BaseDocument& document, LuxAPI& receiver)
   LReal focalLength = (LReal)cameraData->GetReal(CAMERA_FOCUS);
   LReal zoom = (LReal)cameraData->GetReal(CAMERA_ZOOM);
 
+  // as Lux specifies FOV over the smallest dimension and C4D defines it always
+  // over the X axis of the camera, we have to calculate a FOv correction for
+  // landscape layout
+  LONG xResolution = mC4DRenderSettings->GetLong(RDATA_XRES);
+  LONG yResolution = mC4DRenderSettings->GetLong(RDATA_YRES);
+  LReal fovCorrection = (xResolution < yResolution) ? 1.0L : (LReal)yResolution / (LReal)xResolution;
+
   // calculate field of view and determine camera type
   LuxAPI::IdentifierNameT cameraType;
-  LReal fovCorrection = (mXResolution < mYResolution) ? 1.0L : (LReal)mYResolution / (LReal)mXResolution;
   LuxFloatT fov;
   if (projection == Pperspective) {
     fov = (LuxFloatT)(2.0L * atan(0.5L*fovCorrection*filmWidth / focalLength) / pi * 180.0L);
@@ -319,60 +335,84 @@ Bool LuxAPIConverter::exportCamera(BaseDocument& document, LuxAPI& receiver)
   mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "fov", &fov);
 
   // send "Camera" instruction to Lux API
-  return receiver.camera(cameraType, mTempParamSet);
+  return mReceiver->camera(cameraType, mTempParamSet);
 }
 
 
-/// TODO ...
-/// Will export the pixel filter used by Lux. (at the moment it's exporting
-/// only "mitchell").
+/// Exports the pixel filter of the LuxC4D settings, if available. If not, we
+/// export the default pixel filter (mitchell).
 ///
-/// @param[in]  document
-///   The C4D scene to export.
-/// @param[in]  receiver
-///   The implementation of LuxAPI that will consume the statement.
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportPixelFilter(BaseDocument& document, LuxAPI& receiver)
+Bool LuxAPIConverter::exportPixelFilter(void)
 {
+  // safety checks
+  GeAssert(mDocument);
+  GeAssert(mReceiver);
+  GeAssert(mC4DRenderSettings);
+
+  // if no settings object found, use defaults
   mTempParamSet.clear();
-  return receiver.pixelFilter("mitchell", mTempParamSet);
+  if (!mLuxC4DSettings) {
+    return mReceiver->pixelFilter("mitchell", mTempParamSet);
+  }
+
+  // otherwise, obtain settings from object
+  const char *name;
+  mLuxC4DSettings->GetPixelFilter(name, mTempParamSet);
+  return mReceiver->pixelFilter(name, mTempParamSet);
 }
 
 
-/// TODO ...
-/// Will export the sampler used by Lux. (at the moment it's exporting
-/// only "lowdiscrepancy").
+/// Exports the sampler of the LuxC4D settings, if available. If not, we
+/// export the default sampler (lowdiscrepancy).
 ///
-/// @param[in]  document
-///   The C4D scene to export.
-/// @param[in]  receiver
-///   The implementation of LuxAPI that will consume the statement.
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportSampler(BaseDocument& document, LuxAPI& receiver)
+Bool LuxAPIConverter::exportSampler(void)
 {
+  // safety checks
+  GeAssert(mDocument);
+  GeAssert(mReceiver);
+  GeAssert(mC4DRenderSettings);
+
+  // if no settings object found, use defaults
   mTempParamSet.clear();
-  return receiver.sampler("lowdiscrepancy", mTempParamSet);
+  if (!mLuxC4DSettings) {
+    return mReceiver->sampler("lowdiscrepancy", mTempParamSet);
+  }
+
+  // otherwise, obtain settings from object
+  const char *name;
+  mLuxC4DSettings->GetSampler(name, mTempParamSet);
+  return mReceiver->sampler(name, mTempParamSet);
 }
 
 
-/// TODO ...
-/// Will export the surface integrator used by Lux. (at the moment it's
-/// exporting only "path" with "maxdepth = 2").
+/// Exports the surface integrator of the LuxC4D settings, if vailable. If not,
+/// we use the default integrator (path, maxdepth=2).
 ///
-/// @param[in]  document
-///   The C4D scene to export.
-/// @param[in]  receiver
-///   The implementation of LuxAPI that will consume the statement.
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportSurfaceIntegrator(BaseDocument& document, LuxAPI& receiver)
+Bool LuxAPIConverter::exportSurfaceIntegrator(void)
 {
-  LuxIntegerT maxDepth = 2;
+  // safety checks
+  GeAssert(mDocument);
+  GeAssert(mReceiver);
+  GeAssert(mC4DRenderSettings);
+
+  // if no settings object found, use defaults
   mTempParamSet.clear();
-  mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "maxdepth", &maxDepth);
-  return receiver.surfaceIntegrator("path", mTempParamSet);
+  if (!mLuxC4DSettings) {
+    LuxIntegerT maxDepth = 2;
+    mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "maxdepth", &maxDepth);
+    return mReceiver->surfaceIntegrator("path", mTempParamSet);
+  }
+
+  // otherwise, obtain settings from object
+  const char *name;
+  mLuxC4DSettings->GetSurfaceIntegrator(name, mTempParamSet);
+  return mReceiver->surfaceIntegrator(name, mTempParamSet);
 }
 
 
@@ -380,16 +420,12 @@ Bool LuxAPIConverter::exportSurfaceIntegrator(BaseDocument& document, LuxAPI& re
 /// Will export the geometry accelerator used by Lux. (at the moment it's
 /// exporting only "kdtree").
 ///
-/// @param[in]  document
-///   The C4D scene to export.
-/// @param[in]  receiver
-///   The implementation of LuxAPI that will consume the statement.
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportAccelerator(BaseDocument& document, LuxAPI& receiver)
+Bool LuxAPIConverter::exportAccelerator(void)
 {
   mTempParamSet.clear();
-  return receiver.accelerator("kdtree", mTempParamSet);
+  return mReceiver->accelerator("kdtree", mTempParamSet);
 }
 
 
@@ -398,13 +434,9 @@ Bool LuxAPIConverter::exportAccelerator(BaseDocument& document, LuxAPI& receiver
 /// and be called by Do() - similar to exportGeometry. (at the moment it's
 /// exporting only a standard "sunsky").
 ///
-/// @param[in]  document
-///   The C4D scene to export.
-/// @param[in]  receiver
-///   The implementation of LuxAPI that will consume the statement.
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportLights(BaseDocument& document, LuxAPI& receiver)
+Bool LuxAPIConverter::exportLights(void)
 {
   LuxIntegerT nSamples = 1;
   LuxVectorT  sundir(0.5, 0.5, 1.0);
@@ -412,9 +444,9 @@ Bool LuxAPIConverter::exportLights(BaseDocument& document, LuxAPI& receiver)
   mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "nsamples", &nSamples);
   mTempParamSet.addParam(LuxParamSet::LUX_VECTOR,  "sundir",   &sundir);
 
-  return ( receiver.attributeBegin() &&
-           receiver.lightSource("sunsky", mTempParamSet) &&
-           receiver.attributeEnd() );
+  return ( mReceiver->attributeBegin() &&
+           mReceiver->lightSource("sunsky", mTempParamSet) &&
+           mReceiver->attributeEnd() );
 }
 
 
@@ -422,34 +454,26 @@ Bool LuxAPIConverter::exportLights(BaseDocument& document, LuxAPI& receiver)
 /// Will export the textures. (at the moment it's exporting only a white 
 /// "color texture)
 ///
-/// @param[in]  document
-///   The C4D scene to export.
-/// @param[in]  receiver
-///   The implementation of LuxAPI that will consume the statement.
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportTextures(BaseDocument& document, LuxAPI& receiver)
+Bool LuxAPIConverter::exportTextures(void)
 {
   LuxColorT color(0.98, 0.98, 0.98);
   mTempParamSet.clear();
   mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "value", &color);
 
-  return receiver.texture("white", "color", "constant", mTempParamSet);
+  return mReceiver->texture("white", "color", "constant", mTempParamSet);
 }
 
 
 /// Exports the complete geometry of the scene.
 ///
-/// @param[in]  document
-///   The C4D scene to export.
-/// @param[in]  receiver
-///   The implementation of LuxAPI that will consume the statement.
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportGeometry(BaseDocument& document, LuxAPI& receiver)
+Bool LuxAPIConverter::exportGeometry(void)
 {
   HierarchyData data(TRUE);
-  return Run(&document, FALSE, 1.0, VFLAG_EXTERNALRENDERER | VFLAG_POLYGONAL, &data, 0);
+  return Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER | VFLAG_POLYGONAL, &data, 0);
 }
 
 
@@ -457,11 +481,9 @@ Bool LuxAPIConverter::exportGeometry(BaseDocument& document, LuxAPI& receiver)
 ///
 /// @param[in]  object
 ///   The object to export.
-/// @param[in]  receiver
-///   The implementation of LuxAPI that will consume the statement.
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object, LuxAPI& receiver)
+Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object)
 {
   // get polygon object
   PolygonObject* polyObject = (PolygonObject*)&object;
@@ -484,17 +506,17 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object, LuxAPI& receive
   if (!triangles.size() || !points.size())  return TRUE;
 
   // AttributeBegin
-  if (!receiver.attributeBegin())  return FALSE;
+  if (!mReceiver->attributeBegin())  return FALSE;
 
   // write transformation matrix
   LuxMatrixT  globalMatrix(object.GetMg());
-  if (!receiver.transform(globalMatrix))  return FALSE;
+  if (!mReceiver->transform(globalMatrix))  return FALSE;
 
   // write material (TODO - just a placeholder)
   LuxStringT  kd = "white";
   mTempParamSet.clear();
   mTempParamSet.addParam(LuxParamSet::LUX_TEXTURE, "Kd", &kd);
-  if (!receiver.material("matte", mTempParamSet))  return FALSE;
+  if (!mReceiver->material("matte", mTempParamSet))  return FALSE;
 
   // export geometry/shape (TODO - placeholder)
   mTempParamSet.clear();
@@ -506,10 +528,10 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object, LuxAPI& receive
   }
   mTempParamSet.addParam(LuxParamSet::LUX_TRIANGLE, "indices",
                          triangles.getArrayAddress(), triangles.size());
-  if (!receiver.shape("trianglemesh", mTempParamSet))  return FALSE;
+  if (!mReceiver->shape("trianglemesh", mTempParamSet))  return FALSE;
 
   // AttributeEnd
-  if (!receiver.attributeEnd())  return FALSE;
+  if (!mReceiver->attributeEnd())  return FALSE;
 
   return TRUE;
 }
@@ -552,7 +574,7 @@ Bool LuxAPIConverter::convertGeometry(PolygonObject& object,
 
   // initialise triangle and point arrays
   if (!triangles.init((mPolygonCache.size() + mQuadCount) * 3)) {
-    ERRLOG_RETURN("LuxAPIConverter::convertGeometry(): not enough memory to allocate triangle array");
+    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertGeometry(): not enough memory to allocate triangle array");
   }
 
   // store polygons as triangles in array using the correct order for right-handed coords
@@ -608,7 +630,7 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object)
 
   // copy polygons into cache
   if (!mPolygonCache.init(polygonCount)) {
-    ERRLOG_RETURN("LuxAPIConverter::convertAndCacheGeometry(): not enough memory to allocate polygon cache");
+    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheGeometry(): not enough memory to allocate polygon cache");
   }
   memcpy(mPolygonCache.getArrayAddress(), polygons, sizeof(CPolygon)*polygonCount);
 
@@ -670,13 +692,13 @@ Bool LuxAPIConverter::convertAndCacheWithoutNormals(PolygonObject& object)
   const Vector* points = object.GetPointR();
   ULONG polygonCount = mPolygonCache.size();
   if (!pointCount || !points || !polygonCount) {
-    ERRLOG_RETURN("LuxAPIConverter::convertAndCacheWithoutNormals(): geometry expected, but not found");
+    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithoutNormals(): geometry expected, but not found");
   }
 
   // initialise point map
   FixArray1D<ULONG> pointMap;
   if (!pointMap.init(pointCount)) {
-    ERRLOG_RETURN("LuxAPIConverter::convertAndCacheWithoutNormals(): not enough memory to allocate point map");
+    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithoutNormals(): not enough memory to allocate point map");
   }
   pointMap.fillWithZero();
 
@@ -718,7 +740,7 @@ Bool LuxAPIConverter::convertAndCacheWithoutNormals(PolygonObject& object)
 
   // initialise point cache array
   if (!mPointCache.init(newPointCount)) {
-    ERRLOG_RETURN("LuxAPIConverter::convertAndCacheWithoutNormals(): not enough memory to allocate point map");
+    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithoutNormals(): not enough memory to allocate point map");
   }
 
   // now fill point cache only with used points and update polygons
@@ -782,13 +804,13 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
   const Vector* points = object.GetPointR();
   ULONG polygonCount = mPolygonCache.size();
   if (!pointCount || !points || !polygonCount) {
-    ERRLOG_RETURN("LuxAPIConverter::convertAndCacheWithNormals(): geometry expected, but not found");
+    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithNormals(): geometry expected, but not found");
   }
 
   // initialise point map
   FixArray1D<ULONG> pointMap;
   if (!pointMap.init(pointCount+1)) {
-    ERRLOG_RETURN("LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate point map");
+    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate point map");
   }
   pointMap.fillWithZero();
 
@@ -817,13 +839,13 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
   }
   GeDebugOut("  point2poly count: " + LongToString(point2PolyCount));
   if (point2PolyCount > MAXLONG) {
-    ERRLOG_RETURN("LuxAPIConverter::convertAndCacheWithNormals(): point2Poly map will be too big for object '" + object.GetName() + "'");
+    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithNormals(): point2Poly map will be too big for object '" + object.GetName() + "'");
   }
 
   // initialise point2poly array
   Point2PolysT point2Polys;
   if (!point2Polys.init(point2PolyCount)) {
-    ERRLOG_RETURN("LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate poin2poly map");
+    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate poin2poly map");
   }
   point2Polys.fillWithZero();
 
@@ -885,7 +907,7 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
 
   // initialise point cache and normal cache
   if (!mPointCache.init(newPointCount) || !mNormalCache.init(newPointCount)) {
-    ERRLOG_RETURN("LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate point and/or normal cache");
+    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate point and/or normal cache");
   }
 
   // now determine new node IDs and fill normal and point caches

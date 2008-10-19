@@ -26,11 +26,8 @@
 #include "luxapi.h"
 #include "luxapiconverter.h"
 #include "luxapiwriter.h"
-
 #include "luxc4dexporter.h"
-
-
-#define ERRLOG_RETURN(msg)   { GePrint((msg)); return FALSE; }
+#include "utilities.h"
 
 
 
@@ -67,7 +64,7 @@ Bool LuxC4DExporter::registerPlugin(void)
 Bool LuxC4DExporter::Execute(BaseDocument* document)
 {
   // check if document is valid
-  if (!document)  ERRLOG_RETURN("LuxC4D::Execute(): no document passed");
+  if (!document)  ERRLOG_RETURN_FALSE("LuxC4D::Execute(): no document passed");
 
   // get filename of document
   Filename path;

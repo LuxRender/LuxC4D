@@ -1,0 +1,160 @@
+//************************************************************************
+//* LuxC4D - CINEMA 4D plug-in for export to LuxRender                   *
+//* (http://www.luxrender.net)                                           *
+//*                                                                      *
+//* Author:                                                              *
+//* Marcus Spranger (abstrax)                                            *
+//*                                                                      *
+//************************************************************************
+//*                                                                      *
+//* This file is part of LuxC4D.                                         *
+//*                                                                      *
+//* LuxC4D is free software: you can redistribute it and/or modify       *
+//* it under the terms of the GNU General Public License as published by *
+//* the Free Software Foundation, either version 3 of the License, or    *
+//* (at your option) any later version.                                  *
+//*                                                                      *
+//* LuxC4D is distributed in the hope that it will be useful,            *
+//* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+//* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+//* GNU General Public License for more details.                         *
+//*                                                                      *
+//* You should have received a copy of the GNU General Public License    *
+//* along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
+//************************************************************************
+
+STRINGTABLE VPluxc4dsettings
+{
+  VPluxc4dsettings "LuxC4D Scene Settings";
+  
+  IDG_RENDER                          "Render";
+  
+    IDG_SAMPLING                        "Sampling";
+    IDD_SAMPLER                         "Sampler";
+    IDD_ADVANCED_SAMPLER                "Advanced";
+    
+      IDD_SAMPLER_LOWDISCREPANCY          "Low Discrepancy";
+      IDD_SAMPLER_HALTON                  "Halton";
+      IDD_SAMPLER_METROPOLIS              "Metropolis";
+      IDD_SAMPLER_ERPT                    "ERPT";
+      IDD_SAMPLER_RANDOM                  "Random";
+
+    IDD_LOWDISCREPANCY_PIXELSAMPLER     "Pixel Sampler";
+    IDD_LOWDISCREPANCY_SAMPLES          "Pixel Samples";
+
+    IDD_RANDOM_PIXELSAMPLER             "Pixel Sampler";
+    IDD_RANDOM_SAMPLES_X                "Pixel Samples X";
+    IDD_RANDOM_SAMPLES_Y                "Pixel Samples Y";
+
+      IDD_PIXELSAMPLER_LOWDISCREPANCY     "Low Discrepancy";
+      IDD_PIXELSAMPLER_HILBERT            "Hilbert";
+      IDD_PIXELSAMPLER_VEGAS              "Vegas";
+      IDD_PIXELSAMPLER_RANDOM             "Random";
+      IDD_PIXELSAMPLER_LINEAR             "Linear";
+      IDD_PIXELSAMPLER_TILE               "Tile";
+
+    IDD_METROPOLIS_INIT_SAMPLES         "Initial Samples";
+    IDD_METROPOLIS_MAX_CONSEC_REJECTS   "Max. Consecutive Rejects";
+    IDD_METROPOLIS_LARGE_MUTATION_PROB  "Large Mutation Probability";
+    IDD_METROPOLIS_MICRO_MUTATION_PROB  "Small Mutation Probability";
+    IDD_METROPOLIS_MUTATION_RANGE       "Small Mutation Range";
+    IDD_METROPOLIS_STRATA_WIDTH         "Strata Width";
+    IDD_METROPOLIS_USE_VARIANCE         "Use Variance";
+    IDD_METROPOLIS_USE_QR               "Use Quasi-Random Sequences";
+
+    IDD_ERPT_INIT_SAMPLES               "Initial Samples";
+    IDD_ERPT_CHAINLENGTH                "Chain Length";
+    IDD_ERPT_MICRO_MUTATION_PROB        "Small Mutation Probability";
+    IDD_ERPT_MUTATION_RANGE             "Small Mutation Range";
+
+
+    IDG_INTEGRATION                     "Integration";
+    IDD_INTEGRATOR                      "Integrator";
+    
+      IDD_INTEGRATOR_PATH                 "Path";
+      IDD_INTEGRATOR_DISTRIBUTED_PATH     "Distributed Path";
+      IDD_INTEGRATOR_BIDIRECTIONAL        "Bidirectional";
+    
+    IDD_PATH_MAX_DEPTH                  "Max. Depth";
+    IDD_PATH_DIRECT_LIGHT_STRATEGY      "Direct Light Strategy";
+    IDD_PATH_RR_STRATEGY                "Russian Roulette Strategy";
+    IDD_PATH_RR_CONTINUE_PROB           "R.R. Continue Prob";
+
+      IDD_DIRECT_LIGHT_STRATEGY_AUTO      "Auto";
+      IDD_DIRECT_LIGHT_STRATEGY_ONE       "One Light";
+      IDD_DIRECT_LIGHT_STRATEGY_ALL       "All Lights";
+
+      IDD_PATH_RR_STRATEGY_EFFICIENCY     "Efficiency";
+      IDD_PATH_RR_STRATEGY_PROBABILITY    "Probability";
+      IDD_PATH_RR_STRATEGY_NONE           "None";
+
+    IDD_DISTRIBUTED_PATH_DIRECT_LIGHT_STRATEGY          "Direct Light Strategy";
+    IDD_DISTRIBUTED_PATH_DIRECT_DIRECT_LIGHT_SAMPLES    "Light Samples At First Vertex";
+    IDD_DISTRIBUTED_PATH_INDIRECT_DIRECT_LIGHT_SAMPLES  "Light Samples At Other Vertices";
+    IDD_DISTRIBUTED_PATH_DIFFUSE_REFLECT_DEPTH          "Diffuse Reflection Depth";
+    IDD_DISTRIBUTED_PATH_DIFFUSE_REFLECT_SAMPLES        "Samples";
+    IDD_DISTRIBUTED_PATH_DIFFUSE_REFRACT_DEPTH          "Diffuse Refraction Depth";
+    IDD_DISTRIBUTED_PATH_DIFFUSE_REFRACT_SAMPLES        "Samples";
+    IDD_DISTRIBUTED_PATH_GLOSSY_REFLECT_DEPTH           "Glossy Reflection Depth";
+    IDD_DISTRIBUTED_PATH_GLOSSY_REFLECT_SAMPLES         "Samples";
+    IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_DEPTH           "Glossy Refraction Depth";
+    IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_SAMPLES         "Samples";
+    IDD_DISTRIBUTED_PATH_SPECULAR_REFLECT_DEPTH         "Specular Reflection Depth";
+    IDD_DISTRIBUTED_PATH_SPECULAR_REFRACT_DEPTH         "Specular Refraction Depth";
+    
+    IDD_BIDIRECTIONAL_EYE_DEPTH             "Eye Depth";
+    IDD_BIDIRECTIONAL_LIGHT_DEPTH           "Light Depth";
+    IDD_BIDIRECTIONAL_DIRECT_LIGHT_STRATEGY "Direct Light Strategy";
+
+
+    IDG_FILTERING                       "Filtering";
+    IDD_PIXEL_FILTER                    "Pixel Filter";
+    
+      IDD_PIXEL_FILTER_BOX                "Box";
+      IDD_PIXEL_FILTER_GAUSSIAN           "Gaussian";
+      IDD_PIXEL_FILTER_MITCHELL           "Mitchell";
+      IDD_PIXEL_FILTER_SINC               "Sinc";
+      IDD_PIXEL_FILTER_TRIANGLE           "Triangle";
+
+    IDD_BOX_FILTER_WIDTH                "Width";
+    IDD_BOX_FILTER_HEIGHT               "Height";
+
+    IDD_GAUSSIAN_FILTER_WIDTH           "Width";
+    IDD_GAUSSIAN_FILTER_HEIGHT          "Height";
+    IDD_GAUSSIAN_FILTER_ALPHA           "Alpha";
+
+    IDD_MITCHELL_FILTER_WIDTH           "Width";
+    IDD_MITCHELL_FILTER_HEIGHT          "Height";
+    IDD_MITCHELL_FILTER_B               "B";
+    IDD_MITCHELL_FILTER_C               "C";
+
+    IDD_SINC_FILTER_WIDTH               "Width";
+    IDD_SINC_FILTER_HEIGHT              "Height";
+    IDD_SINC_FILTER_TAU                 "Tau";
+
+    IDD_TRIANGLE_FILTER_WIDTH           "Width";
+    IDD_TRIANGLE_FILTER_HEIGHT          "Height";
+
+
+  IDG_OUTPUT                          "Output";
+
+    IDG_FILM                            "Film";
+    IDD_FILM                            "Film";
+
+      IDD_FILM_FLEXIMAGE                  "FlexImage";
+
+    IDD_FLEXIMAGE_HALT_SPP                "Halt SPP";
+    IDD_FLEXIMAGE_GAMMA                   "Gamma";
+    IDD_FLEXIMAGE_TONEMAP_SETTINGS        "Tonemap Settings";
+    IDD_FLEXIMAGE_REINHARD_PRESCALE       "Reinhard Pre-Scale";
+    IDD_FLEXIMAGE_REINHARD_POSTSCALE      "Reinhard Post-Scale";
+    IDD_FLEXIMAGE_REINHARD_BURN           "Reinhard Burn";
+    IDD_FLEXIMAGE_PREMULTIPLY             "Pre-Muliply Alpha";
+    IDD_FLEXIMAGE_DISPLAY_INTERVAL        "Display Interval (s)";
+    IDD_FLEXIMAGE_WRITE_INTERVAL          "Write Interval (s)";
+    IDD_FLEXIMAGE_WRITE_TONEMAPPED_TGA    "Tonemapped TGA";
+    IDD_FLEXIMAGE_WRITE_TONEMAPPED_EXR    "Tonemapped EXR";
+    IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_EXR  "Untonemapped EXR";
+    IDD_FLEXIMAGE_WRITE_TONEMAPPED_IGI    "Tonemapped IGI";
+    IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_IGI  "Untonemapped IGI";
+}

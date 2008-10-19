@@ -24,6 +24,7 @@
  ************************************************************************/
 
 #include "luxparamset.h"
+#include "utilities.h"
 
 
 
@@ -44,7 +45,7 @@ LuxParamSet::LuxParamSet(ParamNumberT maxParamNumber)
     mParamNames = 0;
     mParamPointers = 0;
     mParamArraySizes = 0;
-    GePrint("LuxParamSet::LuxParamSet(): maxParamNumber was <= 0!");
+    ERRLOG("LuxParamSet::LuxParamSet(): maxParamNumber was <= 0!");
     return;
   }
 
@@ -62,7 +63,7 @@ LuxParamSet::LuxParamSet(ParamNumberT maxParamNumber)
     bDelete(mParamPointers);
     bDelete(mParamArraySizes);
     mMaxParamNumber = 0;
-    GePrint("LuxParamSet::LuxParamSet(): not enough memory");
+    ERRLOG("LuxParamSet::LuxParamSet(): not enough memory");
     return;
   }
 }
@@ -96,13 +97,13 @@ Bool LuxParamSet::addParam(ParamTypeT    type,
 {
   // check if therer is still some space left
   if (mParamNumber >= mMaxParamNumber) {
-    GePrint("LuxParamSet::addParam(): no more space left");
+    ERRLOG("LuxParamSet::addParam(): no more space left");
     return FALSE;
   }
 
   // check if the passed parameters are valid
   if (!name || !pointer || !arraySize) {
-    GePrint("LuxParamSet::addParam(): 0 is not allowed for token name, token pointer or token number");
+    ERRLOG("LuxParamSet::addParam(): 0 is not allowed for token name, token pointer or token number");
     return FALSE;
   }
 

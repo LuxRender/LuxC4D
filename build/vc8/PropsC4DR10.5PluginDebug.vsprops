@@ -7,7 +7,7 @@
 	<Tool
 		Name="VCCLCompilerTool"
 		AdditionalOptions="/vmg /vms"
-		AdditionalIncludeDirectories="..\..\res;&quot;$(C4D_ROOT)\resource\_api&quot;;&quot;$(C4D_ROOT)\resource\_api\c4d_customgui&quot;;&quot;$(C4D_ROOT)\resource\_api\c4d_libs&quot;;&quot;$(C4D_ROOT)\resource\_api\c4d_preview&quot;;&quot;$(C4D_ROOT)\resource\_api\c4d_scaling&quot;;&quot;$(C4D_ROOT)\resource\_api\c4d_gv&quot;"
+		AdditionalIncludeDirectories="..\..\res;..\..\res\description;$(C4D_ROOT)\resource\_api;$(C4D_ROOT)\resource\_api\c4d_customgui;$(C4D_ROOT)\resource\_api\c4d_libs;$(C4D_ROOT)\resource\_api\c4d_preview;$(C4D_ROOT)\resource\_api\c4d_scaling;$(C4D_ROOT)\resource\_api\c4d_gv"
 		PreprocessorDefinitions="__PC;_WINDOWS"
 		DisableSpecificWarnings="4100"
 	/>
@@ -32,6 +32,6 @@
 	/>
 	<UserMacro
 		Name="C4D_ROOT"
-		Value="..\..\..\..\C4D_R10.5"
+		Value="..\..\..\..\..\C4D_R10.5"
 	/>
 </VisualStudioPropertySheet>

@@ -32,6 +32,7 @@
 
 #include "fixarray1d.h"
 #include "luxapi.h"
+#include "luxc4dsettings.h"
 
 
 
@@ -52,12 +53,14 @@ public:
   LuxAPIConverter(void);
   ~LuxAPIConverter(void);
 
-  Bool convertScene(BaseDocument& document, LuxAPI& receiver);
+  Bool convertScene(BaseDocument& document,
+                    LuxAPI&       receiver);
 
   // Callback functions called while Hierarchy traverses the hierarchy.
   virtual void* Alloc(void);
   virtual void Free(void* data);
-  virtual void CopyTo(void* src, void* dst);
+  virtual void CopyTo(void* src,
+                      void* dst);
   virtual Bool Do(void*         data,
                   BaseObject*   object,
                   const Matrix& globalMatrix,
@@ -110,42 +113,42 @@ private:
   typedef FixArray1D<Vector>      C4DNormalsT;
 
 
-  BaseDocument* mDocument;
-  LuxAPI*       mReceiver;
-  LuxParamSet   mTempParamSet;
-
-  // obtained by exportFilm()
-  LONG          mXResolution;
-  LONG          mYResolution;
+  // references used by the whole conversion process and stored for convenience
+  BaseDocument*   mDocument;
+  LuxAPI*         mReceiver;
+  BaseContainer*  mC4DRenderSettings;
+  LuxC4DSettings* mLuxC4DSettings;
+  LuxParamSet     mTempParamSet;
 
   // the following data members store the geometry for one object which is
   // cached by extractAndConvertGeometry()
-  BaseObject*   mCachedObject;
-  C4DPolygonsT  mPolygonCache;
-  PointsT       mPointCache;
-  NormalsT      mNormalCache;
-  ULONG         mQuadCount;
+  BaseObject*     mCachedObject;
+  C4DPolygonsT    mPolygonCache;
+  PointsT         mPointCache;
+  NormalsT        mNormalCache;
+  ULONG           mQuadCount;
 
   
-  Bool exportFilm(BaseDocument& doc, LuxAPI& receiver);
-  Bool exportCamera(BaseDocument& doc, LuxAPI& receiver);
-  Bool exportPixelFilter(BaseDocument& doc, LuxAPI& receiver);
-  Bool exportSampler(BaseDocument& doc, LuxAPI& receiver);
-  Bool exportSurfaceIntegrator(BaseDocument& doc, LuxAPI& receiver);
-  Bool exportAccelerator(BaseDocument& doc, LuxAPI& receiver);
+  Bool exportFilm(void);
+  Bool exportCamera(void);
+  Bool exportPixelFilter(void);
+  Bool exportSampler(void);
+  Bool exportSurfaceIntegrator(void);
+  Bool exportAccelerator(void);
 
-  Bool exportLights(BaseDocument& doc, LuxAPI& receiver);
-  Bool exportTextures(BaseDocument& doc, LuxAPI& receiver);
-  Bool exportGeometry(BaseDocument& doc, LuxAPI& receiver);
+  Bool exportLights(void);
+  Bool exportTextures(void);
+  Bool exportGeometry(void);
 
-  Bool exportPolygonObject(PolygonObject& obj, LuxAPI& receiver);
+  Bool exportPolygonObject(PolygonObject& obj);
   Bool convertGeometry(PolygonObject& object,
                        TrianglesT&    triangles,
                        PointsT&       points,
                        NormalsT&      normals);
   Bool convertAndCacheGeometry(PolygonObject& object);
   Bool convertAndCacheWithoutNormals(PolygonObject& object);
-  Bool convertAndCacheWithNormals(PolygonObject& object, C4DNormalsT& normals);
+  Bool convertAndCacheWithNormals(PolygonObject& object,
+                                  C4DNormalsT&   normals);
 };
 
 

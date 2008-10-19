@@ -26,12 +26,8 @@
 #include <cstdio>
 
 #include "c4d_symbols.h"
-
 #include "luxapiwriter.h"
-
-
-
-#define ERRLOG_RETURN(id,msg)   { mErrorStringID=(id); GePrint((msg)); return FALSE; }
+#include "utilities.h"
 
 
 
@@ -48,7 +44,7 @@ LuxAPIWriter::~LuxAPIWriter(void)
 {
   // if output fileis still open for some reason, finish it and close it
   if (mSceneFileOpened) {
-    GePrint("LuxAPIWriter::~LuxAPIWriter(): scene file wasn't closed properly");
+    ERRLOG("LuxAPIWriter::~LuxAPIWriter(): scene file wasn't closed properly");
     endScene();
   }
 }
@@ -67,9 +63,9 @@ Bool LuxAPIWriter::init(const Filename &sceneFile)
 {
   // if there is already an open file, finish it and close it
   if (mSceneFileOpened) {
-    GePrint("LuxAPIWriter::init(): scene file wasn't closed properly before");
+    ERRLOG("LuxAPIWriter::init(): scene file wasn't closed properly before");
     if (!endScene()) {
-      ERRLOG_RETURN(IDS_ERROR_IO, "LuxAPIWriter::init():  could not close old scene file -> can't create new scene file");
+      ERRLOG_ID_RETURN_FALSE(IDS_ERROR_IO, "LuxAPIWriter::init():  could not close old scene file -> can't create new scene file");
     }
   }
 
@@ -83,16 +79,16 @@ Bool LuxAPIWriter::init(const Filename &sceneFile)
 Bool LuxAPIWriter::startScene(const CHAR* head)
 {
   if (mSceneFileOpened) {
-    GePrint("LuxAPIWriter::startScene(): scene file wasn't closed properly before");
+    ERRLOG("LuxAPIWriter::startScene(): scene file wasn't closed properly before");
     if (!endScene()) {
-      ERRLOG_RETURN(IDS_ERROR_IO, "LuxAPIWriter::startScene(): could not close old scene file -> can't create new scene file");
+      ERRLOG_ID_RETURN_FALSE(IDS_ERROR_IO, "LuxAPIWriter::startScene(): could not close old scene file -> can't create new scene file");
     }
   }
   if (!mSceneFilename.Content()) {
-    ERRLOG_RETURN(IDS_ERROR_INTERNAL, "LuxAPIWriter::startScene(): no filename has been set");
+    ERRLOG_ID_RETURN_FALSE(IDS_ERROR_INTERNAL, "LuxAPIWriter::startScene(): no filename has been set");
   }
   if (!mSceneFile->Open(mSceneFilename, GE_WRITE, FILE_DIALOG)) {
-    ERRLOG_RETURN(IDS_ERROR_IO, "LuxAPIWriter::startScene(): could not open file '" + mSceneFilename.GetString() + "'");
+    ERRLOG_ID_RETURN_FALSE(IDS_ERROR_IO, "LuxAPIWriter::startScene(): could not open file '" + mSceneFilename.GetString() + "'");
   }
   mSceneFileOpened = TRUE;
   return writeLine(head) && writeLine("\n\n#Global Settings\n");
@@ -103,7 +99,7 @@ Bool LuxAPIWriter::endScene(void)
 {
   if (!mSceneFileOpened)  return TRUE;
   if (!mSceneFile->Close()) {
-    ERRLOG_RETURN(IDS_ERROR_IO, "LuxAPIWriter::endScene(): could not close scene file");
+    ERRLOG_ID_RETURN_FALSE(IDS_ERROR_IO, "LuxAPIWriter::endScene(): could not close scene file");
   }
   mSceneFileOpened = FALSE;
   return TRUE;
@@ -123,7 +119,7 @@ Bool LuxAPIWriter::lookAt(const LuxVectorT& camPos,
                      trgPos.x, trgPos.y, trgPos.z,
                      upVec.x,  upVec.y,  upVec.z);
   if (!mSceneFile->WriteBytes(buffer, len)) {
-    ERRLOG_RETURN(IDS_ERROR_IO, "LuxAPIWriter::lookAt(): writing to file failed");
+    ERRLOG_ID_RETURN_FALSE(IDS_ERROR_IO, "LuxAPIWriter::lookAt(): writing to file failed");
   }
   return TRUE;
 }
@@ -238,7 +234,7 @@ Bool LuxAPIWriter::transform(const LuxMatrixT& matrix)
                      matrix.values[8],  matrix.values[9],  matrix.values[10], matrix.values[11], 
                      matrix.values[12], matrix.values[13], matrix.values[14], matrix.values[15]);
   if (!mSceneFile->WriteBytes(buffer, len)) {
-    ERRLOG_RETURN(IDS_ERROR_IO, "LuxAPIWriter::lookAt(): writing to file failed");
+    ERRLOG_ID_RETURN_FALSE(IDS_ERROR_IO, "LuxAPIWriter::lookAt(): writing to file failed");
   }
   return TRUE;
 }
@@ -269,13 +265,13 @@ Bool LuxAPIWriter::writeLine(const CHAR* text)
     LONG len = (LONG)strlen(text);
     if (len > 0) {
       if (!mSceneFile->WriteBytes(text, len)) {
-        ERRLOG_RETURN(IDS_ERROR_IO, "LuxAPIWriter::writeLine(): writing to file failed");
+        ERRLOG_ID_RETURN_FALSE(IDS_ERROR_IO, "LuxAPIWriter::writeLine(): writing to file failed");
       }
     }
   }
 
   if (!mSceneFile->WriteChar('\n')) {
-    ERRLOG_RETURN(IDS_ERROR_IO, "LuxAPIWriter::writeLine(): writing to file failed");
+    ERRLOG_ID_RETURN_FALSE(IDS_ERROR_IO, "LuxAPIWriter::writeLine(): writing to file failed");
   }
   return TRUE;
 }
@@ -299,7 +295,7 @@ Bool LuxAPIWriter::writeSetting(SettingNameT    setting,
         !mSceneFile->WriteBytes(identifier, (VLONG)strlen(identifier)) ||
         !mSceneFile->WriteBytes("\"\n", 2))))
   {
-    ERRLOG_RETURN(IDS_ERROR_IO, "LuxAPIWriter::writeSetting(): writing to file failed");
+    ERRLOG_ID_RETURN_FALSE(IDS_ERROR_IO, "LuxAPIWriter::writeSetting(): writing to file failed");
   }
 
   return TRUE;
@@ -545,7 +541,7 @@ Bool LuxAPIWriter::writeSetting(SettingNameT       setting,
           break;
         }
       default:
-        ERRLOG_RETURN(IDS_ERROR_INTERNAL, "LuxAPIWriter::writeSetting(): invalid type specifier in token name");
+        ERRLOG_ID_RETURN_FALSE(IDS_ERROR_INTERNAL, "LuxAPIWriter::writeSetting(): invalid type specifier in token name");
     }
     success &= mSceneFile->WriteChar(']');
   }
@@ -555,7 +551,7 @@ Bool LuxAPIWriter::writeSetting(SettingNameT       setting,
 
   // check if some of the write operations have failed
   if (!success) {
-    ERRLOG_RETURN(IDS_ERROR_IO, "LuxAPIWriter::writeSetting(): writing to file failed");
+    ERRLOG_ID_RETURN_FALSE(IDS_ERROR_IO, "LuxAPIWriter::writeSetting(): writing to file failed");
   }
   return TRUE;
 }

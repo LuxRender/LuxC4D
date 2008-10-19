@@ -23,57 +23,28 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
-#include "c4d.h"
-
-#include "luxc4dexporter.h"
-#include "luxc4dsettings.h"
-#include "utilities.h"
+#ifndef __UTILITIES_H__
+#define __UTILITIES_H__ 1
 
 
 
-/// Hook that is called during the launch of CINEMA 4D, when the DLL
-/// was loaded and the plugins should be initialised and registered.
-///
-/// @return
-///   TRUE if successful, otherwise FALSE.
-Bool PluginStart(void)
-{
-  // initialize global resource object
-  if (!resource.Init()) {
-    ERRLOG("Global resource object could not be initialized.");
-    return FALSE;
-  }
+/// Logs/prints an error message.
+#define ERRLOG(msg)                                                           \
+  { GePrint(msg); }
 
-  // register LuxC4DExporter
-  LuxC4DExporter* exporter = gNewNC LuxC4DExporter;
-  if (!exporter) {
-    ERRLOG("Could not allocate LuxC4DExporter plugin.");
-    return FALSE;
-  }
-  if (!exporter->registerPlugin()) {
-    gDelete(exporter);
-    ERRLOG("Could not register LuxC4DExporter plugin.");
-    return FALSE;
-  }
+/// Logs/prints an error message and returns (without a return value).
+#define ERRLOG_RETURN(msg)                                                    \
+  { ERRLOG(msg);  return; }
 
-  // register LuxC4DSettings
-  if (!LuxC4DSettings::registerPlugin()) {
-    ERRLOG("Could not register LuxC4DSettings plugin.");
-    return FALSE;
-  }
+/// Logs/prints an error message and returns with the return value FALSE.
+#define ERRLOG_RETURN_FALSE(msg)                                              \
+  { ERRLOG(msg);  return FALSE; }
 
-  return TRUE;
-}
+/// Logs/prints an error message, defined by an ID and returns
+/// (without a return value).
+#define ERRLOG_ID_RETURN_FALSE(id,msg)                                        \
+  { mErrorStringID=(id);  ERRLOG(msg);  return FALSE; }
 
 
-/// Hook that is called during the shut down of CINEMA 4D. Here we can
-/// deallocate all resources, that are not owned by CINEMA 4D.
-void PluginEnd(void)
-{}
 
-
-/// Hook that is called for different messages.
-Bool PluginMessage(LONG id, void *data)
-{
-  return FALSE;
-}
+#endif  // #ifndef __UTILITIES_H__

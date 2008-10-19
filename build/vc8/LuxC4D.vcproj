@@ -160,6 +160,53 @@
 					>
 					<FileConfiguration
 						Name="R10.5_Debug|Win32"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\res\strings_us\description\vpluxc4dsettings.str"
+					>
+					<FileConfiguration
+						Name="R10.5_Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="R10.5_Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="description"
+				>
+				<File
+					RelativePath="..\..\res\description\vpluxc4dsettings.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\res\description\vpluxc4dsettings.res"
+					>
+					<FileConfiguration
+						Name="R10.5_Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="R10.5_Release|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -227,6 +274,10 @@
 		</File>
 		<File
 			RelativePath="..\..\src\luxtypes.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\utilities.h"
 			>
 		</File>
 	</Files>
