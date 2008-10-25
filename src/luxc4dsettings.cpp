@@ -143,6 +143,11 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetBool(IDD_FLEXIMAGE_WRITE_TONEMAPPED_IGI,   FALSE);
   data->SetBool(IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_IGI, FALSE);
 
+  // set export defaults
+  data->SetLong(IDD_WHICH_EXPORT_FILENAME, IDD_ASK_FOR_EXPORT_FILENAME);
+  data->SetBool(IDD_ALLOW_OVERWRITING,     FALSE);
+  data->SetReal(IDD_SCALE_FACTOR,          0.01);
+
   return TRUE;
 }
 
@@ -231,6 +236,11 @@ Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
   ShowParameter(description, IDD_FLEXIMAGE_REINHARD_POSTSCALE, params, tonemapSettings);
   ShowParameter(description, IDD_FLEXIMAGE_REINHARD_BURN,      params, tonemapSettings);
   ShowParameter(description, IDD_FLEXIMAGE_REINHARD_DUMMY,     params, tonemapSettings);
+
+  // show/hide conversion parameters
+  LONG exportFilenameMethod = nodeData->GetLong(IDD_WHICH_EXPORT_FILENAME);
+  ShowParameter(description, IDD_EXPORT_FILENAME,   params, exportFilenameMethod == IDD_DEFINE_EXPORT_FILENAME);
+  ShowParameter(description, IDD_ALLOW_OVERWRITING, params, exportFilenameMethod != IDD_ASK_FOR_EXPORT_FILENAME);
 
   // set flag and return
   flags |= DESCFLAGS_DESC_LOADED;
@@ -623,6 +633,57 @@ void LuxC4DSettings::GetSurfaceIntegrator(const char*& name,
 
   // store integrator name
   name = sIntegratorNames[integrator];
+}
+
+
+/// Obtains the filename of the exported scene from the settings. If it's not
+/// specified the filename will be empty.
+///
+/// @param[in]  document
+///   The document that should be exported.
+/// @param[out]  path
+///   The filename for the file to export.
+/// @param[out]  overwritingAllowed
+///   Will be set to TRUE, if the user wants to export to that filename, even
+///   if already a file with that path exists.
+void LuxC4DSettings::GetExportFilename(BaseDocument& document,
+                                       Filename&     path,
+                                       Bool&         overwritingAllowed)
+{
+  // reset return values
+  path               = Filename();
+  overwritingAllowed = FALSE;
+
+  // get base container and determine export filename method that was chosen
+  BaseContainer* data = GetData();
+  if (!data)  return;
+  LONG exportFilenameMethod = data->GetLong(IDD_WHICH_EXPORT_FILENAME);
+
+  // if the filename is derived from the C4D scene file, get the C4D filename
+  // and make a .lxs file out of it
+  if (exportFilenameMethod == IDD_USE_C4D_EXPORT_FILENAME) {
+    path.SetDirectory(document.GetDocumentPath());
+    path.SetFile(document.GetDocumentName());
+    path.SetSuffix("lxs");
+  // otherwise, just grab the filename from the input field and set the suffix
+  // to .lxs
+  } else if (exportFilenameMethod == IDD_DEFINE_EXPORT_FILENAME) {
+    path = data->GetFilename(IDD_EXPORT_FILENAME);
+    path.SetSuffix("lxs");
+  }
+
+  // determine if the userwants overwrite files
+  overwritingAllowed = data->GetBool(IDD_ALLOW_OVERWRITING);
+}
+
+
+/// Returns the global scale from the settings object.
+LReal LuxC4DSettings::GetC4D2LuxScale(void)
+{
+  // get base container and return the scale factor from it
+  BaseContainer* data = GetData();
+  if (!data)  return 0.01;
+  return data->GetReal(IDD_SCALE_FACTOR);
 }
 
 

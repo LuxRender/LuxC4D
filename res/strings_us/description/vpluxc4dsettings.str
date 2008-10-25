@@ -157,4 +157,18 @@ STRINGTABLE VPluxc4dsettings
     IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_EXR  "Untonemapped EXR";
     IDD_FLEXIMAGE_WRITE_TONEMAPPED_IGI    "Tonemapped IGI";
     IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_IGI  "Untonemapped IGI";
+    
+    
+  IDG_EXPORT                          "Export";
+    
+    IDD_WHICH_EXPORT_FILENAME           "Export Filename";
+    IDD_EXPORT_FILENAME                 "";
+    IDD_ALLOW_OVERWRITING               "Allow Overwriting";
+
+      IDD_ASK_FOR_EXPORT_FILENAME         "Ask Each Export";
+      IDD_USE_C4D_EXPORT_FILENAME         "Same Name As C4D Project";
+      IDD_DEFINE_EXPORT_FILENAME          "Define Filename Here";
+
+    IDD_SCALE_FACTOR                    "C4D -> Lux Scale Factor";
+
 }

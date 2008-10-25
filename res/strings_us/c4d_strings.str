@@ -25,10 +25,12 @@
 
 STRINGTABLE 
 {
-  IDS_LUXC4D_EXPORTER        "LuxC4D Export";
-  IDS_LUXC4D_EXPORTER_DESCR  "Exports this scene to LuxRender scene file";
+  IDS_LUXC4D_EXPORTER         "LuxC4D Export";
+  IDS_LUXC4D_EXPORTER_DESCR   "Exports this scene to LuxRender scene file";
+  IDS_OVERWRITE_FILE_QUERY    "File '#' already exists! Should we overwrite it?";
+  IDS_EXPORT_FILENAME_QUERY   "Please choose the export filename";
   
-  IDS_LUXC4D_SETTINGS        "LuxC4D Scene Settings";
+  IDS_LUXC4D_SETTINGS         "LuxC4D Scene Settings";
   
   IDS_ERROR_INITIALISE_LUXAPIWRITER "Could not initialise export to file '#'!";
   IDS_ERROR_IO                      "Writing to file failed!";

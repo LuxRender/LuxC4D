@@ -69,6 +69,10 @@ public:
                   LuxParamSet& paramSet);
   void GetSurfaceIntegrator(const char*& name,
                             LuxParamSet& paramSet);
+  void GetExportFilename(BaseDocument& document,
+                         Filename&     path,
+                         Bool&         overwritingAllowed);
+  LReal GetC4D2LuxScale(void);
 
 
 private:

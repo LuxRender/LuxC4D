@@ -128,42 +128,42 @@ Bool LuxAPIWriter::lookAt(const LuxVectorT& camPos,
 Bool LuxAPIWriter::film(IdentifierNameT    name,
                         const LuxParamSet& paramSet)
 {
-  return writeSetting("Film", name, 0, 0, paramSet);
+  return writeSetting("Film", name, 0, 0, paramSet, TRUE);
 }
 
 
 Bool LuxAPIWriter::camera(IdentifierNameT     name,
                           const LuxParamSet& paramSet)
 {
-  return writeSetting("Camera", name, 0, 0, paramSet);
+  return writeSetting("Camera", name, 0, 0, paramSet, TRUE);
 }
 
 
 Bool LuxAPIWriter::pixelFilter(IdentifierNameT    name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting("PixelFilter", name, 0, 0, paramSet);
+  return writeSetting("PixelFilter", name, 0, 0, paramSet, TRUE);
 }
 
 
 Bool LuxAPIWriter::sampler(IdentifierNameT    name,
                            const LuxParamSet& paramSet)
 {
-  return writeSetting("Sampler", name, 0, 0, paramSet);
+  return writeSetting("Sampler", name, 0, 0, paramSet, TRUE);
 }
 
 
 Bool LuxAPIWriter::surfaceIntegrator(IdentifierNameT    name,
                                      const LuxParamSet& paramSet)
 {
-  return writeSetting("SurfaceIntegrator", name, 0, 0, paramSet);
+  return writeSetting("SurfaceIntegrator", name, 0, 0, paramSet, TRUE);
 }
 
 
 Bool LuxAPIWriter::accelerator(IdentifierNameT    name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting("Accelerator", name, 0, 0, paramSet);
+  return writeSetting("Accelerator", name, 0, 0, paramSet, FALSE);
 }
 
 
@@ -206,7 +206,7 @@ Bool LuxAPIWriter::objectEnd(void)
 Bool LuxAPIWriter::lightSource(IdentifierNameT    name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting("LightSource", name, 0, 0, paramSet);
+  return writeSetting("LightSource", name, 0, 0, paramSet, FALSE);
 }
 
 
@@ -215,7 +215,7 @@ Bool LuxAPIWriter::texture(IdentifierNameT    name,
                            IdentifierNameT    type,
                            const LuxParamSet& paramSet)
 {
-  return writeSetting("\nTexture", name, colorType, type, paramSet);
+  return writeSetting("\nTexture", name, colorType, type, paramSet, FALSE);
 }
 
 
@@ -243,14 +243,14 @@ Bool LuxAPIWriter::transform(const LuxMatrixT& matrix)
 Bool LuxAPIWriter::material(IdentifierNameT    name,
                             const LuxParamSet& paramSet)
 {
-  return writeSetting("Material", name, 0, 0, paramSet);
+  return writeSetting("Material", name, 0, 0, paramSet, FALSE);
 }
 
 
 Bool LuxAPIWriter::shape(IdentifierNameT    name,
                          const LuxParamSet& paramSet)
 {
-  return writeSetting("Shape", name, 0, 0, paramSet);
+  return writeSetting("Shape", name, 0, 0, paramSet, FALSE);
 }
 
 
@@ -316,14 +316,16 @@ Bool LuxAPIWriter::writeSetting(SettingNameT    setting,
 ///   The third identifier (e.g. the texture type "constant"). (can be NULL)
 /// @param[in]  paramSet
 ///   The additional parameters for this statement.
-///
+/// @param[in]  newLine
+///   Inserts a line feed after each parameter.
 /// @return
 ///   TRUE if successful, otherwise FALSE.
 Bool LuxAPIWriter::writeSetting(SettingNameT       setting,
                                 IdentifierNameT    identifier1,
                                 IdentifierNameT    identifier2,
                                 IdentifierNameT    identifier3,
-                                const LuxParamSet& paramSet)
+                                const LuxParamSet& paramSet,
+                                Bool               newLine)
 {
   // these are the type identifiers used in the Lux file format
   static const struct {
@@ -359,6 +361,9 @@ Bool LuxAPIWriter::writeSetting(SettingNameT       setting,
     success &= mSceneFile->WriteBytes(" \"", 2);
     success &= mSceneFile->WriteBytes(identifier3, (VLONG)strlen(identifier3));
     success &= mSceneFile->WriteChar('"');
+  }
+  if (newLine) {
+    success &= mSceneFile->WriteChar('\n');
   }
 
   // write parameters
@@ -544,6 +549,9 @@ Bool LuxAPIWriter::writeSetting(SettingNameT       setting,
         ERRLOG_ID_RETURN_FALSE(IDS_ERROR_INTERNAL, "LuxAPIWriter::writeSetting(): invalid type specifier in token name");
     }
     success &= mSceneFile->WriteChar(']');
+    if (newLine) {
+      success &= mSceneFile->WriteChar('\n');
+    }
   }
 
   // write line feed, to finish statement and skip to the next line

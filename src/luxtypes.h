@@ -62,7 +62,7 @@ typedef struct LuxVector
   {}
 
   /// Constructor that automatically converts a C4D vector into a Lux vector.
-  /// @param c4dVector  The C4D vector to convert.
+  /// @param[in] c4dVector  The C4D vector to convert.
   inline LuxVector(const Vector& c4dVector)
   : x(c4dVector.x), y(c4dVector.z), z(c4dVector.y)
   {}
@@ -82,22 +82,22 @@ typedef struct LuxPoint
   {}
 
   /// Constructor that also initialises the data members.
-  /// @param ix  The X component.
-  /// @param iy  The Y component.
-  /// @param iz  The Z component.
+  /// @param[in] ix  The X component.
+  /// @param[in] iy  The Y component.
+  /// @param[in] iz  The Z component.
   inline LuxPoint(LuxFloatT ix, LuxFloatT iy, LuxFloatT iz)
   : x(ix), y(iy), z(iz)
   {}
   
   /// Constructor that automatically converts a C4D vector into a Lux point.
-  /// @param c4dVector  The C4D vector to convert.
+  /// @param[in] c4dVector  The C4D vector to convert.
   inline LuxPoint(const Vector& c4dVector)
   {
     *this = c4dVector;
   }
 
   /// Copies and converts a C4D vector into a Lux point.
-  /// @param c4dVector  The C4D vector to convert.
+  /// @param[in] c4dVector  The C4D vector to convert.
   inline LuxPoint& operator=(const Vector& c4dVector)
   {
     x = c4dVector.x;
@@ -159,7 +159,9 @@ typedef struct LuxMatrix
   ///
   /// @param[in]  c4dMatrix
   ///   The C4D matrix object that should be converted into a Lux matrix.
-  inline LuxMatrix(const Matrix& c4dMatrix)
+  /// @param[in]  scale
+  ///   Applies global scale factor to matrix.
+  inline LuxMatrix(const Matrix& c4dMatrix, Real scale=1.0)
   {
     // X C4D axis => X Lux axis
     values[0]  = c4dMatrix.v1.x;
@@ -180,11 +182,12 @@ typedef struct LuxMatrix
     values[11] = 0.0;
 
     // Lux pos == C4D pos
-    values[12] = c4dMatrix.off.x;
-    values[13] = c4dMatrix.off.z;
-    values[14] = c4dMatrix.off.y;
+    values[12] = c4dMatrix.off.x * scale;
+    values[13] = c4dMatrix.off.z * scale;
+    values[14] = c4dMatrix.off.y * scale;
     values[15] = 1.0;
   }
+
 } LuxMatrixT;
 
 
@@ -201,9 +204,9 @@ typedef struct LuxColor
   {}
 
   /// Constructor that also initialises the data members.
-  /// @param r  The red component.
-  /// @param g  The green component.
-  /// @param b  The blue component.
+  /// @param[in] r  The red component.
+  /// @param[in] g  The green component.
+  /// @param[in] b  The blue component.
   inline LuxColor(LuxFloatT r, LuxFloatT g, LuxFloatT b)
   {
     c[0] = r;
@@ -212,7 +215,7 @@ typedef struct LuxColor
   }
 
   /// Constructor that automatically converts a C4D vector into a Lux color.
-  /// @param c4dVector  The C4D vector to convert.
+  /// @param[in] c4dVector  The C4D vector to convert.
   inline LuxColor(const Vector& c4dVector)
   {
     c[0] = c4dVector.x;

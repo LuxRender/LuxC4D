@@ -30,14 +30,16 @@
 
 enum
 {
-  // basic strings for initialization
+  // exporter strings
   IDS_LUXC4D_EXPORTER = 1,
   IDS_LUXC4D_EXPORTER_DESCR,
+  IDS_OVERWRITE_FILE_QUERY,
+  IDS_EXPORT_FILENAME_QUERY,
 
-  //
+  // LuxC4D settings strings
   IDS_LUXC4D_SETTINGS = 1000,
 
-  //
+  // error strings
   IDS_ERROR_INITIALISE_LUXAPIWRITER = 100000,
   IDS_ERROR_IO,
   IDS_ERROR_CONVERSION,

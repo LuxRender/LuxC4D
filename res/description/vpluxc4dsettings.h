@@ -216,6 +216,31 @@ enum
     IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_EXR,
     IDD_FLEXIMAGE_WRITE_TONEMAPPED_IGI,
     IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_IGI,
+
+
+  // ----------------------------------
+  // EXPORT TAB
+  // ----------------------------------
+  IDG_EXPORT = 30000,
+
+    // ----------------------------------
+    // EXPORT FILENAME GROUP
+    IDG_EXPORT_FILENAME = 30100,
+    IDD_WHICH_EXPORT_FILENAME,
+    IDD_EXPORT_FILENAME,
+    IDD_ALLOW_OVERWRITING,
+
+      // the different ways of getting the export filename
+      IDD_ASK_FOR_EXPORT_FILENAME = 0,
+      IDD_USE_C4D_EXPORT_FILENAME,
+      IDD_DEFINE_EXPORT_FILENAME,
+      IDD_EXPORT_FILENAME_SELECTION_NUMBER,
+
+    // ----------------------------------
+    // SCALING GROUP
+    IDG_SCALING = 30200,
+    IDD_SCALE_FACTOR,
+
 };
 
 

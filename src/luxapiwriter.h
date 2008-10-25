@@ -109,7 +109,8 @@ private:
                     IdentifierNameT    identifier1,
                     IdentifierNameT    identifier2,
                     IdentifierNameT    identifier3,
-                    const LuxParamSet& paramSet);
+                    const LuxParamSet& paramSet,
+                    Bool               newLine);
 };
 
 

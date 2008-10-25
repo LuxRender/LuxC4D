@@ -27,7 +27,6 @@
 
 #include "luxapiconverter.h"
 #include "luxc4dsettings.h"
-#include "vpluxc4dsettings.h"
 #include "utilities.h"
 
 
@@ -95,7 +94,14 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
       break;
     }
   }
-  if (!videoPost)  ERRLOG_RETURN_FALSE("LuxAPIConverter::convertScene(): could not obtain LuxC4DSettings base container");
+  if (!mLuxC4DSettings)  ERRLOG("LuxAPIConverter::convertScene(): could not obtain LuxC4DSettings -> defaults will be exported");
+
+  // obtain global scene scale which is applied to everything
+  if (mLuxC4DSettings) {
+    mC4D2LuxScale = mLuxC4DSettings->GetC4D2LuxScale();
+  } else {
+    mC4D2LuxScale = 0.01;
+  }
 
   // create file head (only important for file export)
   tagDateTime time;
@@ -302,7 +308,10 @@ Bool LuxAPIConverter::exportCamera(void)
   Vector upVec = camMat.v2;
 
   // send "LookAt" instruction to Lux API
-  if (!mReceiver->lookAt(LuxVectorT(camPos), LuxVectorT(trgPos), LuxVectorT(upVec))) {
+  if (!mReceiver->lookAt(LuxVectorT(camPos*mC4D2LuxScale),
+                         LuxVectorT(trgPos*mC4D2LuxScale),
+                         LuxVectorT(upVec*mC4D2LuxScale)))
+  {
     return FALSE;
   }
 
@@ -349,7 +358,6 @@ Bool LuxAPIConverter::exportPixelFilter(void)
   // safety checks
   GeAssert(mDocument);
   GeAssert(mReceiver);
-  GeAssert(mC4DRenderSettings);
 
   // if no settings object found, use defaults
   mTempParamSet.clear();
@@ -374,7 +382,6 @@ Bool LuxAPIConverter::exportSampler(void)
   // safety checks
   GeAssert(mDocument);
   GeAssert(mReceiver);
-  GeAssert(mC4DRenderSettings);
 
   // if no settings object found, use defaults
   mTempParamSet.clear();
@@ -399,7 +406,6 @@ Bool LuxAPIConverter::exportSurfaceIntegrator(void)
   // safety checks
   GeAssert(mDocument);
   GeAssert(mReceiver);
-  GeAssert(mC4DRenderSettings);
 
   // if no settings object found, use defaults
   mTempParamSet.clear();
@@ -509,7 +515,7 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object)
   if (!mReceiver->attributeBegin())  return FALSE;
 
   // write transformation matrix
-  LuxMatrixT  globalMatrix(object.GetMg());
+  LuxMatrixT  globalMatrix(object.GetMg(), mC4D2LuxScale);
   if (!mReceiver->transform(globalMatrix))  return FALSE;
 
   // write material (TODO - just a placeholder)
@@ -750,28 +756,28 @@ Bool LuxAPIConverter::convertAndCacheWithoutNormals(PolygonObject& object)
     polygon = &(mPolygonCache[polygonIndex]);
     // 1st point of polygon
     if (pointMap[oldPointIndex = polygon->a] == MAXULONG) {
-      mPointCache[newPointIndex] = points[oldPointIndex];
+      mPointCache[newPointIndex] = points[oldPointIndex] * mC4D2LuxScale;
       pointMap[oldPointIndex] = newPointIndex;
       ++newPointIndex;
     }
     polygon->a = pointMap[oldPointIndex];
     // 2nd point of polygon
     if (pointMap[oldPointIndex = polygon->b] == MAXULONG) {
-      mPointCache[newPointIndex] = points[oldPointIndex];
+      mPointCache[newPointIndex] = points[oldPointIndex] * mC4D2LuxScale;
       pointMap[oldPointIndex] = newPointIndex;
       ++newPointIndex;
     }
     polygon->b = pointMap[oldPointIndex];
     // 3rd point of polygon
     if (pointMap[oldPointIndex = polygon->c] == MAXULONG) {
-      mPointCache[newPointIndex] = points[oldPointIndex];
+      mPointCache[newPointIndex] = points[oldPointIndex] * mC4D2LuxScale;
       pointMap[oldPointIndex] = newPointIndex;
       ++newPointIndex;
     }
     polygon->c = pointMap[oldPointIndex];
     // 4th point of polygon
     if (pointMap[oldPointIndex = polygon->d] == MAXULONG) {
-      mPointCache[newPointIndex] = points[oldPointIndex];
+      mPointCache[newPointIndex] = points[oldPointIndex] * mC4D2LuxScale;
       pointMap[oldPointIndex] = newPointIndex;
       ++newPointIndex;
     }
@@ -916,7 +922,7 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
     for (ULONG point2PolyIndex=pointMap[pointIndex]; point2PolyIndex<pointMap[pointIndex+1]; ++point2PolyIndex) {
       point2Poly = &(point2Polys[point2PolyIndex]);
       if (!point2Poly->data.normalRef)  break;
-      mPointCache[newPointIndex] = points[pointIndex];
+      mPointCache[newPointIndex] = points[pointIndex] * mC4D2LuxScale;
       point2Poly->data.normalRef->Normalize();
       mNormalCache[newPointIndex] = *(point2Poly->data.normalRef);
       point2Poly->newPoint = newPointIndex;

@@ -64,21 +64,61 @@ Bool LuxC4DExporter::registerPlugin(void)
 Bool LuxC4DExporter::Execute(BaseDocument* document)
 {
   // check if document is valid
-  if (!document)  ERRLOG_RETURN_FALSE("LuxC4D::Execute(): no document passed");
+  if (!document)  ERRLOG_RETURN_FALSE("LuxC4DExporter::Execute(): no document passed");
 
-  // get filename of document
+  // get LuxC4DSettings video post effect node - if available
+  LuxC4DSettings* settingsNode = 0;
+  RenderData*     renderData = document->GetActiveRenderData();
+  if (renderData) {
+    PluginVideoPost* videoPost = renderData->GetFirstVideoPost();
+    for (; videoPost; videoPost = videoPost->GetNext()) {
+      if (videoPost->GetType() == PID_LUXC4D_SETTINGS) {
+        settingsNode = (LuxC4DSettings*)videoPost->GetNodeData();
+        break;
+      }
+    }
+  }
+
+  // if we have found a LuxC4DSettings object, get the export filename
+  // chosen by the user
   Filename path;
-  path.SetDirectory(document->GetDocumentPath());
-  path.SetFile(document->GetDocumentName());
-  path.SetSuffix("lxs");
+  Bool     overwritingAllowed = FALSE;
+  if (settingsNode) {
+    settingsNode->GetExportFilename(*document, path, overwritingAllowed);
+  }
 
-  // get export filename
-  if (!path.FileSelect(FSTYPE_ANYTHING, GE_SAVE, "Where should we save the scene?")) {
-    return FALSE;
+  // if the file already exists and overwriting is not allowed, ask the user
+  // what to do and ...
+  Bool selectFilename = FALSE;
+  if (path.Content()) {
+    if (!overwritingAllowed && GeFExist(path)) {
+      LONG answer = GeOutString(GeLoadString(IDS_OVERWRITE_FILE_QUERY,
+                                             path.GetFileString()),
+                                GEMB_YESNOCANCEL);
+      if (answer == GEMB_R_CANCEL) {
+        return FALSE;
+      }
+      if (answer == GEMB_R_NO) {
+        selectFilename = TRUE;
+      }
+    }
+  // otherwise derive export filename from document and ...
+  } else {
+    path.SetDirectory(document->GetDocumentPath());
+    path.SetFile(document->GetDocumentName());
+    path.SetSuffix("lxs");
+    selectFilename = TRUE;
+  }
+
+  // ... get export filename, if needed
+  if (selectFilename) {
+    if (!path.FileSelect(FSTYPE_ANYTHING, GE_SAVE, GeLoadString(IDS_EXPORT_FILENAME_QUERY))) {
+      return FALSE;
+    }
   }
 
   // initialise file writer
-  LuxAPIWriter  apiWriter;
+  LuxAPIWriter apiWriter;
   if (!apiWriter.init(path)) {
     GeOutString(GeLoadString(IDS_ERROR_INITIALISE_LUXAPIWRITER, path.GetString()), GEMB_OK);
     return FALSE;

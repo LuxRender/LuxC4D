@@ -118,6 +118,7 @@ private:
   LuxAPI*         mReceiver;
   BaseContainer*  mC4DRenderSettings;
   LuxC4DSettings* mLuxC4DSettings;
+  LReal           mC4D2LuxScale;
   LuxParamSet     mTempParamSet;
 
   // the following data members store the geometry for one object which is
