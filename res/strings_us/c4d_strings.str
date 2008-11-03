@@ -30,10 +30,20 @@ STRINGTABLE
   IDS_OVERWRITE_FILE_QUERY    "File '#' already exists! Should we overwrite it?";
   IDS_EXPORT_FILENAME_QUERY   "Please choose the export filename";
   
+  IDS_LUXC4D_EXPORTERRENDER       "LuxC4D Export + Render";
+  IDS_LUXC4D_EXPORTERRENDER_DESCR "Exports this scene to LuxRender scene file and renders it";
+  
   IDS_LUXC4D_SETTINGS         "LuxC4D Scene Settings";
+  
+  IDS_LUXC4D_LIGHT_TAG        "LuxC4D Light Tag";
+  
+  IDS_LUXC4D_PREFERENCES              "LuxC4D";
+  IDS_LUXC4D_PREFS_LUX_PATH_FS_TITLE  "Please select the Lux Render executable";
   
   IDS_ERROR_INITIALISE_LUXAPIWRITER "Could not initialise export to file '#'!";
   IDS_ERROR_IO                      "Writing to file failed!";
   IDS_ERROR_CONVERSION              "Converting the scene failed!";
   IDS_ERROR_INTERNAL                "An internal error occured!";
+  IDS_ERROR_LUX_PATH_INVALID        "Path to Lux Render in preferences is invalid!";
+  IDS_ERROR_LUX_PATH_EXECUTE        "Could not execute '#'!";
 }

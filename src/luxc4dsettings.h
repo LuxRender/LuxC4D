@@ -29,7 +29,6 @@
 
 
 #include "c4d.h"
-#include "c4d_symbols.h"
 #include "luxparamset.h"
 
 
@@ -92,11 +91,6 @@ private:
   };
 
 
-  void ShowParameter(Description* description,
-                     LONG         paramID,
-                     AtomArray*   params,
-                     Bool         show);
-  
   BaseContainer* GetData(void);
 
   void CopyParam(Descr2Param<LuxBoolT>& descr2Param,

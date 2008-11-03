@@ -23,6 +23,7 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
+#include "c4d_symbols.h"
 #include "luxc4dsettings.h"
 #include "luxparamset.h"
 #include "vpluxc4dsettings.h"
@@ -48,13 +49,16 @@ Bool LuxC4DSettings::registerPlugin(void)
 {
   return RegisterVideoPostPlugin(PID_LUXC4D_SETTINGS,
                                  GeLoadString(IDS_LUXC4D_SETTINGS),
-                                 0, alloc, "VPluxc4dsettings", 0,
+                                 0,
+                                 alloc,
+                                 "VPluxc4dsettings",
+                                 0,
                                  VPPRIORITY_EXTERNAL);
 }
 
 
 /// Overwritten function that initialises all description parameters with the
-/// defaults.
+/// defaults.;
 ///
 /// @param[in]  node
 ///   The data node, created by C4D for storing the settings.
@@ -62,6 +66,18 @@ Bool LuxC4DSettings::registerPlugin(void)
 ///   TRUE if the initailisation was successful.
 Bool LuxC4DSettings::Init(GeListNode* node)
 {
+  // get current document
+  BaseDocument* document = node->GetDocument();
+
+  // obtain active render settings
+  BaseContainer* c4dRenderSettings = 0;
+  if (document) {
+    RenderData* renderData = document->GetActiveRenderData();
+    if (renderData) {
+      c4dRenderSettings = renderData->GetDataInstance();
+    }
+  }
+
   // obtain container from data node.
   BaseContainer* data = ((BaseObject*)node)->GetDataInstance();
   if (!data)  ERRLOG_RETURN_FALSE("LuxC4DSettings::Init(): No base container found.");
@@ -129,7 +145,15 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   // set film parameters
   data->SetLong(IDD_FILM,                             IDD_FILM_FLEXIMAGE);
   data->SetLong(IDD_FLEXIMAGE_HALT_SPP,               0);
-  data->SetReal(IDD_FLEXIMAGE_GAMMA,                  2.2);
+  if (c4dRenderSettings) {
+    data->SetReal(IDD_FLEXIMAGE_GAMMA,                  c4dRenderSettings->GetReal(RDATA_RENDERGAMMA));
+  } else {
+#ifdef __MAC
+    data->SetReal(IDD_FLEXIMAGE_GAMMA,                  1.8);
+#else
+    data->SetReal(IDD_FLEXIMAGE_GAMMA,                  2.2);
+#endif
+  }
   data->SetBool(IDD_FLEXIMAGE_TONEMAP_SETTINGS,       FALSE);
   data->SetReal(IDD_FLEXIMAGE_REINHARD_PRESCALE,      1.0);
   data->SetReal(IDD_FLEXIMAGE_REINHARD_POSTSCALE,     1.2);
@@ -691,29 +715,6 @@ LReal LuxC4DSettings::GetC4D2LuxScale(void)
 /*****************************************************************************
  * Implementation of private member functions of class LuxC4DSettings.
  *****************************************************************************/
-
-
-/// Makes a parameter visible or hides it.
-///
-/// @param[in]  description
-///   The desciption object the parameter belongs to.
-/// @param[in]  paramID
-///   The parameter ID to show/hide.
-/// @param[in]  params
-///   Specifies the parameter element to show/hide.
-/// @param[in]  show
-///   Set this to TRUE make it visible or to FALSE to hide it.
-void LuxC4DSettings::ShowParameter(Description* description,
-                                   LONG         paramID,
-                                   AtomArray*   params,
-                                   Bool         show)
-{
-  BaseContainer* descrData = description->GetParameterI(DescLevel(paramID),
-                                                        params);
-  if (descrData) {
-    descrData->SetBool(DESC_HIDE, !show);
-  }
-}
 
 
 /// Returns the data container of this node.

@@ -160,6 +160,55 @@
 					>
 					<FileConfiguration
 						Name="R10.5_Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="R10.5_Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\res\strings_us\dialogs\dlg_luxc4d_preferences.str"
+					>
+					<FileConfiguration
+						Name="R10.5_Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="R10.5_Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\res\strings_us\description\tluxc4dlighttag.str"
+					>
+					<FileConfiguration
+						Name="R10.5_Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="R10.5_Release|Win32"
+						ExcludedFromBuild="true"
 						>
 						<Tool
 							Name="VCCustomBuildTool"
@@ -191,11 +240,59 @@
 				Name="description"
 				>
 				<File
+					RelativePath="..\..\res\description\tluxc4dlighttag.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\res\description\tluxc4dlighttag.res"
+					>
+					<FileConfiguration
+						Name="R10.5_Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="R10.5_Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\..\res\description\vpluxc4dsettings.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\res\description\vpluxc4dsettings.res"
+					>
+					<FileConfiguration
+						Name="R10.5_Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="R10.5_Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="dialogs"
+				>
+				<File
+					RelativePath="..\..\res\dialogs\dlg_luxc4d_preferences.res"
 					>
 					<FileConfiguration
 						Name="R10.5_Debug|Win32"
@@ -245,6 +342,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\luxc4d.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\luxc4dexporter.cpp"
 			>
 		</File>
@@ -253,7 +354,31 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\luxc4dexporterrender.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\luxc4dexporterrender.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\luxc4dinit.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\luxc4dlighttag.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\luxc4dlighttag.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\luxc4dpreferences.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\luxc4dpreferences.h"
 			>
 		</File>
 		<File
@@ -274,6 +399,10 @@
 		</File>
 		<File
 			RelativePath="..\..\src\luxtypes.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\utilities.cpp"
 			>
 		</File>
 		<File

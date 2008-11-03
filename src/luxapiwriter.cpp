@@ -163,7 +163,7 @@ Bool LuxAPIWriter::surfaceIntegrator(IdentifierNameT    name,
 Bool LuxAPIWriter::accelerator(IdentifierNameT    name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting("Accelerator", name, 0, 0, paramSet, FALSE);
+  return writeSetting("Accelerator", name, 0, 0, paramSet, TRUE);
 }
 
 
@@ -206,7 +206,7 @@ Bool LuxAPIWriter::objectEnd(void)
 Bool LuxAPIWriter::lightSource(IdentifierNameT    name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting("LightSource", name, 0, 0, paramSet, FALSE);
+  return writeSetting("LightSource", name, 0, 0, paramSet, TRUE);
 }
 
 

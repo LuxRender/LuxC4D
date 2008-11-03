@@ -23,8 +23,8 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
-#ifndef __UTILITIES_H__
-#define __UTILITIES_H__ 1
+#ifndef __LUXC4DLIGHTTAG_H__
+#define __LUXC4DLIGHTTAG_H__ 1
 
 
 
@@ -32,40 +32,25 @@
 
 
 
-/// Logs/prints an error message.
-#define ERRLOG(msg)                                                           \
-  { GePrint(msg); }
-
-/// Logs/prints an error message and returns (without a return value).
-#define ERRLOG_RETURN(msg)                                                    \
-  { ERRLOG(msg);  return; }
-
-/// Logs/prints an error message and returns with the return value FALSE.
-#define ERRLOG_RETURN_FALSE(msg)                                              \
-  { ERRLOG(msg);  return FALSE; }
-
-/// Logs/prints an error message, defined by an ID and returns
-/// (without a return value).
-#define ERRLOG_ID_RETURN_FALSE(id,msg)                                        \
-  { mErrorStringID=(id);  ERRLOG(msg);  return FALSE; }
+#define PID_LUXC4D_LIGHT_TAG  1023210
 
 
 
-void ShowParameter(Description* description,
-                   LONG         paramID,
-                   AtomArray*   params,
-                   Bool         show);
+/***************************************************************************//*!
+*//****************************************************************************/
+class LuxC4DLightTag : public TagData
+{
+  INSTANCEOF(LuxC4DLightTag,TagData)
 
 
-LONG GetParameterLong(BaseObject& object,
-                      LONG        paramID,
-                      LONG        preset = 0);
-Real GetParameterReal(BaseObject& object,
-                      LONG        paramID,
-                      Real        preset = 0.0);
-Vector GetParameterVector(BaseObject&   object,
-                          LONG          paramID,
-                          const Vector& preset = Vector());
+public:
+
+  static NodeData* alloc(void);
+  static Bool registerPlugin(void);
 
 
-#endif  // #ifndef __UTILITIES_H__
+};
+
+
+
+#endif  // #ifndef __LUXC4DLIGHTTAG_H__

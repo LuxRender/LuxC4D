@@ -25,6 +25,15 @@
 		2CE1C1DA0EABB60500AF4D13 /* luxc4dsettings.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE1C1D30EABB60500AF4D13 /* luxc4dsettings.h */; };
 		2CE1C1DB0EABB60500AF4D13 /* utilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE1C1D40EABB60500AF4D13 /* utilities.h */; };
 		2CE1C1DF0EABB67600AF4D13 /* vpluxc4dsettings.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE1C1DD0EABB67600AF4D13 /* vpluxc4dsettings.h */; };
+		2CE79ABE0EBF7F9600995C2F /* luxc4d.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79AB60EBF7F9600995C2F /* luxc4d.h */; };
+		2CE79ABF0EBF7F9600995C2F /* luxc4dexporterrender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2CE79AB70EBF7F9600995C2F /* luxc4dexporterrender.cpp */; };
+		2CE79AC00EBF7F9600995C2F /* luxc4dexporterrender.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79AB80EBF7F9600995C2F /* luxc4dexporterrender.h */; };
+		2CE79AC10EBF7F9600995C2F /* luxc4dlighttag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2CE79AB90EBF7F9600995C2F /* luxc4dlighttag.cpp */; };
+		2CE79AC20EBF7F9600995C2F /* luxc4dlighttag.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79ABA0EBF7F9600995C2F /* luxc4dlighttag.h */; };
+		2CE79AC30EBF7F9600995C2F /* luxc4dpreferences.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2CE79ABB0EBF7F9600995C2F /* luxc4dpreferences.cpp */; };
+		2CE79AC40EBF7F9600995C2F /* luxc4dpreferences.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79ABC0EBF7F9600995C2F /* luxc4dpreferences.h */; };
+		2CE79AC50EBF7F9600995C2F /* utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2CE79ABD0EBF7F9600995C2F /* utilities.cpp */; };
+		2CE79AC80EBF7FCF00995C2F /* tluxc4dlighttag.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79AC60EBF7FCF00995C2F /* tluxc4dlighttag.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -60,6 +69,19 @@
 		2CE1C1DD0EABB67600AF4D13 /* vpluxc4dsettings.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = vpluxc4dsettings.h; path = description/vpluxc4dsettings.h; sourceTree = "<group>"; };
 		2CE1C1DE0EABB67600AF4D13 /* vpluxc4dsettings.res */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = vpluxc4dsettings.res; path = description/vpluxc4dsettings.res; sourceTree = "<group>"; };
 		2CE1C1E00EABB68C00AF4D13 /* vpluxc4dsettings.str */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = vpluxc4dsettings.str; path = description/vpluxc4dsettings.str; sourceTree = "<group>"; };
+		2CE79AB60EBF7F9600995C2F /* luxc4d.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = luxc4d.h; sourceTree = "<group>"; };
+		2CE79AB70EBF7F9600995C2F /* luxc4dexporterrender.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = luxc4dexporterrender.cpp; sourceTree = "<group>"; };
+		2CE79AB80EBF7F9600995C2F /* luxc4dexporterrender.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = luxc4dexporterrender.h; sourceTree = "<group>"; };
+		2CE79AB90EBF7F9600995C2F /* luxc4dlighttag.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = luxc4dlighttag.cpp; sourceTree = "<group>"; };
+		2CE79ABA0EBF7F9600995C2F /* luxc4dlighttag.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = luxc4dlighttag.h; sourceTree = "<group>"; };
+		2CE79ABB0EBF7F9600995C2F /* luxc4dpreferences.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = luxc4dpreferences.cpp; sourceTree = "<group>"; };
+		2CE79ABC0EBF7F9600995C2F /* luxc4dpreferences.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = luxc4dpreferences.h; sourceTree = "<group>"; };
+		2CE79ABD0EBF7F9600995C2F /* utilities.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = utilities.cpp; sourceTree = "<group>"; };
+		2CE79AC60EBF7FCF00995C2F /* tluxc4dlighttag.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = tluxc4dlighttag.h; path = description/tluxc4dlighttag.h; sourceTree = "<group>"; };
+		2CE79AC70EBF7FCF00995C2F /* tluxc4dlighttag.res */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = tluxc4dlighttag.res; path = description/tluxc4dlighttag.res; sourceTree = "<group>"; };
+		2CE79ACA0EBF7FF200995C2F /* dlg_luxc4d_preferences.res */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = dlg_luxc4d_preferences.res; path = dialogs/dlg_luxc4d_preferences.res; sourceTree = "<group>"; };
+		2CE79ACB0EBF801100995C2F /* tluxc4dlighttag.str */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = tluxc4dlighttag.str; path = description/tluxc4dlighttag.str; sourceTree = "<group>"; };
+		2CE79ACC0EBF802600995C2F /* dlg_luxc4d_preferences.str */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = dlg_luxc4d_preferences.str; path = dialogs/dlg_luxc4d_preferences.str; sourceTree = "<group>"; };
 		65E51693083D10D0005BFD9A /* LuxC4D.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = LuxC4D.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -77,6 +99,14 @@
 		2CCB77C50E6C174600D45D8E /* src */ = {
 			isa = PBXGroup;
 			children = (
+				2CE79AB60EBF7F9600995C2F /* luxc4d.h */,
+				2CE79AB70EBF7F9600995C2F /* luxc4dexporterrender.cpp */,
+				2CE79AB80EBF7F9600995C2F /* luxc4dexporterrender.h */,
+				2CE79AB90EBF7F9600995C2F /* luxc4dlighttag.cpp */,
+				2CE79ABA0EBF7F9600995C2F /* luxc4dlighttag.h */,
+				2CE79ABB0EBF7F9600995C2F /* luxc4dpreferences.cpp */,
+				2CE79ABC0EBF7F9600995C2F /* luxc4dpreferences.h */,
+				2CE79ABD0EBF7F9600995C2F /* utilities.cpp */,
 				2CE1C1CE0EABB60500AF4D13 /* luxapiconverter.cpp */,
 				2CE1C1CF0EABB60500AF4D13 /* luxapiconverter.h */,
 				2CE1C1D00EABB60500AF4D13 /* luxc4dexporter.cpp */,
@@ -101,6 +131,7 @@
 		2CCB77E20E6C176700D45D8E /* res */ = {
 			isa = PBXGroup;
 			children = (
+				2CE79AC90EBF7FDE00995C2F /* dialogs */,
 				2CE1C1DC0EABB63200AF4D13 /* description */,
 				2CCB77E30E6C176700D45D8E /* c4d_symbols.h */,
 				2CCB77E40E6C176700D45D8E /* strings_us */,
@@ -112,6 +143,8 @@
 		2CCB77E40E6C176700D45D8E /* strings_us */ = {
 			isa = PBXGroup;
 			children = (
+				2CE79ACC0EBF802600995C2F /* dlg_luxc4d_preferences.str */,
+				2CE79ACB0EBF801100995C2F /* tluxc4dlighttag.str */,
 				2CE1C1E00EABB68C00AF4D13 /* vpluxc4dsettings.str */,
 				2CCB77E50E6C176700D45D8E /* c4d_strings.str */,
 			);
@@ -121,10 +154,20 @@
 		2CE1C1DC0EABB63200AF4D13 /* description */ = {
 			isa = PBXGroup;
 			children = (
+				2CE79AC60EBF7FCF00995C2F /* tluxc4dlighttag.h */,
+				2CE79AC70EBF7FCF00995C2F /* tluxc4dlighttag.res */,
 				2CE1C1DD0EABB67600AF4D13 /* vpluxc4dsettings.h */,
 				2CE1C1DE0EABB67600AF4D13 /* vpluxc4dsettings.res */,
 			);
 			name = description;
+			sourceTree = "<group>";
+		};
+		2CE79AC90EBF7FDE00995C2F /* dialogs */ = {
+			isa = PBXGroup;
+			children = (
+				2CE79ACA0EBF7FF200995C2F /* dlg_luxc4d_preferences.res */,
+			);
+			name = dialogs;
 			sourceTree = "<group>";
 		};
 		65E51686083D10D0005BFD9A = {
@@ -155,6 +198,11 @@
 				2CE1C1DA0EABB60500AF4D13 /* luxc4dsettings.h in Headers */,
 				2CE1C1DB0EABB60500AF4D13 /* utilities.h in Headers */,
 				2CE1C1DF0EABB67600AF4D13 /* vpluxc4dsettings.h in Headers */,
+				2CE79ABE0EBF7F9600995C2F /* luxc4d.h in Headers */,
+				2CE79AC00EBF7F9600995C2F /* luxc4dexporterrender.h in Headers */,
+				2CE79AC20EBF7F9600995C2F /* luxc4dlighttag.h in Headers */,
+				2CE79AC40EBF7F9600995C2F /* luxc4dpreferences.h in Headers */,
+				2CE79AC80EBF7FCF00995C2F /* tluxc4dlighttag.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -208,7 +256,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"${C4D_ROOT}\" != \"\" ]; then\n  INSTALL_DIR=\"${C4D_ROOT}/plugins/${PRODUCT_NAME}\"\n  mkdir ${INSTALL_DIR}\n  rm -R ${INSTALL_DIR}/*\n  cp -R ${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${EXECUTABLE_EXTENSION} ${INSTALL_DIR}/\n  cp -R ../../res ${INSTALL_DIR}/\n  cp -R ../../license ${INSTALL_DIR}/\nfi\n";
+			shellScript = "if [ \"${C4D_ROOT}\" != \"\" ]; then\n  INSTALL_DIR=\"${C4D_ROOT}/plugins/${PRODUCT_NAME}\"\n  mkdir ${INSTALL_DIR}\n  rm -R ${INSTALL_DIR}/*\n  cp -R ${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${EXECUTABLE_EXTENSION} ${INSTALL_DIR}/\n  cp -R ../../res ${INSTALL_DIR}/\n  cp -R ../../license ${INSTALL_DIR}/\n  find ${INSTALL_DIR} -path \\*/CVS/\\* -delete\n  find ${INSTALL_DIR} -path \\*/CVS -delete\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -223,6 +271,10 @@
 				2CE1C1D50EABB60500AF4D13 /* luxapiconverter.cpp in Sources */,
 				2CE1C1D70EABB60500AF4D13 /* luxc4dexporter.cpp in Sources */,
 				2CE1C1D90EABB60500AF4D13 /* luxc4dsettings.cpp in Sources */,
+				2CE79ABF0EBF7F9600995C2F /* luxc4dexporterrender.cpp in Sources */,
+				2CE79AC10EBF7F9600995C2F /* luxc4dlighttag.cpp in Sources */,
+				2CE79AC30EBF7F9600995C2F /* luxc4dpreferences.cpp in Sources */,
+				2CE79AC50EBF7F9600995C2F /* utilities.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -275,7 +327,10 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_VALUE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(C4D_ROOT)/resource/_api/**";
+				HEADER_SEARCH_PATHS = (
+					"$(C4D_ROOT)/resource/_api/**",
+					"$(C4D_ROOT)/resource/res/description",
+				);
 				INSTALL_PATH = "";
 				LIBRARY_SEARCH_PATHS = "$(C4D_ROOT)/resource/_api_lib";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
@@ -326,7 +381,10 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_VALUE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(C4D_ROOT)/resource/_api/**";
+				HEADER_SEARCH_PATHS = (
+					"$(C4D_ROOT)/resource/_api/**",
+					"$(C4D_ROOT)/resource/res/description",
+				);
 				LIBRARY_SEARCH_PATHS = "$(C4D_ROOT)/resource/_api_lib";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OBJROOT = "$(BUILD_DIR)";

@@ -23,49 +23,73 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
-#ifndef __UTILITIES_H__
-#define __UTILITIES_H__ 1
+#include "utilities.h"
 
 
 
-#include "c4d.h"
-
-
-
-/// Logs/prints an error message.
-#define ERRLOG(msg)                                                           \
-  { GePrint(msg); }
-
-/// Logs/prints an error message and returns (without a return value).
-#define ERRLOG_RETURN(msg)                                                    \
-  { ERRLOG(msg);  return; }
-
-/// Logs/prints an error message and returns with the return value FALSE.
-#define ERRLOG_RETURN_FALSE(msg)                                              \
-  { ERRLOG(msg);  return FALSE; }
-
-/// Logs/prints an error message, defined by an ID and returns
-/// (without a return value).
-#define ERRLOG_ID_RETURN_FALSE(id,msg)                                        \
-  { mErrorStringID=(id);  ERRLOG(msg);  return FALSE; }
-
-
-
+/// Makes a parameter visible or hides it.
+///
+/// @param[in]  description
+///   The desciption object the parameter belongs to.
+/// @param[in]  paramID
+///   The parameter ID to show/hide.
+/// @param[in]  params
+///   Specifies the parameter element to show/hide.
+/// @param[in]  show
+///   Set this to TRUE make it visible or to FALSE to hide it.
 void ShowParameter(Description* description,
                    LONG         paramID,
                    AtomArray*   params,
-                   Bool         show);
+                   Bool         show)
+{
+  BaseContainer* descrData = description->GetParameterI(DescLevel(paramID),
+                                                        params);
+  if (descrData) {
+    descrData->SetBool(DESC_HIDE, !show);
+  }
+}
 
 
+///
 LONG GetParameterLong(BaseObject& object,
                       LONG        paramID,
-                      LONG        preset = 0);
+                      LONG        preset)
+{
+  GeData parameter;
+  if (object.GetParameter(DescLevel(paramID), parameter, 0)) {
+    if (parameter.GetType() == DA_LONG) {
+      return parameter.GetLong();
+    }
+  }
+  return preset;
+}
+
+
+///
 Real GetParameterReal(BaseObject& object,
                       LONG        paramID,
-                      Real        preset = 0.0);
+                      Real        preset)
+{
+  GeData parameter;
+  if (object.GetParameter(DescLevel(paramID), parameter, 0)) {
+    if (parameter.GetType() == DA_REAL) {
+      return parameter.GetReal();
+    }
+  }
+  return preset;
+}
+
+
+///
 Vector GetParameterVector(BaseObject&   object,
                           LONG          paramID,
-                          const Vector& preset = Vector());
-
-
-#endif  // #ifndef __UTILITIES_H__
+                          const Vector& preset)
+{
+  GeData parameter;
+  if (object.GetParameter(DescLevel(paramID), parameter, 0)) {
+    if (parameter.GetType() == DA_VECTOR) {
+      return parameter.GetVector();
+    }
+  }
+  return preset;
+}

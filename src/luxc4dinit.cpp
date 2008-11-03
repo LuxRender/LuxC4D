@@ -26,8 +26,16 @@
 #include "c4d.h"
 
 #include "luxc4dexporter.h"
+#include "luxc4dexporterrender.h"
+#include "luxc4dpreferences.h"
+#include "luxc4dlighttag.h"
 #include "luxc4dsettings.h"
 #include "utilities.h"
+
+
+
+///
+LuxC4DPreferences* gPreferences(NULL);
 
 
 
@@ -44,6 +52,18 @@ Bool PluginStart(void)
     return FALSE;
   }
 
+  // register LuxC4DPreferences
+  gPreferences = gNewNC LuxC4DPreferences;
+  if (!gPreferences) {
+    ERRLOG("Could not allocate LuxC4DPreferences hook class.");
+    return FALSE;
+  }
+  if (!gPreferences->registerHook()) {
+    gDelete(gPreferences);
+    ERRLOG("Could not register LuxC4DPreferences .");
+    return FALSE;
+  }
+
   // register LuxC4DExporter
   LuxC4DExporter* exporter = gNewNC LuxC4DExporter;
   if (!exporter) {
@@ -56,9 +76,27 @@ Bool PluginStart(void)
     return FALSE;
   }
 
+  // register LuxC4DExporterRender
+  LuxC4DExporterRender* exporterRender = gNewNC LuxC4DExporterRender;
+  if (!exporterRender) {
+    ERRLOG("Could not allocate LuxC4DExporterRender plugin.");
+    return FALSE;
+  }
+  if (!exporterRender->registerPlugin()) {
+    gDelete(exporterRender);
+    ERRLOG("Could not register LuxC4DExporterRender plugin.");
+    return FALSE;
+  }
+
   // register LuxC4DSettings
   if (!LuxC4DSettings::registerPlugin()) {
     ERRLOG("Could not register LuxC4DSettings plugin.");
+    return FALSE;
+  }
+
+  // register LuxC4DLightTag
+  if (!LuxC4DLightTag::registerPlugin()) {
+    ERRLOG("Could not register LuxC4DLightTag plugin.");
     return FALSE;
   }
 
@@ -69,7 +107,9 @@ Bool PluginStart(void)
 /// Hook that is called during the shut down of CINEMA 4D. Here we can
 /// deallocate all resources, that are not owned by CINEMA 4D.
 void PluginEnd(void)
-{}
+{
+  gDelete(gPreferences);
+}
 
 
 /// Hook that is called for different messages.

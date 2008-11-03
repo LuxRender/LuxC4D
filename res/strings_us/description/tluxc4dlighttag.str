@@ -23,50 +23,7 @@
 //* along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
 //************************************************************************
 
-#ifndef __C4D_SYMBOLS_H__
-#define __C4D_SYMBOLS_H__
-
-
-
-enum
+STRINGTABLE Tluxc4dlighttag
 {
-  // LuxC4DExporter IDs
-  IDS_LUXC4D_EXPORTER = 1,
-  IDS_LUXC4D_EXPORTER_DESCR,
-  IDS_OVERWRITE_FILE_QUERY,
-  IDS_EXPORT_FILENAME_QUERY,
-
-  // LuxC4DExporterRender IDs
-  IDS_LUXC4D_EXPORTERRENDER = 1000,
-  IDS_LUXC4D_EXPORTERRENDER_DESCR,
-
-  // LuxC4DSettings IDs
-  IDS_LUXC4D_SETTINGS = 10000,
-
-  // LuxC4DLightTag IDs
-  IDS_LUXC4D_LIGHT_TAG = 20000,
-
-  // LuxC4DPreferences IDs
-  IDS_LUXC4D_PREFERENCES = 30000,
-  DLG_LUXC4D_PREFERENCES,
-  IDS_LUXC4D_PREFS_TITLE,
-  IDS_LUXC4D_PREFS_LUX_PATH,
-  IDD_LUXC4D_PREFS_LUX_PATH,
-  IDB_LUXC4D_PREFS_LUX_PATH,
-  IDS_LUXC4D_PREFS_LUX_PATH_FS_TITLE,
-
-    // container IDs of LuxC4DPreferences
-    IDV_LUXC4D_PREFS_LUX_PATH = 0,
-
-  // error strings
-  IDS_ERROR_INITIALISE_LUXAPIWRITER = 100000,
-  IDS_ERROR_IO,
-  IDS_ERROR_CONVERSION,
-  IDS_ERROR_INTERNAL,
-  IDS_ERROR_LUX_PATH_INVALID,
-  IDS_ERROR_LUX_PATH_EXECUTE
-};
-
-
-
-#endif  // #ifndef __C4D_SYMBOLS_H__
+  Tluxc4dlighttag "LuxC4D Light Tag";
+}

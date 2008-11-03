@@ -24,6 +24,7 @@
  ************************************************************************/
 
 #include "customgui_datetime.h"
+#include "olight.h"
 
 #include "luxapiconverter.h"
 #include "luxc4dsettings.h"
@@ -149,7 +150,7 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
 ///    Pointer to the allocated HierarchyData. C4D owns the memory.
 void* LuxAPIConverter::Alloc(void)
 {
-  return gNewNC HierarchyData(TRUE);
+  return gNewNC HierarchyData();
 }
 
 
@@ -183,17 +184,23 @@ void LuxAPIConverter::CopyTo(void* src, void* dst)
 /// Does the actual object export. It will be called during the object tree
 /// traversal in Hierarchy::Run() for every object.
 ///
-/// @param[in]  src
-///   The HierarchyData instance to copy from.
-/// @param[in]  dst
-///   The HierarchyData instance to copy to.
+/// @param[in]  data
+///   Private helper data that was passed from the parent object.
+/// @param[in]  object
+///   The current object of this iteration.
+/// @param[in]  globalMatrix
+///   The global matrix of the current object.
+/// @param[in]
+///   Is TRUE, if the current object is an input object for a generator or
+///   deformer, i.e. the current object is invisible, but there is somewhere
+///   in the hierarchy  generated/deformed copy of it.
 /// @return
 ///   TRUE if it was executed successfully and we should continue to traverse
 ///   through the hierarchy
-Bool LuxAPIConverter::Do(void*          data,
-                         BaseObject*    object,
-                         const Matrix&  globalMatrix,
-                         Bool           controlObject)
+Bool LuxAPIConverter::Do(void*         data,
+                         BaseObject*   object,
+                         const Matrix& globalMatrix,
+                         Bool          controlObject)
 {
   // if there is an object:
   if (object) {
@@ -204,19 +211,27 @@ Bool LuxAPIConverter::Do(void*          data,
       ((HierarchyData*)data)->mVisible = (mode == MODE_ON);
     }
     // if it's not an object that is used by a generator or deformer as input
-    if (!controlObject && 
-        // and if it's a polygon object
-        (object->GetType() == Opolygon) &&
+    if (!controlObject &&
         // and if it's visible:
         ((HierarchyData*)data)->mVisible)
     {
-      GeAssert(mDocument);
-      GeAssert(mReceiver);
-      // check if the assigned layer should be rendered:
+      // check if assigned layer should be rendered:
       const LayerData* layerData = object->GetLayerData(mDocument);
       if (!layerData || layerData->render) {
-        // export the object
-        return exportPolygonObject(*((PolygonObject*)object));
+        switch (object->GetType()) {
+          // export polygon objects
+          case Opolygon:
+            if (((HierarchyData*)data)->mObjectType == HierarchyData::POLYGON_OBJECTS) {
+              return exportPolygonObject(*((PolygonObject*)object), globalMatrix);
+            }
+            break;
+          // export light objects
+          case Olight:
+            if (((HierarchyData*)data)->mObjectType == HierarchyData::LIGHT_OBJECTS) {
+              return exportLight(*object, globalMatrix);
+            }
+            break;
+        }
       }
     }
   }
@@ -430,6 +445,10 @@ Bool LuxAPIConverter::exportSurfaceIntegrator(void)
 ///   TRUE, if successful, FALSE otherwise
 Bool LuxAPIConverter::exportAccelerator(void)
 {
+  // safety checks
+  GeAssert(mDocument);
+  GeAssert(mReceiver);
+
   mTempParamSet.clear();
   return mReceiver->accelerator("kdtree", mTempParamSet);
 }
@@ -444,15 +463,23 @@ Bool LuxAPIConverter::exportAccelerator(void)
 ///   TRUE, if successful, FALSE otherwise
 Bool LuxAPIConverter::exportLights(void)
 {
-  LuxIntegerT nSamples = 1;
-  LuxVectorT  sundir(0.5, 0.5, 1.0);
-  mTempParamSet.clear();
-  mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "nsamples", &nSamples);
-  mTempParamSet.addParam(LuxParamSet::LUX_VECTOR,  "sundir",   &sundir);
+  // safety checks
+  GeAssert(mDocument);
+  GeAssert(mReceiver);
 
-  return ( mReceiver->attributeBegin() &&
-           mReceiver->lightSource("sunsky", mTempParamSet) &&
-           mReceiver->attributeEnd() );
+  // traverse complete scene hierarchy and export all needed objects
+  HierarchyData data(TRUE, HierarchyData::LIGHT_OBJECTS);
+  return Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER, &data, 0);
+
+  //LuxIntegerT nSamples = 1;
+  //LuxVectorT  sundir(0.5, 0.5, 1.0);
+  //mTempParamSet.clear();
+  //mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "nsamples", &nSamples);
+  //mTempParamSet.addParam(LuxParamSet::LUX_VECTOR,  "sundir",   &sundir);
+
+  //return ( mReceiver->attributeBegin() &&
+  //         mReceiver->lightSource("sunsky", mTempParamSet) &&
+  //         mReceiver->attributeEnd() );
 }
 
 
@@ -464,6 +491,10 @@ Bool LuxAPIConverter::exportLights(void)
 ///   TRUE, if successful, FALSE otherwise
 Bool LuxAPIConverter::exportTextures(void)
 {
+  // safety checks
+  GeAssert(mDocument);
+  GeAssert(mReceiver);
+
   LuxColorT color(0.98, 0.98, 0.98);
   mTempParamSet.clear();
   mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "value", &color);
@@ -472,39 +503,147 @@ Bool LuxAPIConverter::exportTextures(void)
 }
 
 
-/// Exports the complete geometry of the scene.
+/// Exports all geometry objects of the scene that are not used by area lights.
 ///
 /// @return
 ///   TRUE, if successful, FALSE otherwise
 Bool LuxAPIConverter::exportGeometry(void)
 {
-  HierarchyData data(TRUE);
+  // safety checks
+  GeAssert(mDocument);
+  GeAssert(mReceiver);
+
+  // traverse complete scene hierarchy and export all needed objects
+  HierarchyData data(TRUE, HierarchyData::POLYGON_OBJECTS);
   return Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER | VFLAG_POLYGONAL, &data, 0);
+}
+
+
+/// Exports a light object and sends it to an implementation of LuxAPI.
+///
+/// @param[in]  object
+///   The light object to export.
+/// @param[in]  globalMatrix
+///   The global matrix of the object (will be obtained during scene hierarchy
+///   traversal).
+/// @return
+///   TRUE, if successful, FALSE otherwise
+Bool LuxAPIConverter::exportLight(BaseObject&   object,
+                                  const Matrix& globalMatrix)
+{
+  // get some general light parameters
+  Vector color           = GetParameterVector(object, LIGHT_COLOR);
+  Real   brightness      = GetParameterReal(object, LIGHT_BRIGHTNESS);
+  Real   falloffRadius   = GetParameterReal(object,
+                                            LIGHT_DETAILS_OUTERDISTANCE,
+                                            1.0 / mC4D2LuxScale)
+                           * mC4D2LuxScale;
+  Vector scaledPosition  = globalMatrix.off * mC4D2LuxScale;
+  Vector scaledDirection = globalMatrix.v3;
+  scaledDirection.Normalize();
+  scaledDirection *= VectorMax(scaledPosition);
+
+  // don't export black lights
+  if ((color.x * brightness < 0.001) &&
+      (color.y * brightness < 0.001) &&
+      (color.z * brightness < 0.001))
+  {
+    return TRUE;
+  }
+
+  // scale brightness relative to squared scaled falloff radius
+  Real scaledBrightness = falloffRadius * falloffRadius * brightness;
+
+  // begin with actual light export
+  GeDebugOut("exporting light object '" + object.GetName() + "' ...");
+  mTempParamSet.clear();
+
+  // the different parameters for all light types
+  LuxColorT luxColor;
+  LuxFloatT gain, coneAngle, coneDelta;
+  LuxPointT from, to;
+
+  // now determine the data depending on the light type
+  switch (GetParameterLong(object, LIGHT_TYPE)) {
+
+    case LIGHT_TYPE_OMNI:
+      // omni light becomes a point light
+      luxColor = color;
+      mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "I", &luxColor);
+      gain = scaledBrightness;
+      mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "gain", &gain);
+      from = scaledPosition;
+      mTempParamSet.addParam(LuxParamSet::LUX_POINT, "from", &from);
+      return mReceiver->lightSource("point", mTempParamSet);
+
+    case LIGHT_TYPE_SPOT:
+    case LIGHT_TYPE_SPOTRECT:
+      // spot lights (circular or squared) become spot lights
+      luxColor = color;
+      mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "I", &luxColor);
+      gain = scaledBrightness;
+      mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "gain", &gain);
+      from = scaledPosition;
+      mTempParamSet.addParam(LuxParamSet::LUX_POINT, "from", &from);
+      to = scaledPosition + scaledDirection;
+      mTempParamSet.addParam(LuxParamSet::LUX_POINT, "to", &to);
+      coneAngle = Deg(GetParameterReal(object, LIGHT_DETAILS_OUTERANGLE)) * 0.5;
+      mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "coneangle", &coneAngle);
+      coneDelta = coneAngle - Deg(GetParameterReal(object, LIGHT_DETAILS_INNERANGLE)) * 0.5;
+      mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "conedeltaangle", &coneDelta);
+      return mReceiver->lightSource("spot", mTempParamSet);
+
+    case LIGHT_TYPE_DISTANT:
+    case LIGHT_TYPE_PARALLEL:
+    case LIGHT_TYPE_PARSPOT:
+    case LIGHT_TYPE_PARSPOTRECT:
+      // all parallel lights become distant lights
+      luxColor = color;
+      mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "L", &luxColor);
+      gain = brightness * 0.25;
+      mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "gain", &gain);
+      from = scaledPosition;
+      mTempParamSet.addParam(LuxParamSet::LUX_POINT, "from", &from);
+      to = scaledPosition + scaledDirection;
+      mTempParamSet.addParam(LuxParamSet::LUX_POINT, "to", &to);
+      return mReceiver->lightSource("distant", mTempParamSet);
+
+    case LIGHT_TYPE_AREA:
+      break;
+
+    default:
+      break;
+  }
+
+  return TRUE;
 }
 
 
 /// Exports a polygon object and sends it to an implementation of LuxAPI.
 ///
 /// @param[in]  object
-///   The object to export.
+///   The polygon object to export.
+/// @param[in]  globalMatrix
+///   The global matrix of the object (will be obtained during scene hierarchy
+///   traversal).
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object)
+Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
+                                          const Matrix&  globalMatrix)
 {
-  // get polygon object
-  PolygonObject* polyObject = (PolygonObject*)&object;
-  if (!polyObject->GetPolygonCount()) {
+  // only export get polygon object with geometry/polygons
+  if (!object.GetPolygonCount()) {
     return TRUE;
   }
 
-  GeDebugOut("exporting object '" + object.GetName() + "' ...");
+  GeDebugOut("exporting polygon object '" + object.GetName() + "' ...");
 
   // extract geometry (TODO)
   TriangleIDsT  selectedTriangles;
   TrianglesT    triangles;
   PointsT       points;
   NormalsT      normals;
-  if (!convertGeometry(*polyObject, triangles, points, normals)) {
+  if (!convertGeometry(object, triangles, points, normals)) {
     return FALSE;
   }
 
@@ -515,8 +654,8 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object)
   if (!mReceiver->attributeBegin())  return FALSE;
 
   // write transformation matrix
-  LuxMatrixT  globalMatrix(object.GetMg(), mC4D2LuxScale);
-  if (!mReceiver->transform(globalMatrix))  return FALSE;
+  LuxMatrixT  transformMatrix(globalMatrix, mC4D2LuxScale);
+  if (!mReceiver->transform(transformMatrix))  return FALSE;
 
   // write material (TODO - just a placeholder)
   LuxStringT  kd = "white";
@@ -666,13 +805,12 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object)
   // ...
 
   // log the info we have
-  GeDebugOut(object.GetName());
   if (normals.size()) {
-    GeDebugOut("  has vertex normals");
+    GeDebugOut("  it has vertex normals");
   } else if (c4dNormals) {
-    GeDebugOut("  has vertex normals == face normals");
+    GeDebugOut("  it has vertex normals == face normals");
   } else {
-    GeDebugOut("  has no vertex normals");
+    GeDebugOut("  it has no vertex normals");
   }
 
   // if we have only points and polygons, but no normals:
@@ -832,7 +970,6 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
       ++mQuadCount;
     }
   }
-  GeDebugOut(object.GetName());
   GeDebugOut("  poly count:       " + LongToString(polygonCount));
   GeDebugOut("  point count:      " + LongToString(pointCount));
 
@@ -909,7 +1046,7 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
     }
     ++normal;
   }
-  GeDebugOut("  new point count: " + LongToString(newPointCount));
+  GeDebugOut("  new point count:  " + LongToString(newPointCount));
 
   // initialise point cache and normal cache
   if (!mPointCache.init(newPointCount) || !mNormalCache.init(newPointCount)) {
@@ -917,7 +1054,7 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
   }
 
   // now determine new node IDs and fill normal and point caches
-  ULONG       newPointIndex = 0;
+  ULONG newPointIndex = 0;
   for (ULONG pointIndex=0; pointIndex<pointCount; ++pointIndex) {
     for (ULONG point2PolyIndex=pointMap[pointIndex]; point2PolyIndex<pointMap[pointIndex+1]; ++point2PolyIndex) {
       point2Poly = &(point2Polys[point2PolyIndex]);
@@ -929,7 +1066,7 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
       ++newPointIndex;
     }
   }
-  GeDebugOut("  new point index: " + LongToString(newPointIndex));
+  GeDebugOut("  new point index:  " + LongToString(newPointIndex));
 
   // if that is not true, there is a hole in the logic
   GeAssert(newPointIndex == newPointCount);

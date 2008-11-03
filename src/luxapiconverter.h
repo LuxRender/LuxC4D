@@ -71,13 +71,22 @@ private:
 
   /// Helper structure to keep track of the visibility in the hierarchy.
   struct HierarchyData {
-    Bool  mVisible;
+
+    enum ObjectType {
+      POLYGON_OBJECTS,
+      LIGHT_OBJECTS
+    };
+
+    Bool       mVisible;
+    ObjectType mObjectType;
+
 
     HierarchyData(void)
+    : mVisible(TRUE), mObjectType(POLYGON_OBJECTS)
     {}
 
-    HierarchyData(Bool visible)
-    : mVisible(visible)
+    HierarchyData(Bool visible, ObjectType objectType)
+    : mVisible(visible), mObjectType(objectType)
     {}
   };
   
@@ -141,7 +150,11 @@ private:
   Bool exportTextures(void);
   Bool exportGeometry(void);
 
-  Bool exportPolygonObject(PolygonObject& obj);
+  Bool exportLight(BaseObject&   object,
+                   const Matrix& globalMatrix);
+
+  Bool exportPolygonObject(PolygonObject& object,
+                           const Matrix&  globalMatrix);
   Bool convertGeometry(PolygonObject& object,
                        TrianglesT&    triangles,
                        PointsT&       points,

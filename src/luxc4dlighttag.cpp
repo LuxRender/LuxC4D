@@ -23,49 +23,31 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
-#ifndef __UTILITIES_H__
-#define __UTILITIES_H__ 1
+#include "c4d_symbols.h"
+#include "luxc4dlighttag.h"
 
 
 
-#include "c4d.h"
+/*****************************************************************************
+ * Implementation of public member functions of class LuxC4DLightTag.
+ *****************************************************************************/
 
 
-
-/// Logs/prints an error message.
-#define ERRLOG(msg)                                                           \
-  { GePrint(msg); }
-
-/// Logs/prints an error message and returns (without a return value).
-#define ERRLOG_RETURN(msg)                                                    \
-  { ERRLOG(msg);  return; }
-
-/// Logs/prints an error message and returns with the return value FALSE.
-#define ERRLOG_RETURN_FALSE(msg)                                              \
-  { ERRLOG(msg);  return FALSE; }
-
-/// Logs/prints an error message, defined by an ID and returns
-/// (without a return value).
-#define ERRLOG_ID_RETURN_FALSE(id,msg)                                        \
-  { mErrorStringID=(id);  ERRLOG(msg);  return FALSE; }
+/// Returns a new instance of this class. Will be called by C4D, when the
+/// user adds this plugin as a post-effect.
+NodeData* LuxC4DLightTag::alloc(void)
+{
+  return gNew LuxC4DLightTag;
+}
 
 
-
-void ShowParameter(Description* description,
-                   LONG         paramID,
-                   AtomArray*   params,
-                   Bool         show);
-
-
-LONG GetParameterLong(BaseObject& object,
-                      LONG        paramID,
-                      LONG        preset = 0);
-Real GetParameterReal(BaseObject& object,
-                      LONG        paramID,
-                      Real        preset = 0.0);
-Vector GetParameterVector(BaseObject&   object,
-                          LONG          paramID,
-                          const Vector& preset = Vector());
-
-
-#endif  // #ifndef __UTILITIES_H__
+/// Registers this plugin in C4D and returns TRUE if it succeeded.
+Bool LuxC4DLightTag::registerPlugin(void)
+{
+  return RegisterTagPlugin(PID_LUXC4D_LIGHT_TAG,
+                           GeLoadString(IDS_LUXC4D_LIGHT_TAG),
+                           TAG_VISIBLE,
+                           alloc,
+                           "Tluxc4dlighttag",
+                           0);
+}

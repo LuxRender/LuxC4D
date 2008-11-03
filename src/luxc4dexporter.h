@@ -38,16 +38,19 @@
 
 
 /***************************************************************************//*!
- The CommandData plugin that triggers the actual export.
+ The CommandData plugin that triggers an export into a .lxs file.
 *//****************************************************************************/
 class LuxC4DExporter : public CommandData
 {
 public:
 
-  LuxC4DExporter(void);
-
   Bool registerPlugin(void);
   virtual Bool Execute(BaseDocument* doc);
+
+
+protected:
+
+  Filename mExportedFile;
 };
 
 

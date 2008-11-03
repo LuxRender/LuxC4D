@@ -35,11 +35,6 @@
  * Implementation of public member functions of class LuxC4DExporter.
  *****************************************************************************/
 
-/// Standard constructor. Does nothing at the moment.
-LuxC4DExporter::LuxC4DExporter(void)
-{}
-
-
 /// Registers this plugin instance in CINEMA 4D.
 ///
 /// @return
@@ -81,19 +76,18 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
 
   // if we have found a LuxC4DSettings object, get the export filename
   // chosen by the user
-  Filename path;
   Bool     overwritingAllowed = FALSE;
   if (settingsNode) {
-    settingsNode->GetExportFilename(*document, path, overwritingAllowed);
+    settingsNode->GetExportFilename(*document, mExportedFile, overwritingAllowed);
   }
 
   // if the file already exists and overwriting is not allowed, ask the user
   // what to do and ...
   Bool selectFilename = FALSE;
-  if (path.Content()) {
-    if (!overwritingAllowed && GeFExist(path)) {
+  if (mExportedFile.Content()) {
+    if (!overwritingAllowed && GeFExist(mExportedFile)) {
       LONG answer = GeOutString(GeLoadString(IDS_OVERWRITE_FILE_QUERY,
-                                             path.GetFileString()),
+                                             mExportedFile.GetFileString()),
                                 GEMB_YESNOCANCEL);
       if (answer == GEMB_R_CANCEL) {
         return FALSE;
@@ -104,23 +98,23 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
     }
   // otherwise derive export filename from document and ...
   } else {
-    path.SetDirectory(document->GetDocumentPath());
-    path.SetFile(document->GetDocumentName());
-    path.SetSuffix("lxs");
+    mExportedFile.SetDirectory(document->GetDocumentPath());
+    mExportedFile.SetFile(document->GetDocumentName());
+    mExportedFile.SetSuffix("lxs");
     selectFilename = TRUE;
   }
 
   // ... get export filename, if needed
   if (selectFilename) {
-    if (!path.FileSelect(FSTYPE_ANYTHING, GE_SAVE, GeLoadString(IDS_EXPORT_FILENAME_QUERY))) {
+    if (!mExportedFile.FileSelect(FSTYPE_ANYTHING, GE_SAVE, GeLoadString(IDS_EXPORT_FILENAME_QUERY))) {
       return FALSE;
     }
   }
 
   // initialise file writer
   LuxAPIWriter apiWriter;
-  if (!apiWriter.init(path)) {
-    GeOutString(GeLoadString(IDS_ERROR_INITIALISE_LUXAPIWRITER, path.GetString()), GEMB_OK);
+  if (!apiWriter.init(mExportedFile)) {
+    GeOutString(GeLoadString(IDS_ERROR_INITIALISE_LUXAPIWRITER, mExportedFile.GetString()), GEMB_OK);
     return FALSE;
   }
 
