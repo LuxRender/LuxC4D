@@ -41,6 +41,10 @@ void LuxC4DPreferencesDialog::SetValues(BaseContainer* data)
 {
   if (!data)  return;
   SetFilename(IDD_LUXC4D_PREFS_LUX_PATH, data, IDV_LUXC4D_PREFS_LUX_PATH);
+
+  // we store a copy of the internal preferences container (which is not always
+  // available) in the global plugin container
+  SetWorldPluginData(PID_LUXC4D_PREFERENCES, *data, FALSE);
 }
 
 
@@ -66,6 +70,10 @@ LONG LuxC4DPreferencesDialog::CommandValues(LONG                 id,
     default:
       break;
   }
+
+  // we store a copy of the internal preferences container (which is not always
+  // available) in the global plugin container
+  SetWorldPluginData(PID_LUXC4D_PREFERENCES, *data, TRUE);
   return TRUE;
 }
 
@@ -101,7 +109,8 @@ Filename LuxC4DPreferences::GetLuxPath(void)
 {
   Filename luxPath;
 
-  BaseContainer* data = GetData();
+  // get global plugin container and (if available) read out Lux path
+  BaseContainer* data = GetWorldPluginData(PID_LUXC4D_PREFERENCES);
   if (data) {
     luxPath = data->GetFilename(IDV_LUXC4D_PREFS_LUX_PATH);
   }

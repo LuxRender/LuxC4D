@@ -76,7 +76,8 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
 
   // if we have found a LuxC4DSettings object, get the export filename
   // chosen by the user
-  Bool     overwritingAllowed = FALSE;
+  Bool overwritingAllowed = FALSE;
+  mExportedFile = Filename();
   if (settingsNode) {
     settingsNode->GetExportFilename(*document, mExportedFile, overwritingAllowed);
   }

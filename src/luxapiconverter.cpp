@@ -470,16 +470,6 @@ Bool LuxAPIConverter::exportLights(void)
   // traverse complete scene hierarchy and export all needed objects
   HierarchyData data(TRUE, HierarchyData::LIGHT_OBJECTS);
   return Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER, &data, 0);
-
-  //LuxIntegerT nSamples = 1;
-  //LuxVectorT  sundir(0.5, 0.5, 1.0);
-  //mTempParamSet.clear();
-  //mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "nsamples", &nSamples);
-  //mTempParamSet.addParam(LuxParamSet::LUX_VECTOR,  "sundir",   &sundir);
-
-  //return ( mReceiver->attributeBegin() &&
-  //         mReceiver->lightSource("sunsky", mTempParamSet) &&
-  //         mReceiver->attributeEnd() );
 }
 
 
