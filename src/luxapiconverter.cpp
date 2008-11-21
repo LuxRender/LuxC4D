@@ -23,8 +23,8 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
-#include "customgui_datetime.h"
-#include "olight.h"
+#include <customgui_datetime.h>
+#include <olight.h>
 
 #include "luxapiconverter.h"
 #include "luxc4dsettings.h"
@@ -61,6 +61,18 @@ LuxAPIConverter::~LuxAPIConverter(void)
 {}
 
 
+/// Clears all data that is stored during the conversion process.
+void LuxAPIConverter::clearTemporaryData(void)
+{
+  mTempParamSet.clear();
+  mAreaLightObjects.erase();
+  mCachedObject = 0;
+  mPolygonCache.erase();
+  mPointCache.erase();
+  mNormalCache.erase();
+}
+
+
 /// Converts a scene into a the Lux format and sends it to a LuxAPI
 /// implementation, which can then consume the data.
 ///
@@ -72,13 +84,12 @@ LuxAPIConverter::~LuxAPIConverter(void)
 ///   TRUE if the scene could be exported, otherwise FALSE
 Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
 {
+  Bool returnValue = FALSE;
+
   // init internal data
   mDocument     = &document;
   mReceiver     = &receiver;
-  mCachedObject = 0;
-  mPolygonCache.erase();
-  mPointCache.erase();
-  mNormalCache.erase();
+  clearTemporaryData();
 
   // obtain active render settings
   RenderData* renderData = document.GetActiveRenderData();
@@ -122,7 +133,7 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
       !exportSurfaceIntegrator() ||
       !exportAccelerator())
   {
-    return FALSE;
+    goto CLEANUP_AND_RETURN;
   }
 
   // export scene description
@@ -132,13 +143,19 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
       !exportGeometry() ||
       !mReceiver->worldEnd())
   {
-    return FALSE;
+    goto CLEANUP_AND_RETURN;
   }
 
   // close scene
-  if (!mReceiver->endScene())  return FALSE;
+  if (!mReceiver->endScene())  goto CLEANUP_AND_RETURN;
 
-  return TRUE;
+  // everything was fine ...
+  returnValue = TRUE;
+
+CLEANUP_AND_RETURN:
+
+  clearTemporaryData();
+  return returnValue;
 }
 
 
@@ -221,13 +238,13 @@ Bool LuxAPIConverter::Do(void*         data,
         switch (object->GetType()) {
           // export polygon objects
           case Opolygon:
-            if (((HierarchyData*)data)->mObjectType == HierarchyData::POLYGON_OBJECTS) {
+            if ((mObjectType == POLYGON_OBJECTS) && !mAreaLightObjects.get(object)) {
               return exportPolygonObject(*((PolygonObject*)object), globalMatrix);
             }
             break;
           // export light objects
           case Olight:
-            if (((HierarchyData*)data)->mObjectType == HierarchyData::LIGHT_OBJECTS) {
+            if ((mObjectType == LIGHT_OBJECTS) && object->GetDeformMode()) {
               return exportLight(*object, globalMatrix);
             }
             break;
@@ -454,10 +471,8 @@ Bool LuxAPIConverter::exportAccelerator(void)
 }
 
 
-/// TODO ...
-/// Will export the lights. It will very likely be renamed to "exportLight"
-/// and be called by Do() - similar to exportGeometry. (at the moment it's
-/// exporting only a standard "sunsky").
+/// Exports all enabled lights of the scene. Objects used as area lights will
+/// be stored in a set and later the geometry export ignores these.
 ///
 /// @return
 ///   TRUE, if successful, FALSE otherwise
@@ -468,7 +483,8 @@ Bool LuxAPIConverter::exportLights(void)
   GeAssert(mReceiver);
 
   // traverse complete scene hierarchy and export all needed objects
-  HierarchyData data(TRUE, HierarchyData::LIGHT_OBJECTS);
+  mObjectType = LIGHT_OBJECTS;
+  HierarchyData data(TRUE);
   return Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER, &data, 0);
 }
 
@@ -504,32 +520,33 @@ Bool LuxAPIConverter::exportGeometry(void)
   GeAssert(mReceiver);
 
   // traverse complete scene hierarchy and export all needed objects
-  HierarchyData data(TRUE, HierarchyData::POLYGON_OBJECTS);
+  mObjectType = POLYGON_OBJECTS;
+  HierarchyData data(TRUE);
   return Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER | VFLAG_POLYGONAL, &data, 0);
 }
 
 
 /// Exports a light object and sends it to an implementation of LuxAPI.
 ///
-/// @param[in]  object
+/// @param[in]  lightObject
 ///   The light object to export.
 /// @param[in]  globalMatrix
 ///   The global matrix of the object (will be obtained during scene hierarchy
 ///   traversal).
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportLight(BaseObject&   object,
+Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
                                   const Matrix& globalMatrix)
 {
   // get some general light parameters
-  Vector color           = GetParameterVector(object, LIGHT_COLOR);
-  Real   brightness      = GetParameterReal(object, LIGHT_BRIGHTNESS);
-  Real   falloffRadius   = GetParameterReal(object,
+  Vector color           = GetParameterVector(lightObject, LIGHT_COLOR);
+  Real   brightness      = GetParameterReal(lightObject, LIGHT_BRIGHTNESS);
+  Real   falloffRadius   = GetParameterReal(lightObject,
                                             LIGHT_DETAILS_OUTERDISTANCE,
                                             1.0 / mC4D2LuxScale)
                            * mC4D2LuxScale;
   Vector scaledPosition  = globalMatrix.off * mC4D2LuxScale;
-  Vector scaledDirection = globalMatrix.v3;
+  Vector scaledDirection = globalMatrix.v3  * mC4D2LuxScale;
   scaledDirection.Normalize();
   scaledDirection *= VectorMax(scaledPosition);
 
@@ -544,66 +561,285 @@ Bool LuxAPIConverter::exportLight(BaseObject&   object,
   // scale brightness relative to squared scaled falloff radius
   Real scaledBrightness = falloffRadius * falloffRadius * brightness;
 
-  // begin with actual light export
-  GeDebugOut("exporting light object '" + object.GetName() + "' ...");
-  mTempParamSet.clear();
-
-  // the different parameters for all light types
-  LuxColorT luxColor;
-  LuxFloatT gain, coneAngle, coneDelta;
-  LuxPointT from, to;
-
   // now determine the data depending on the light type
-  switch (GetParameterLong(object, LIGHT_TYPE)) {
+  GeDebugOut("exporting light object '" + lightObject.GetName() + "' ...");
+  switch (GetParameterLong(lightObject, LIGHT_TYPE)) {
 
     case LIGHT_TYPE_OMNI:
-      // omni light becomes a point light
-      luxColor = color;
-      mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "I", &luxColor);
-      gain = scaledBrightness;
-      mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "gain", &gain);
-      from = scaledPosition;
-      mTempParamSet.addParam(LuxParamSet::LUX_POINT, "from", &from);
-      return mReceiver->lightSource("point", mTempParamSet);
+      {
+        // omni light becomes a point light
+        PointLightData data;
+        data.mColor = color;
+        data.mGain  = scaledBrightness;
+        data.mFrom  = scaledPosition;
+        return exportPointLight(data);
+      }
 
     case LIGHT_TYPE_SPOT:
     case LIGHT_TYPE_SPOTRECT:
-      // spot lights (circular or squared) become spot lights
-      luxColor = color;
-      mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "I", &luxColor);
-      gain = scaledBrightness;
-      mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "gain", &gain);
-      from = scaledPosition;
-      mTempParamSet.addParam(LuxParamSet::LUX_POINT, "from", &from);
-      to = scaledPosition + scaledDirection;
-      mTempParamSet.addParam(LuxParamSet::LUX_POINT, "to", &to);
-      coneAngle = Deg(GetParameterReal(object, LIGHT_DETAILS_OUTERANGLE)) * 0.5;
-      mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "coneangle", &coneAngle);
-      coneDelta = coneAngle - Deg(GetParameterReal(object, LIGHT_DETAILS_INNERANGLE)) * 0.5;
-      mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "conedeltaangle", &coneDelta);
-      return mReceiver->lightSource("spot", mTempParamSet);
+      {
+        // spot lights (circular or squared) become spot lights
+        SpotLightData data;
+        data.mColor          = color;
+        data.mGain           = scaledBrightness;
+        data.mFrom           = scaledPosition;
+        data.mTo             = scaledPosition + scaledDirection;
+        data.mConeAngle      = Deg(GetParameterReal(lightObject, LIGHT_DETAILS_OUTERANGLE)) * 0.5;
+        data.mConeDeltaAngle = data.mConeAngle - Deg(GetParameterReal(lightObject, LIGHT_DETAILS_INNERANGLE)) * 0.5;
+        return exportSpotLight(data);
+      }
 
     case LIGHT_TYPE_DISTANT:
     case LIGHT_TYPE_PARALLEL:
     case LIGHT_TYPE_PARSPOT:
     case LIGHT_TYPE_PARSPOTRECT:
-      // all parallel lights become distant lights
-      luxColor = color;
-      mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "L", &luxColor);
-      gain = brightness * 0.25;
-      mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "gain", &gain);
-      from = scaledPosition;
-      mTempParamSet.addParam(LuxParamSet::LUX_POINT, "from", &from);
-      to = scaledPosition + scaledDirection;
-      mTempParamSet.addParam(LuxParamSet::LUX_POINT, "to", &to);
-      return mReceiver->lightSource("distant", mTempParamSet);
+      {
+        // all parallel lights become distant lights
+        DistantLightData data;
+        data.mColor = color;
+        data.mGain  = brightness * 0.25;
+        data.mFrom  = scaledPosition;
+        data.mTo    = scaledPosition + scaledDirection;
+        return exportDistantLight(data);
+      }
 
     case LIGHT_TYPE_AREA:
+      {
+        // area light stays an area light
+        AreaLightData data;
+        data.mColor       = color;
+        data.mGain        = 0.001 * scaledBrightness;
+        data.mSamples     = 2;
+        data.mLightMatrix = lightObject.GetMg();
+        data.mShape       = GetParameterLong(lightObject, LIGHT_AREADETAILS_SHAPE);
+        data.mSize.x      = GetParameterReal(lightObject, LIGHT_AREADETAILS_SIZEX);
+        data.mSize.y      = GetParameterReal(lightObject, LIGHT_AREADETAILS_SIZEY);
+        data.mSize.z      = GetParameterReal(lightObject, LIGHT_AREADETAILS_SIZEZ);
+        if (data.mShape == LIGHT_AREADETAILS_SHAPE_OBJECT) {
+          BaseList2D* shapeObject = GetParameterLink(lightObject, LIGHT_AREADETAILS_OBJECT);
+          if (shapeObject && (shapeObject->GetType() == Opolygon)) {
+            mAreaLightObjects.add(shapeObject);
+            data.mShapeObject = (PolygonObject*)shapeObject;
+            data.mLightMatrix = data.mShapeObject->GetMg();
+          } else {
+            break;
+          }
+        }
+        return exportAreaLight(data);
+      }
       break;
 
     default:
+      GeDebugOut("  unsupported light type");
       break;
   }
+
+  return TRUE;
+}
+
+
+/// Sends a point light with its parameters to the LuxAPI receiver.
+///
+/// @param[in]  data
+///   Structure that contains all needed point light parameters.
+/// @return
+///   TRUE, if successful, FALSE otherwise
+Bool LuxAPIConverter::exportPointLight(PointLightData& data)
+{
+  mTempParamSet.clear();
+  mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "I",    &data.mColor);
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "gain", &data.mGain);
+  mTempParamSet.addParam(LuxParamSet::LUX_POINT, "from", &data.mFrom);
+  return mReceiver->lightSource("point", mTempParamSet);
+}
+
+
+/// Sends a spot light with its parameters to the LuxAPI receiver.
+///
+/// @param[in]  data
+///   Structure that contains all needed spot light parameters.
+/// @return
+///   TRUE, if successful, FALSE otherwise
+Bool LuxAPIConverter::exportSpotLight(SpotLightData& data)
+{
+  mTempParamSet.clear();
+  mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "I",              &data.mColor);
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "gain",           &data.mGain);
+  mTempParamSet.addParam(LuxParamSet::LUX_POINT, "from",           &data.mFrom);
+  mTempParamSet.addParam(LuxParamSet::LUX_POINT, "to",             &data.mTo);
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "coneangle",      &data.mConeAngle);
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "conedeltaangle", &data.mConeDeltaAngle);
+  return mReceiver->lightSource("spot", mTempParamSet);
+}
+
+
+/// Sends a distant light with its parameters to the LuxAPI receiver.
+///
+/// @param[in]  data
+///   Structure that contains all needed distant light parameters.
+/// @return
+///   TRUE, if successful, FALSE otherwise
+Bool LuxAPIConverter::exportDistantLight(DistantLightData& data)
+{
+  mTempParamSet.clear();
+  mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "L",    &data.mColor);
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "gain", &data.mGain);
+  mTempParamSet.addParam(LuxParamSet::LUX_POINT, "from", &data.mFrom);
+  mTempParamSet.addParam(LuxParamSet::LUX_POINT, "to",   &data.mTo);
+  return mReceiver->lightSource("distant", mTempParamSet);
+}
+
+
+/// Sends a complete area light section to the LuxAPI receiver, which consists of:
+///   AttributeBegin
+///   Transform [ ... ]
+///   AreaLightSource "area" ...
+///   Shape ...
+///   AttributeEnd
+///
+/// @param[in]  data
+///   Structure that contains all needed point light parameters.
+/// @return
+///   TRUE, if successful, FALSE otherwise
+Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
+{
+  LuxParamSet shapeParams(8);
+  const char* shapeName;
+  LuxFloatT   radius, width, height, zMin, zMax;
+  Real        xRad, yRad, zRad;
+  Bool        flipYZ;
+  PointsT     points;
+  TrianglesT  triangles;
+  QuadsT      quads;
+
+  // prepare area light export:
+  // - update light parameters
+  // - setup shape parameters
+  switch (data.mShape) {
+    // disc area light
+    case LIGHT_AREADETAILS_SHAPE_DISC:
+      radius = data.mSize.x * 0.5 * mC4D2LuxScale;
+      data.mGain /= pi * radius * radius;
+      flipYZ = TRUE;
+      shapeParams.addParam(LuxParamSet::LUX_FLOAT, "radius", &radius);
+      shapeName = "disk";
+      break;
+    // rectangle area light
+    case LIGHT_AREADETAILS_SHAPE_RECTANGLE:
+      width  = data.mSize.x * mC4D2LuxScale;
+      height = data.mSize.y * mC4D2LuxScale;
+      data.mGain /= width * height;
+      flipYZ = TRUE;
+      shapeParams.addParam(LuxParamSet::LUX_FLOAT, "width",  &width);
+      shapeParams.addParam(LuxParamSet::LUX_FLOAT, "height", &height);
+      shapeName = "quad";
+      break;
+    // sphere area light
+    case LIGHT_AREADETAILS_SHAPE_SPHERE:
+      radius = data.mSize.x * 0.5 * mC4D2LuxScale;
+      data.mGain /= 4. * pi * radius * radius;
+      flipYZ = TRUE;
+      shapeParams.addParam(LuxParamSet::LUX_FLOAT, "radius", &radius);
+      shapeName = "sphere";
+      break;
+    // cylinder area light
+    case LIGHT_AREADETAILS_SHAPE_CYLINDER:
+      radius =  data.mSize.x * 0.5 * mC4D2LuxScale;
+      zMin   = -data.mSize.z * 0.5 * mC4D2LuxScale;
+      zMax   =  data.mSize.z * 0.5 * mC4D2LuxScale;
+      data.mGain /= 2. * pi * radius * ( radius + zMax - zMin);
+      flipYZ = TRUE;
+      shapeParams.addParam(LuxParamSet::LUX_FLOAT, "radius", &radius);
+      shapeParams.addParam(LuxParamSet::LUX_FLOAT, "zmin",   &zMin);
+      shapeParams.addParam(LuxParamSet::LUX_FLOAT, "zmax",   &zMax);
+      shapeName = "cylinder";
+      break;
+    // cube area light
+    case LIGHT_AREADETAILS_SHAPE_CUBE:
+      xRad = data.mSize.x * 0.5 * mC4D2LuxScale;
+      yRad = data.mSize.y * 0.5 * mC4D2LuxScale;
+      zRad = data.mSize.z * 0.5 * mC4D2LuxScale;
+      points.init(8);
+      points[0] = Vector(-xRad, -yRad, -zRad);
+      points[1] = Vector( xRad, -yRad, -zRad);
+      points[2] = Vector( xRad,  yRad, -zRad);
+      points[3] = Vector(-xRad,  yRad, -zRad);
+      points[4] = Vector(-xRad, -yRad,  zRad);
+      points[5] = Vector( xRad, -yRad,  zRad);
+      points[6] = Vector( xRad,  yRad,  zRad);
+      points[7] = Vector(-xRad,  yRad,  zRad);
+      triangles.init(6*2*3);
+      triangles[ 0] = 0;  triangles[ 1] = 1;  triangles[ 2] = 2;  
+      triangles[ 3] = 0;  triangles[ 4] = 2;  triangles[ 5] = 3;  
+      triangles[ 6] = 7;  triangles[ 7] = 6;  triangles[ 8] = 5;  
+      triangles[ 9] = 7;  triangles[10] = 5;  triangles[11] = 4;  
+      triangles[12] = 1;  triangles[13] = 0;  triangles[14] = 4;  
+      triangles[15] = 1;  triangles[16] = 4;  triangles[17] = 5;  
+      triangles[18] = 2;  triangles[19] = 1;  triangles[20] = 5;  
+      triangles[21] = 2;  triangles[22] = 5;  triangles[23] = 6;  
+      triangles[24] = 3;  triangles[25] = 2;  triangles[26] = 6;  
+      triangles[27] = 3;  triangles[28] = 6;  triangles[29] = 7;  
+      triangles[30] = 0;  triangles[31] = 3;  triangles[32] = 7;  
+      triangles[33] = 0;  triangles[34] = 7;  triangles[35] = 4;  
+      data.mGain /= 8. * (xRad*yRad + xRad*zRad + yRad*zRad);
+      flipYZ = FALSE;
+      shapeParams.addParam(LuxParamSet::LUX_POINT, "P",
+                           &points.front(), points.size());
+      shapeParams.addParam(LuxParamSet::LUX_TRIANGLE, "triindices",
+                           &triangles.front(), triangles.size());
+      shapeName = "mesh";
+      break;
+    // hemisphere area light
+    case LIGHT_AREADETAILS_SHAPE_HEMISPHERE:
+      radius = data.mSize.x * 0.5 * mC4D2LuxScale;
+      zMin   = 0;
+      data.mGain /= 2. * pi * radius * radius;
+      flipYZ = TRUE;
+      shapeParams.addParam(LuxParamSet::LUX_FLOAT, "radius", &radius);
+      shapeParams.addParam(LuxParamSet::LUX_FLOAT, "zmin",   &zMin);
+      shapeName = "sphere";
+      break;
+    // object area light
+    case LIGHT_AREADETAILS_SHAPE_OBJECT:
+      if (!convertGeometry(*data.mShapeObject, triangles, points))  return FALSE;
+      if (!triangles.size() || !points.size())  return TRUE;
+      radius = Len(data.mShapeObject->GetRad()) * mC4D2LuxScale;
+      data.mGain /= 4. * pi * radius * radius;
+      flipYZ = FALSE;
+      shapeParams.addParam(LuxParamSet::LUX_POINT, "P",
+                           &points.front(), points.size());
+      shapeParams.addParam(LuxParamSet::LUX_TRIANGLE, "indices",
+                           &triangles.front(), triangles.size());
+      shapeName = "trianglemesh";
+      break;
+    default:
+      return TRUE;
+  }
+
+  // AttributeBegin
+  if (!mReceiver->attributeBegin())  return FALSE;
+
+  // export transformation matrix of  area light
+  if (flipYZ) {
+    Vector temp = data.mLightMatrix.v2;
+    data.mLightMatrix.v2 = data.mLightMatrix.v3;
+    data.mLightMatrix.v3 = -temp;
+  }
+  LuxMatrixT  transformMatrix(data.mLightMatrix, mC4D2LuxScale);
+  if (!mReceiver->transform(transformMatrix))  return FALSE;
+
+  // export area light
+  mTempParamSet.clear();
+  mTempParamSet.addParam(LuxParamSet::LUX_COLOR,   "L",        &data.mColor);
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "gain",     &data.mGain);
+  mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "nsamples", &data.mSamples);
+  if (!mReceiver->areaLightSource("area", mTempParamSet))  return FALSE;
+
+  // export area light shape
+  if (!mReceiver->shape(shapeName, shapeParams))  return FALSE;
+
+  // AttributeEnd
+  if (!mReceiver->attributeEnd())  return FALSE;
 
   return TRUE;
 }
@@ -628,12 +864,11 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
 
   GeDebugOut("exporting polygon object '" + object.GetName() + "' ...");
 
-  // extract geometry (TODO)
-  TriangleIDsT  selectedTriangles;
+  // extract geometry
   TrianglesT    triangles;
   PointsT       points;
   NormalsT      normals;
-  if (!convertGeometry(object, triangles, points, normals)) {
+  if (!convertGeometry(object, triangles, points, &normals)) {
     return FALSE;
   }
 
@@ -653,17 +888,17 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
   mTempParamSet.addParam(LuxParamSet::LUX_TEXTURE, "Kd", &kd);
   if (!mReceiver->material("matte", mTempParamSet))  return FALSE;
 
-  // export geometry/shape (TODO - placeholder)
+  // export geometry/shape
   mTempParamSet.clear();
   mTempParamSet.addParam(LuxParamSet::LUX_POINT, "P",
-                         points.getArrayAddress(), points.size());
+                         &points.front(), points.size());
   if (normals.size()) {
     mTempParamSet.addParam(LuxParamSet::LUX_NORMAL, "N",
-                           normals.getArrayAddress(), normals.size());
+                           &normals.front(), normals.size());
   }
-  mTempParamSet.addParam(LuxParamSet::LUX_TRIANGLE, "indices",
-                         triangles.getArrayAddress(), triangles.size());
-  if (!mReceiver->shape("trianglemesh", mTempParamSet))  return FALSE;
+  mTempParamSet.addParam(LuxParamSet::LUX_TRIANGLE, "triindices",
+                         &triangles.front(), triangles.size());
+  if (!mReceiver->shape("mesh", mTempParamSet))  return FALSE;
 
   // AttributeEnd
   if (!mReceiver->attributeEnd())  return FALSE;
@@ -687,18 +922,18 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
 Bool LuxAPIConverter::convertGeometry(PolygonObject& object,
                                       TrianglesT&    triangles,
                                       PointsT&       points,
-                                      NormalsT&      normals)
+                                      NormalsT*      normals)
 {
   // clear output arrays
   triangles.erase();
   points.erase();
-  normals.erase();
+  if (normals)  normals->erase();
 
   // this must be a new (not cached) object
   GeAssert(&object != mCachedObject);
 
   // convert and cache the geometry of the object
-  if (!convertAndCacheGeometry(object)) {
+  if (!convertAndCacheGeometry(object, (normals == 0))) {
     return FALSE;
   }
 
@@ -733,7 +968,7 @@ Bool LuxAPIConverter::convertGeometry(PolygonObject& object,
 
   // adopt point cache and normal cache
   points.adopt(mPointCache);
-  normals.adopt(mNormalCache);
+  if (normals)  normals->adopt(mNormalCache);
 
   return TRUE;
 }
@@ -745,9 +980,11 @@ Bool LuxAPIConverter::convertGeometry(PolygonObject& object,
 /// 
 /// @param[in]  object
 ///   The object to convert and cache.
+///
 /// @return
 ///   TRUE if successful, FALSE otherwise.
-Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object)
+Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object,
+                                              Bool           noNormals)
 {
   // clear cache
   mPolygonCache.erase();
@@ -770,24 +1007,27 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object)
   memcpy(mPolygonCache.getArrayAddress(), polygons, sizeof(CPolygon)*polygonCount);
 
   // get normals and store them in FixArray1D as we own the memory
-  Vector* c4dNormals = object.CreatePhongNormals();
   C4DNormalsT normals;
-  if (c4dNormals) {
-    normals.setArrayAddress(c4dNormals, (VULONG)polygonCount*4);
-    // check if normals are actually just plain face normals
-    VULONG polygonIndex = 0;
-    for (polygonIndex=0; polygonIndex<polygonCount; ++polygonIndex) {
-      if (!equalNormals(normals[polygonIndex*4], normals[polygonIndex*4+1]) ||
-          !equalNormals(normals[polygonIndex*4], normals[polygonIndex*4+2]) ||
-          !equalNormals(normals[polygonIndex*4], normals[polygonIndex*4+3]))
-      {
-        break;
+  Vector*     c4dNormals(0);
+  if (!noNormals) {
+    c4dNormals = object.CreatePhongNormals();
+    if (c4dNormals) {
+      normals.setArrayAddress(c4dNormals, (VULONG)polygonCount*4);
+      // check if normals are actually just plain face normals
+      VULONG polygonIndex = 0;
+      for (polygonIndex=0; polygonIndex<polygonCount; ++polygonIndex) {
+        if (!equalNormals(normals[polygonIndex*4], normals[polygonIndex*4+1]) ||
+            !equalNormals(normals[polygonIndex*4], normals[polygonIndex*4+2]) ||
+            !equalNormals(normals[polygonIndex*4], normals[polygonIndex*4+3]))
+        {
+          break;
+        }
       }
-    }
-    // if all normals on each face are the same, we don't have to care about
-    // vertex normals at all
-    if (polygonIndex >= polygonCount) {
-      normals.erase();
+      // if all normals on each face are the same, we don't have to care about
+      // vertex normals at all
+      if (polygonIndex >= polygonCount) {
+        normals.erase();
+      }
     }
   }
 
@@ -933,7 +1173,7 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
                                                  C4DNormalsT&   normals)
 {
   // get points from C4D and polygon count from cache (polygons were already
-  // created by (convertAndCacheGeometry())
+  // created by convertAndCacheGeometry())
   ULONG pointCount = object.GetPointCount();
   const Vector* points = object.GetPointR();
   ULONG polygonCount = mPolygonCache.size();

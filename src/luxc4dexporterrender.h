@@ -32,6 +32,10 @@
 
 
 
+/***************************************************************************//*!
+ The CommandData plugin that triggers an export into a .lxs file and then calls
+ Lux to render it.
+*//****************************************************************************/
 class LuxC4DExporterRender : private LuxC4DExporter
 {
 public:

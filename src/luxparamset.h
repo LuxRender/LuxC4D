@@ -61,6 +61,7 @@ public:
     LUX_POINT,
     LUX_NORMAL,
     LUX_TRIANGLE,
+    LUX_QUAD,
     LUX_STRING,
     LUX_TEXTURE,
     LUX_NUMBER

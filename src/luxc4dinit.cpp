@@ -23,7 +23,7 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
-#include "c4d.h"
+#include <c4d.h>
 
 #include "luxc4dexporter.h"
 #include "luxc4dexporterrender.h"
@@ -31,11 +31,6 @@
 #include "luxc4dlighttag.h"
 #include "luxc4dsettings.h"
 #include "utilities.h"
-
-
-
-///
-LuxC4DPreferences* gPreferences(NULL);
 
 
 

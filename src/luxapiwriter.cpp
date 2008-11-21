@@ -31,6 +31,11 @@
 
 
 
+/*****************************************************************************
+ * Implementation of public member functions of class LuxAPIWriter.
+ *****************************************************************************/
+
+
 /// Constructs a new instance.
 LuxAPIWriter::LuxAPIWriter()
 : mSceneFileOpened(FALSE),
@@ -128,42 +133,48 @@ Bool LuxAPIWriter::lookAt(const LuxVectorT& camPos,
 Bool LuxAPIWriter::film(IdentifierNameT    name,
                         const LuxParamSet& paramSet)
 {
-  return writeSetting("Film", name, 0, 0, paramSet, TRUE);
+  return writeSetting("Film", name, 0, 0, paramSet, TRUE) &&
+         writeLine(0);
 }
 
 
 Bool LuxAPIWriter::camera(IdentifierNameT     name,
                           const LuxParamSet& paramSet)
 {
-  return writeSetting("Camera", name, 0, 0, paramSet, TRUE);
+  return writeSetting("Camera", name, 0, 0, paramSet, TRUE) &&
+         writeLine(0);
 }
 
 
 Bool LuxAPIWriter::pixelFilter(IdentifierNameT    name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting("PixelFilter", name, 0, 0, paramSet, TRUE);
+  return writeSetting("PixelFilter", name, 0, 0, paramSet, TRUE) &&
+         writeLine(0);
 }
 
 
 Bool LuxAPIWriter::sampler(IdentifierNameT    name,
                            const LuxParamSet& paramSet)
 {
-  return writeSetting("Sampler", name, 0, 0, paramSet, TRUE);
+  return writeSetting("Sampler", name, 0, 0, paramSet, TRUE) &&
+         writeLine(0);
 }
 
 
 Bool LuxAPIWriter::surfaceIntegrator(IdentifierNameT    name,
                                      const LuxParamSet& paramSet)
 {
-  return writeSetting("SurfaceIntegrator", name, 0, 0, paramSet, TRUE);
+  return writeSetting("SurfaceIntegrator", name, 0, 0, paramSet, TRUE) &&
+         writeLine(0);
 }
 
 
 Bool LuxAPIWriter::accelerator(IdentifierNameT    name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting("Accelerator", name, 0, 0, paramSet, TRUE);
+  return writeSetting("Accelerator", name, 0, 0, paramSet, TRUE) &&
+         writeLine(0);
 }
 
 
@@ -206,7 +217,14 @@ Bool LuxAPIWriter::objectEnd(void)
 Bool LuxAPIWriter::lightSource(IdentifierNameT    name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting("LightSource", name, 0, 0, paramSet, TRUE);
+  return writeSetting("\nLightSource", name, 0, 0, paramSet, TRUE);
+}
+
+
+Bool LuxAPIWriter::areaLightSource(IdentifierNameT    name,
+                                   const LuxParamSet& paramSet)
+{
+  return writeSetting("AreaLightSource", name, 0, 0, paramSet, TRUE);
 }
 
 
@@ -215,7 +233,7 @@ Bool LuxAPIWriter::texture(IdentifierNameT    name,
                            IdentifierNameT    type,
                            const LuxParamSet& paramSet)
 {
-  return writeSetting("\nTexture", name, colorType, type, paramSet, FALSE);
+  return writeSetting("\nTexture", name, colorType, type, paramSet, TRUE);
 }
 
 
@@ -243,15 +261,21 @@ Bool LuxAPIWriter::transform(const LuxMatrixT& matrix)
 Bool LuxAPIWriter::material(IdentifierNameT    name,
                             const LuxParamSet& paramSet)
 {
-  return writeSetting("Material", name, 0, 0, paramSet, FALSE);
+  return writeSetting("Material", name, 0, 0, paramSet, TRUE);
 }
 
 
 Bool LuxAPIWriter::shape(IdentifierNameT    name,
                          const LuxParamSet& paramSet)
 {
-  return writeSetting("Shape", name, 0, 0, paramSet, FALSE);
+  return writeSetting("Shape", name, 0, 0, paramSet, TRUE);
 }
+
+
+
+/*****************************************************************************
+ * Implementation of private member functions of class LuxAPIWriter.
+ *****************************************************************************/
 
 
 /// Writes a string and terminates it with a line feed.
@@ -339,6 +363,7 @@ Bool LuxAPIWriter::writeSetting(SettingNameT       setting,
       {"color ", 6},
       {"point ", 6},
       {"normal ", 7},
+      {"integer ", 8},
       {"integer ", 8},
       {"string ", 7},
       {"texture ", 8} };
@@ -522,6 +547,22 @@ Bool LuxAPIWriter::writeSetting(SettingNameT       setting,
           }
           break;
         }
+      case LuxParamSet::LUX_QUAD:
+        {
+          const LuxIntegerT* values = (const LuxIntegerT*)tokenPointer;
+          if (tokenArraySize == 4) {
+            valueStringLen = sprintf(valueString, "%d %d %d %d",
+                                     values[0], values[1], values[2], values[3]);
+            success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+          } else {
+            for (ULONG i=3; i<tokenArraySize; i+=4) {
+              valueStringLen = sprintf(valueString, "%d %d %d %d\n",
+                                       values[i-3], values[i-2], values[i-1], values[i]);
+              success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+            }
+          }
+          break;
+        }
       case LuxParamSet::LUX_STRING:
       case LuxParamSet::LUX_TEXTURE:
         {
@@ -549,13 +590,11 @@ Bool LuxAPIWriter::writeSetting(SettingNameT       setting,
         ERRLOG_ID_RETURN_FALSE(IDS_ERROR_INTERNAL, "LuxAPIWriter::writeSetting(): invalid type specifier in token name");
     }
     success &= mSceneFile->WriteChar(']');
-    if (newLine) {
-      success &= mSceneFile->WriteChar('\n');
-    }
+    if (newLine)  success &= mSceneFile->WriteChar('\n');
   }
 
   // write line feed, to finish statement and skip to the next line
-  success &= mSceneFile->WriteChar('\n');
+  if (!newLine)  success &= mSceneFile->WriteChar('\n');
 
   // check if some of the write operations have failed
   if (!success) {

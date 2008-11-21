@@ -342,10 +342,6 @@
 			>
 		</File>
 		<File
-			RelativePath="..\..\src\luxc4d.h"
-			>
-		</File>
-		<File
 			RelativePath="..\..\src\luxc4dexporter.cpp"
 			>
 		</File>
@@ -399,6 +395,14 @@
 		</File>
 		<File
 			RelativePath="..\..\src\luxtypes.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rbtreeset.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rbtreeset_impl.h"
 			>
 		</File>
 		<File

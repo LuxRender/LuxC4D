@@ -50,7 +50,17 @@ void ShowParameter(Description* description,
 }
 
 
+/// Obtains a description parameter of type LONG of an object.
 ///
+/// @param[in]  object
+///   The object of which we want to read out the parameter.
+/// @param[in]  paramID
+///   The ID of the description parameter.
+/// @param[in]  preset
+///   The value the function returs, if the parameter doesn't exist or is not
+///   of type LONG.
+/// @return
+///   The value of the parameter or the preset value, if we couldn't fetch it.
 LONG GetParameterLong(BaseObject& object,
                       LONG        paramID,
                       LONG        preset)
@@ -65,7 +75,17 @@ LONG GetParameterLong(BaseObject& object,
 }
 
 
+/// Obtains a description parameter of type Real of an object.
 ///
+/// @param[in]  object
+///   The object of which we want to read out the parameter.
+/// @param[in]  paramID
+///   The ID of the description parameter.
+/// @param[in]  preset
+///   The value the function returs, if the parameter doesn't exist or is not
+///   of type Real.
+/// @return
+///   The value of the parameter or the preset value, if we couldn't fetch it.
 Real GetParameterReal(BaseObject& object,
                       LONG        paramID,
                       Real        preset)
@@ -80,7 +100,17 @@ Real GetParameterReal(BaseObject& object,
 }
 
 
+/// Obtains a description parameter of type Vector of an object.
 ///
+/// @param[in]  object
+///   The object of which we want to read out the parameter.
+/// @param[in]  paramID
+///   The ID of the description parameter.
+/// @param[in]  preset
+///   The value the function returs, if the parameter doesn't exist or is not
+///   of type Vector.
+/// @return
+///   The value of the parameter or the preset value, if we couldn't fetch it.
 Vector GetParameterVector(BaseObject&   object,
                           LONG          paramID,
                           const Vector& preset)
@@ -92,4 +122,28 @@ Vector GetParameterVector(BaseObject&   object,
     }
   }
   return preset;
+}
+
+
+/// Obtains a description parameter link of type LINK from an object.
+///
+/// @param[in]  object
+///   The object of which we want to read out the parameter.
+/// @param[in]  paramID
+///   The ID of the description parameter.
+/// @return
+///   The link parameter (BaseList2D*) or o if we couldn't fetch it.
+BaseList2D* GetParameterLink(BaseObject&   object,
+                             LONG          paramID)
+{
+  GeData parameter;
+  if (object.GetParameter(DescLevel(paramID), parameter, 0)) {
+    if (parameter.GetType() == DA_ALIASLINK) {
+      BaseLink* link = parameter.GetBaseLink();
+      if (link) {
+        return link->GetLink(object.GetDocument());
+      }
+    }
+  }
+  return 0;
 }

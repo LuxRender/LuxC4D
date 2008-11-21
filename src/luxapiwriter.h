@@ -34,6 +34,10 @@
 
 
 
+/***************************************************************************//*!
+ This class implements LuxAPI and writes the passed commands into a .lxs scene
+ file.
+*//****************************************************************************/
 class LuxAPIWriter : public LuxAPI
 {
 public:
@@ -78,6 +82,8 @@ public:
 
   virtual Bool lightSource(IdentifierNameT    name,
                            const LuxParamSet& paramSet);
+  virtual Bool areaLightSource(IdentifierNameT    name,
+                               const LuxParamSet& paramSet);
 
   virtual Bool texture(IdentifierNameT    name,
                        IdentifierNameT    colorType,
@@ -115,6 +121,7 @@ private:
 
 
 
+/// Returns the ID of the current error or 0 if no error occured.
 inline LONG LuxAPIWriter::errorStringID(void) const
 {
   return mErrorStringID;

@@ -17,6 +17,8 @@
 		2CCB77E00E6C174600D45D8E /* luxparamset.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CCB77D20E6C174600D45D8E /* luxparamset.h */; };
 		2CCB77E10E6C174600D45D8E /* luxtypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CCB77D30E6C174600D45D8E /* luxtypes.h */; };
 		2CCB77E60E6C176700D45D8E /* c4d_symbols.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CCB77E30E6C176700D45D8E /* c4d_symbols.h */; };
+		2CDE963E0ED43135006B1412 /* rbtreeset_impl.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CDE963C0ED43135006B1412 /* rbtreeset_impl.h */; };
+		2CDE963F0ED43135006B1412 /* rbtreeset.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CDE963D0ED43135006B1412 /* rbtreeset.h */; };
 		2CE1C1D50EABB60500AF4D13 /* luxapiconverter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2CE1C1CE0EABB60500AF4D13 /* luxapiconverter.cpp */; };
 		2CE1C1D60EABB60500AF4D13 /* luxapiconverter.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE1C1CF0EABB60500AF4D13 /* luxapiconverter.h */; };
 		2CE1C1D70EABB60500AF4D13 /* luxc4dexporter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2CE1C1D00EABB60500AF4D13 /* luxc4dexporter.cpp */; };
@@ -59,6 +61,8 @@
 		2CCB77D30E6C174600D45D8E /* luxtypes.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = luxtypes.h; sourceTree = "<group>"; };
 		2CCB77E30E6C176700D45D8E /* c4d_symbols.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = c4d_symbols.h; sourceTree = "<group>"; };
 		2CCB77E50E6C176700D45D8E /* c4d_strings.str */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = c4d_strings.str; sourceTree = "<group>"; };
+		2CDE963C0ED43135006B1412 /* rbtreeset_impl.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = rbtreeset_impl.h; sourceTree = "<group>"; };
+		2CDE963D0ED43135006B1412 /* rbtreeset.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = rbtreeset.h; sourceTree = "<group>"; };
 		2CE1C1CE0EABB60500AF4D13 /* luxapiconverter.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = luxapiconverter.cpp; sourceTree = "<group>"; };
 		2CE1C1CF0EABB60500AF4D13 /* luxapiconverter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = luxapiconverter.h; sourceTree = "<group>"; };
 		2CE1C1D00EABB60500AF4D13 /* luxc4dexporter.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = luxc4dexporter.cpp; sourceTree = "<group>"; };
@@ -99,6 +103,8 @@
 		2CCB77C50E6C174600D45D8E /* src */ = {
 			isa = PBXGroup;
 			children = (
+				2CDE963C0ED43135006B1412 /* rbtreeset_impl.h */,
+				2CDE963D0ED43135006B1412 /* rbtreeset.h */,
 				2CE79AB60EBF7F9600995C2F /* luxc4d.h */,
 				2CE79AB70EBF7F9600995C2F /* luxc4dexporterrender.cpp */,
 				2CE79AB80EBF7F9600995C2F /* luxc4dexporterrender.h */,
@@ -203,6 +209,8 @@
 				2CE79AC20EBF7F9600995C2F /* luxc4dlighttag.h in Headers */,
 				2CE79AC40EBF7F9600995C2F /* luxc4dpreferences.h in Headers */,
 				2CE79AC80EBF7FCF00995C2F /* tluxc4dlighttag.h in Headers */,
+				2CDE963E0ED43135006B1412 /* rbtreeset_impl.h in Headers */,
+				2CDE963F0ED43135006B1412 /* rbtreeset.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

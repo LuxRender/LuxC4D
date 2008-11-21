@@ -28,6 +28,11 @@
 
 
 
+/*****************************************************************************
+ * Implementation of public member functions of class LuxParamSet.
+ *****************************************************************************/
+
+
 /// Constructs an empty parameter set and allocates the required space for
 /// a fixed amount of parameters.
 ///

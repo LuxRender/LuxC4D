@@ -66,6 +66,9 @@ Real GetParameterReal(BaseObject& object,
 Vector GetParameterVector(BaseObject&   object,
                           LONG          paramID,
                           const Vector& preset = Vector());
+BaseList2D* GetParameterLink(BaseObject&   object,
+                             LONG          paramID);
+
 
 
 #endif  // #ifndef __UTILITIES_H__

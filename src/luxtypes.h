@@ -155,6 +155,10 @@ typedef struct LuxMatrix
   LuxFloatT values[16];
 
 
+  /// Default constructor. The members are NOT cleared.
+  inline LuxMatrix()
+  {}
+
   /// Constructor that creates a matching Lux matrix out of a C4D matrix.
   ///
   /// @param[in]  c4dMatrix

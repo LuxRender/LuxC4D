@@ -25,6 +25,7 @@
 
 #include "c4d_symbols.h"
 #include "luxc4dlighttag.h"
+#include "utilities.h"
 
 
 

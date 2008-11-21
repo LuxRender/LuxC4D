@@ -37,6 +37,10 @@
 
 
 
+/***************************************************************************//*!
+ This class implements a dialog for setting the global preferences of LuxC4D
+ in the CINEMA 4D program preferences.
+*//****************************************************************************/
 class LuxC4DPreferencesDialog : public PrefsDlg_Base
 {
 public:
@@ -51,6 +55,10 @@ public:
 
 
 
+/***************************************************************************//*!
+ This class implements a hook for registering and managing a LuxC4D preference
+ dialog in the CINEMA 4D program preferences.
+*//****************************************************************************/
 class LuxC4DPreferences : public PrefsDialogHookClass
 {
 public:
@@ -60,8 +68,13 @@ public:
   virtual SubDialog* Alloc(void);
   virtual void Free(SubDialog* dlg);
 
-  Filename GetLuxPath(void);
+  Filename getLuxPath(void);
 };
+
+
+
+/// Use this global instance to fetch global LuxC4D settings.
+extern LuxC4DPreferences* gPreferences;
 
 
 

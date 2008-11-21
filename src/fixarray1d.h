@@ -24,7 +24,7 @@
  ************************************************************************/
 
 #ifndef __FIXARRAY1D_H__
-#define __FIXARRAY1D_H__
+#define __FIXARRAY1D_H__  1
 
 
 
@@ -91,4 +91,4 @@ class FixArray1D
 
 
 
-#endif
+#endif  // #ifndef __FIXARRAY1D_H__

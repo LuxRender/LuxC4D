@@ -150,15 +150,54 @@ public:
                            const LuxParamSet& paramSet) =0;
 
 
+  /// Starts the actual scene description. This has to be called before any
+  /// of the functions below are called.
+  ///
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool worldBegin(void) =0;
+
+  /// Ends the actual scene description. After calling this, none of the
+  /// functions below should be called anymore.
+  ///
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool worldEnd(void) =0;
+
+  /// Begins a new level on the attribute stack. By calling attributeEnd()
+  /// you can go back to the previous level and restore its attributes.
+  ///
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool attributeBegin(void) =0;
+
+  /// Closes the current level on the attribute stack and restores the previous
+  /// level.
+  ///
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool attributeEnd(void) =0;
+
+  /// Begins a new named level on the attribute stack - similar to
+  /// attributeBegin(). By giving this level a name, we can refer to it later
+  /// and create instances of it.
+  ///
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool objectBegin(IdentifierNameT name) =0;
+
+  /// Closes the current named level on the attribute stack and restores the
+  /// previous level.
+  ///
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool objectEnd(void) =0;
+
 
   virtual Bool lightSource(IdentifierNameT    name,
                            const LuxParamSet& paramSet) =0;
+  virtual Bool areaLightSource(IdentifierNameT    name,
+                               const LuxParamSet& paramSet) =0;
   virtual Bool texture(IdentifierNameT    name,
                        IdentifierNameT    colorType,
                        IdentifierNameT    type,

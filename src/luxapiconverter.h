@@ -28,11 +28,12 @@
 
 
 
-#include "c4d.h"
+#include <c4d.h>
 
 #include "fixarray1d.h"
 #include "luxapi.h"
 #include "luxc4dsettings.h"
+#include "rbtreeset.h"
 
 
 
@@ -69,33 +70,66 @@ public:
 
 private:
 
-  /// Helper structure to keep track of the visibility in the hierarchy.
+  /// Enum to differentiate between different hierarchy traverses.
+  enum ObjectType {
+    POLYGON_OBJECTS,
+    LIGHT_OBJECTS
+  };
+
+
+  /// Helper structure to keep track of visibility during hierarchy traversal.
   struct HierarchyData {
 
-    enum ObjectType {
-      POLYGON_OBJECTS,
-      LIGHT_OBJECTS
-    };
-
     Bool       mVisible;
-    ObjectType mObjectType;
 
-
-    HierarchyData(void)
-    : mVisible(TRUE), mObjectType(POLYGON_OBJECTS)
-    {}
-
-    HierarchyData(Bool visible, ObjectType objectType)
-    : mVisible(visible), mObjectType(objectType)
+    HierarchyData(Bool visible = TRUE)
+    : mVisible(visible)
     {}
   };
-  
+ 
+
+  /// Structure that stores all parameters of a point light.
+  struct PointLightData {
+    LuxColorT mColor;
+    LuxFloatT mGain;
+    LuxPointT mFrom;
+  };
+
+  /// Structure that stores all parameters of a spot light.
+  struct SpotLightData {
+    LuxColorT mColor;
+    LuxFloatT mGain;
+    LuxPointT mFrom;
+    LuxPointT mTo;
+    LuxFloatT mConeAngle;
+    LuxFloatT mConeDeltaAngle;
+  };
+
+  /// Structure that stores all parameters of a distant light.
+  struct DistantLightData {
+    LuxColorT mColor;
+    LuxFloatT mGain;
+    LuxPointT mFrom;
+    LuxPointT mTo;
+  };
+
+  /// Structure that stores all parameters of an area light.
+  struct AreaLightData {
+    LuxColorT      mColor;
+    LuxFloatT      mGain;
+    LuxIntegerT    mSamples; 
+    Matrix         mLightMatrix;
+    LONG           mShape;
+    Vector         mSize;
+    PolygonObject* mShapeObject;
+  };
+
 
   /// Helper structure for storing normal and UV references for each polygon a
-  /// point is connected to. (For every combination point/poly combination there
-  /// is one instance stored)
+  /// point is connected to. (For every point/poly combination we store one
+  /// instance)
   /// To safe memory, this structure will be overwritten with the new point ID
-  /// in the cached geometry. (Hence the union)
+  /// in the cached geometry (hence the union).
   union Point2Poly {
     struct {
       Vector* normalRef;
@@ -104,6 +138,7 @@ private:
     ULONG newPoint;
   } Point2PolyT;
 
+
   /// The container type for storing the point-to-polygon data.
   typedef FixArray1D<Point2Poly>  Point2PolysT;
 
@@ -111,6 +146,8 @@ private:
   typedef FixArray1D<ULONG>       TriangleIDsT;
   /// The container type for storing the point IDs of triangles.
   typedef FixArray1D<LuxIntegerT> TrianglesT;
+  /// The container type for storing the point IDs of triangles.
+  typedef FixArray1D<LuxIntegerT> QuadsT;
   /// The container type for storing point positions.
   typedef FixArray1D<LuxPointT>   PointsT;
   /// The contianer type for storing normal vectors.
@@ -121,6 +158,9 @@ private:
   /// The container type for storing C4D normal vectors.
   typedef FixArray1D<Vector>      C4DNormalsT;
 
+  /// The container type for storing a set of objects.
+  typedef RBTreeSet<BaseList2D*>  ObjectsT;
+
 
   // references used by the whole conversion process and stored for convenience
   BaseDocument*   mDocument;
@@ -128,16 +168,20 @@ private:
   BaseContainer*  mC4DRenderSettings;
   LuxC4DSettings* mLuxC4DSettings;
   LReal           mC4D2LuxScale;
-  LuxParamSet     mTempParamSet;
 
-  // the following data members store the geometry for one object which is
-  // cached by extractAndConvertGeometry()
+  // temporary data stored during the conversion and shared between
+  // several functions
+  LuxParamSet     mTempParamSet;
+  ObjectType      mObjectType;
+  ObjectsT        mAreaLightObjects;
   BaseObject*     mCachedObject;
   C4DPolygonsT    mPolygonCache;
   PointsT         mPointCache;
   NormalsT        mNormalCache;
   ULONG           mQuadCount;
 
+
+  void clearTemporaryData(void);
   
   Bool exportFilm(void);
   Bool exportCamera(void);
@@ -152,14 +196,19 @@ private:
 
   Bool exportLight(BaseObject&   object,
                    const Matrix& globalMatrix);
+  Bool exportPointLight(PointLightData& data);
+  Bool exportSpotLight(SpotLightData& data);
+  Bool exportDistantLight(DistantLightData& data);
+  Bool exportAreaLight(AreaLightData& data);
 
   Bool exportPolygonObject(PolygonObject& object,
                            const Matrix&  globalMatrix);
   Bool convertGeometry(PolygonObject& object,
                        TrianglesT&    triangles,
                        PointsT&       points,
-                       NormalsT&      normals);
-  Bool convertAndCacheGeometry(PolygonObject& object);
+                       NormalsT*      normals = 0);
+  Bool convertAndCacheGeometry(PolygonObject& object,
+                               Bool           noNormals);
   Bool convertAndCacheWithoutNormals(PolygonObject& object);
   Bool convertAndCacheWithNormals(PolygonObject& object,
                                   C4DNormalsT&   normals);
