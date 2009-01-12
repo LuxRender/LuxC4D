@@ -26,4 +26,78 @@
 STRINGTABLE Tluxc4dlighttag
 {
   Tluxc4dlighttag "LuxC4D Light Tag";
+  
+  
+  IDD_LIGHT_TYPE  "Light Type";
+  
+    IDD_LIGHT_TYPE_AS_OBJECT  "Same as Object";
+    IDD_LIGHT_TYPE_POINT      "Point Light";
+    IDD_LIGHT_TYPE_SPOT       "Spot Light";
+    IDD_LIGHT_TYPE_DISTANT    "Distant Light";
+    IDD_LIGHT_TYPE_AREA       "Area Light";
+    IDD_LIGHT_TYPE_SUN        "Sun Light";
+    IDD_LIGHT_TYPE_SKY        "Sky Light";
+    IDD_LIGHT_TYPE_SUNSKY     "Sun + Sky Light";
+
+  IDG_POINT_LIGHT                 "Point Light Settings";
+  IDD_POINT_LIGHT_COLOR           "Color";
+  IDD_POINT_LIGHT_GAIN            "Gain";
+
+  IDG_SPOT_LIGHT                    "Spot Light Settings";
+  IDD_SPOT_LIGHT_COLOR              "Color";
+  IDD_SPOT_LIGHT_GAIN               "Gain";
+  IDD_SPOT_LIGHT_INNERANGLE         "Inner Angle";
+  IDD_SPOT_LIGHT_OUTERANGLE         "Outer Angle";
+  
+  IDG_DISTANT_LIGHT                 "Distant Light Settings";
+  IDD_DISTANT_LIGHT_COLOR           "Color";
+  IDD_DISTANT_LIGHT_GAIN            "Gain";
+
+  IDG_AREA_LIGHT                    "Area Light Settings";
+  IDD_AREA_LIGHT_COLOR              "Color";
+  IDD_AREA_LIGHT_GAIN               "Gain";
+  IDD_AREA_LIGHT_FLIP_NORMALS       "Flip Normals";
+  IDD_AREA_LIGHT_SAMPLES            "Samples";
+  IDD_AREA_LIGHT_SHAPE              "Shape";
+  IDD_AREA_LIGHT_OBJECT             "Shape Object";
+  IDD_AREA_LIGHT_SIZE               "Size";
+
+    IDD_AREA_LIGHT_SHAPE_DISC         "Disc";
+    IDD_AREA_LIGHT_SHAPE_RECTANGLE    "Rectangle";
+    IDD_AREA_LIGHT_SHAPE_SPHERE       "Sphere";
+    IDD_AREA_LIGHT_SHAPE_CYLINDER     "Cylinder";
+    IDD_AREA_LIGHT_SHAPE_CUBE         "Cube";
+    IDD_AREA_LIGHT_SHAPE_HEMISPHERE   "Hemisphere";
+    IDD_AREA_LIGHT_SHAPE_OBJECT       "Object/Link";
+
+  IDG_SUN_LIGHT                     "Sun Light Settings";
+  IDD_SUN_LIGHT_GAIN                "Gain";
+  IDD_SUN_LIGHT_SAMPLES             "Samples";
+  IDD_SUN_LIGHT_TURBIDITY           "Turbidity";
+  IDD_SUN_LIGHT_RELSIZE             "Rel. Size";
+
+  IDG_SKY_LIGHT                     "Sky Light Settings";
+  IDD_SKY_LIGHT_GAIN                "Gain";
+  IDD_SKY_LIGHT_SAMPLES             "Samples";
+  IDD_SKY_LIGHT_TURBIDITY           "Turbidity";
+  IDD_SKY_LIGHT_ADVANCED            "Advanced";
+  IDD_SKY_LIGHT_A_CONST             "A";
+  IDD_SKY_LIGHT_B_CONST             "B";
+  IDD_SKY_LIGHT_C_CONST             "C";
+  IDD_SKY_LIGHT_D_CONST             "D";
+  IDD_SKY_LIGHT_E_CONST             "E";
+
+  IDG_SUNSKY_LIGHT                  "Sun+Sky Settings";
+  IDD_SUNSKY_LIGHT_GAIN             "Gain";
+  IDD_SUNSKY_LIGHT_SAMPLES          "Samples";
+  IDD_SUNSKY_LIGHT_TURBIDITY        "Turbidity";
+  IDD_SUNSKY_LIGHT_RELSIZE          "Rel. Sun Size";
+  IDD_SUNSKY_LIGHT_ADVANCED         "Advanced";
+  IDD_SUNSKY_LIGHT_A_CONST          "A";
+  IDD_SUNSKY_LIGHT_B_CONST          "B";
+  IDD_SUNSKY_LIGHT_C_CONST          "C";
+  IDD_SUNSKY_LIGHT_D_CONST          "D";
+  IDD_SUNSKY_LIGHT_E_CONST          "E";
+
+  IDB_COPY_PARAMETERS               "Copy from Object";
 }

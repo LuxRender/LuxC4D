@@ -117,11 +117,50 @@ private:
   struct AreaLightData {
     LuxColorT      mColor;
     LuxFloatT      mGain;
+    LuxBoolT       mFlippedNormals;
     LuxIntegerT    mSamples; 
     Matrix         mLightMatrix;
     LONG           mShape;
     Vector         mSize;
     PolygonObject* mShapeObject;
+  };
+
+  /// Structure that stores all parameters of a sun light.
+  struct SunLightData {
+    LuxFloatT   mGain;
+    LuxIntegerT mSamples; 
+    LuxVectorT  mSunDir;
+    LuxFloatT   mTurbidity;
+    LuxFloatT   mRelSize;
+  };
+
+  /// Structure that stores all parameters of a sky light.
+  struct SkyLightData {
+    LuxFloatT   mGain;
+    LuxIntegerT mSamples; 
+    LuxVectorT  mSunDir;
+    LuxFloatT   mTurbidity;
+    Bool        mAdvanced;
+    LuxFloatT   mAConst;
+    LuxFloatT   mBConst;
+    LuxFloatT   mCConst;
+    LuxFloatT   mDConst;
+    LuxFloatT   mEConst;
+  };
+
+  /// Structure that stores all parameters of a sun+sky light.
+  struct SunSkyLightData {
+    LuxFloatT   mGain;
+    LuxIntegerT mSamples; 
+    LuxVectorT  mSunDir;
+    LuxFloatT   mTurbidity;
+    LuxFloatT   mRelSize;
+    Bool        mAdvanced;
+    LuxFloatT   mAConst;
+    LuxFloatT   mBConst;
+    LuxFloatT   mCConst;
+    LuxFloatT   mDConst;
+    LuxFloatT   mEConst;
   };
 
 
@@ -200,6 +239,9 @@ private:
   Bool exportSpotLight(SpotLightData& data);
   Bool exportDistantLight(DistantLightData& data);
   Bool exportAreaLight(AreaLightData& data);
+  Bool exportSunLight(SunLightData& data);
+  Bool exportSkyLight(SkyLightData& data);
+  Bool exportSunSkyLight(SunSkyLightData& data);
 
   Bool exportPolygonObject(PolygonObject& object,
                            const Matrix&  globalMatrix);

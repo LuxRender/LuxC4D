@@ -27,7 +27,9 @@
 #include <olight.h>
 
 #include "luxapiconverter.h"
+#include "luxc4dlighttag.h"
 #include "luxc4dsettings.h"
+#include "tluxc4dlighttag.h"
 #include "utilities.h"
 
 
@@ -93,9 +95,9 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
 
   // obtain active render settings
   RenderData* renderData = document.GetActiveRenderData();
-  if (!renderData)  ERRLOG_RETURN_FALSE("LuxAPIConverter::convertScene(): could not obtain render data");
+  if (!renderData)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertScene(): could not obtain render data");
   mC4DRenderSettings = renderData->GetDataInstance();
-  if (!mC4DRenderSettings)  ERRLOG_RETURN_FALSE("LuxAPIConverter::convertScene(): could not obtain render settings");
+  if (!mC4DRenderSettings)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertScene(): could not obtain render settings");
 
   // get base container of LuxC4DSettings video post effect node - if available
   mLuxC4DSettings = 0;
@@ -110,7 +112,7 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
 
   // obtain global scene scale which is applied to everything
   if (mLuxC4DSettings) {
-    mC4D2LuxScale = mLuxC4DSettings->GetC4D2LuxScale();
+    mC4D2LuxScale = mLuxC4DSettings->getC4D2LuxScale();
   } else {
     mC4D2LuxScale = 0.01;
   }
@@ -300,7 +302,7 @@ Bool LuxAPIConverter::exportFilm(void)
   
   // otherwise, obtain settings from object
   const char *name;
-  mLuxC4DSettings->GetFilm(name, mTempParamSet);
+  mLuxC4DSettings->getFilm(name, mTempParamSet);
   return mReceiver->film(name, mTempParamSet);
 }
 
@@ -321,14 +323,14 @@ Bool LuxAPIConverter::exportCamera(void)
 
   // obtain camera object and its container
   BaseDraw* view = mDocument->GetRenderBaseDraw();
-  if (!view)  ERRLOG_RETURN_FALSE("LuxAPIConverter::exportCamera(): could not obtain render base draw");
+  if (!view)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): could not obtain render base draw");
   BaseObject* cameraObj = view->GetSceneCamera(mDocument);
   if (!cameraObj)  cameraObj = view->GetEditorCamera();
-  if (!cameraObj)  ERRLOG_RETURN_FALSE("LuxAPIConverter::exportCamera(): could not obtain camera");
-  if (cameraObj->GetType() != Ocamera)  ERRLOG_RETURN_FALSE("LuxAPIConverter::exportCamera(): obtained camera object is no camera");
+  if (!cameraObj)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): could not obtain camera");
+  if (cameraObj->GetType() != Ocamera)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): obtained camera object is no camera");
   CameraObject* camera = (CameraObject*)cameraObj;
   BaseContainer* cameraData = camera->GetDataInstance();
-  if (!cameraData)  ERRLOG_RETURN_FALSE("LuxAPIConverter::exportCamera(): couldn't obtain container from camera object");
+  if (!cameraData)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): couldn't obtain container from camera object");
 
   // obtain camera position and orientation in Lux-style
   Matrix camMat = camera->GetMgn();
@@ -399,7 +401,7 @@ Bool LuxAPIConverter::exportPixelFilter(void)
 
   // otherwise, obtain settings from object
   const char *name;
-  mLuxC4DSettings->GetPixelFilter(name, mTempParamSet);
+  mLuxC4DSettings->getPixelFilter(name, mTempParamSet);
   return mReceiver->pixelFilter(name, mTempParamSet);
 }
 
@@ -423,7 +425,7 @@ Bool LuxAPIConverter::exportSampler(void)
 
   // otherwise, obtain settings from object
   const char *name;
-  mLuxC4DSettings->GetSampler(name, mTempParamSet);
+  mLuxC4DSettings->getSampler(name, mTempParamSet);
   return mReceiver->sampler(name, mTempParamSet);
 }
 
@@ -449,7 +451,7 @@ Bool LuxAPIConverter::exportSurfaceIntegrator(void)
 
   // otherwise, obtain settings from object
   const char *name;
-  mLuxC4DSettings->GetSurfaceIntegrator(name, mTempParamSet);
+  mLuxC4DSettings->getSurfaceIntegrator(name, mTempParamSet);
   return mReceiver->surfaceIntegrator(name, mTempParamSet);
 }
 
@@ -538,10 +540,12 @@ Bool LuxAPIConverter::exportGeometry(void)
 Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
                                   const Matrix& globalMatrix)
 {
+  // get parameters from light object and/or from its associated light tag
+  LuxC4DLightTag::LightParameters parameters;
+  if (!LuxC4DLightTag::getLightParameters(lightObject, parameters))  return FALSE;
+
   // get some general light parameters
-  Vector color           = GetParameterVector(lightObject, LIGHT_COLOR);
-  Real   brightness      = GetParameterReal(lightObject, LIGHT_BRIGHTNESS);
-  Real   falloffRadius   = GetParameterReal(lightObject,
+  Real   falloffRadius   = getParameterReal(lightObject,
                                             LIGHT_DETAILS_OUTERDISTANCE,
                                             1.0 / mC4D2LuxScale)
                            * mC4D2LuxScale;
@@ -550,76 +554,70 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
   scaledDirection.Normalize();
   scaledDirection *= VectorMax(scaledPosition);
 
-  // don't export black lights
-  if ((color.x * brightness < 0.001) &&
-      (color.y * brightness < 0.001) &&
-      (color.z * brightness < 0.001))
+  // don't export (almost) black lights
+  if ((parameters.mType != IDD_LIGHT_TYPE_SUN) &&
+      (parameters.mType != IDD_LIGHT_TYPE_SKY) &&
+      (parameters.mType != IDD_LIGHT_TYPE_SUNSKY) &&
+      (parameters.mColor.x * parameters.mBrightness < 0.001) &&
+      (parameters.mColor.y * parameters.mBrightness < 0.001) &&
+      (parameters.mColor.z * parameters.mBrightness < 0.001))
   {
     return TRUE;
   }
 
   // scale brightness relative to squared scaled falloff radius
-  Real scaledBrightness = falloffRadius * falloffRadius * brightness;
+  Real scaledBrightness = falloffRadius * falloffRadius * parameters.mBrightness;
 
-  // now determine the data depending on the light type
+  // now determine the data depending on the light type and export the data
+  // needed for this type
   GeDebugOut("exporting light object '" + lightObject.GetName() + "' ...");
-  switch (GetParameterLong(lightObject, LIGHT_TYPE)) {
+  switch (parameters.mType) {
 
-    case LIGHT_TYPE_OMNI:
+    case IDD_LIGHT_TYPE_POINT:
       {
-        // omni light becomes a point light
         PointLightData data;
-        data.mColor = color;
+        data.mColor = parameters.mColor;
         data.mGain  = scaledBrightness;
         data.mFrom  = scaledPosition;
         return exportPointLight(data);
       }
 
-    case LIGHT_TYPE_SPOT:
-    case LIGHT_TYPE_SPOTRECT:
+    case IDD_LIGHT_TYPE_SPOT:
       {
-        // spot lights (circular or squared) become spot lights
         SpotLightData data;
-        data.mColor          = color;
+        data.mColor          = parameters.mColor;
         data.mGain           = scaledBrightness;
         data.mFrom           = scaledPosition;
         data.mTo             = scaledPosition + scaledDirection;
-        data.mConeAngle      = Deg(GetParameterReal(lightObject, LIGHT_DETAILS_OUTERANGLE)) * 0.5;
-        data.mConeDeltaAngle = data.mConeAngle - Deg(GetParameterReal(lightObject, LIGHT_DETAILS_INNERANGLE)) * 0.5;
+        data.mConeAngle      = Deg(parameters.mOuterAngle) * 0.5;
+        data.mConeDeltaAngle = data.mConeAngle - Deg(parameters.mInnerAngle) * 0.5;
         return exportSpotLight(data);
       }
 
-    case LIGHT_TYPE_DISTANT:
-    case LIGHT_TYPE_PARALLEL:
-    case LIGHT_TYPE_PARSPOT:
-    case LIGHT_TYPE_PARSPOTRECT:
+    case IDD_LIGHT_TYPE_DISTANT:
       {
-        // all parallel lights become distant lights
         DistantLightData data;
-        data.mColor = color;
-        data.mGain  = brightness * 0.25;
+        data.mColor = parameters.mColor;
+        data.mGain  = parameters.mBrightness * 0.25;
         data.mFrom  = scaledPosition;
         data.mTo    = scaledPosition + scaledDirection;
         return exportDistantLight(data);
       }
 
-    case LIGHT_TYPE_AREA:
+    case IDD_LIGHT_TYPE_AREA:
       {
-        // area light stays an area light
         AreaLightData data;
-        data.mColor       = color;
-        data.mGain        = 0.001 * scaledBrightness;
-        data.mSamples     = 2;
-        data.mLightMatrix = lightObject.GetMg();
-        data.mShape       = GetParameterLong(lightObject, LIGHT_AREADETAILS_SHAPE);
-        data.mSize.x      = GetParameterReal(lightObject, LIGHT_AREADETAILS_SIZEX);
-        data.mSize.y      = GetParameterReal(lightObject, LIGHT_AREADETAILS_SIZEY);
-        data.mSize.z      = GetParameterReal(lightObject, LIGHT_AREADETAILS_SIZEZ);
-        if (data.mShape == LIGHT_AREADETAILS_SHAPE_OBJECT) {
-          BaseList2D* shapeObject = GetParameterLink(lightObject, LIGHT_AREADETAILS_OBJECT);
-          if (shapeObject && (shapeObject->GetType() == Opolygon)) {
-            mAreaLightObjects.add(shapeObject);
-            data.mShapeObject = (PolygonObject*)shapeObject;
+        data.mColor          = parameters.mColor;
+        data.mGain           = 0.001 * scaledBrightness;
+        data.mFlippedNormals = (parameters.mFlippedNormals != 0);
+        data.mSamples        = parameters.mSamples;
+        data.mLightMatrix    = lightObject.GetMg();
+        data.mShape          = parameters.mShapeType;
+        data.mSize           = parameters.mShapeSize;
+        if (data.mShape == IDD_AREA_LIGHT_SHAPE_OBJECT) {
+          if (parameters.mShapeObject) {
+            mAreaLightObjects.add(parameters.mShapeObject);
+            data.mShapeObject = parameters.mShapeObject;
             data.mLightMatrix = data.mShapeObject->GetMg();
           } else {
             break;
@@ -627,11 +625,53 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
         }
         return exportAreaLight(data);
       }
-      break;
+
+    case IDD_LIGHT_TYPE_SUN:
+      {
+        SunLightData data;
+        data.mGain      = parameters.mBrightness;
+        data.mSamples   = parameters.mSamples;
+        data.mSunDir    = -scaledDirection;
+        data.mTurbidity = parameters.mTurbidity;
+        data.mRelSize   = parameters.mRelSize;
+        return exportSunLight(data);
+      }
+
+    case IDD_LIGHT_TYPE_SKY:
+      {
+        SkyLightData data;
+        data.mGain      = parameters.mBrightness;
+        data.mSamples   = parameters.mSamples;
+        data.mSunDir    = -scaledDirection;
+        data.mTurbidity = parameters.mTurbidity;
+        data.mAdvanced  = parameters.mAdvanced;
+        data.mAConst    = parameters.mA;
+        data.mBConst    = parameters.mB;
+        data.mCConst    = parameters.mC;
+        data.mDConst    = parameters.mD;
+        data.mEConst    = parameters.mE;
+        return exportSkyLight(data);
+      }
+
+    case IDD_LIGHT_TYPE_SUNSKY:
+      {
+        SunSkyLightData data;
+        data.mGain      = parameters.mBrightness;
+        data.mSamples   = parameters.mSamples;
+        data.mSunDir    = -scaledDirection;
+        data.mTurbidity = parameters.mTurbidity;
+        data.mRelSize   = parameters.mRelSize;
+        data.mAdvanced  = parameters.mAdvanced;
+        data.mAConst    = parameters.mA;
+        data.mBConst    = parameters.mB;
+        data.mCConst    = parameters.mC;
+        data.mDConst    = parameters.mD;
+        data.mEConst    = parameters.mE;
+        return exportSunSkyLight(data);
+      }
 
     default:
-      GeDebugOut("  unsupported light type");
-      break;
+      ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportLight(): invalid light type passed");
   }
 
   return TRUE;
@@ -647,7 +687,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
 Bool LuxAPIConverter::exportPointLight(PointLightData& data)
 {
   mTempParamSet.clear();
-  mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "I",    &data.mColor);
+  mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "L",    &data.mColor);
   mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "gain", &data.mGain);
   mTempParamSet.addParam(LuxParamSet::LUX_POINT, "from", &data.mFrom);
   return mReceiver->lightSource("point", mTempParamSet);
@@ -663,7 +703,7 @@ Bool LuxAPIConverter::exportPointLight(PointLightData& data)
 Bool LuxAPIConverter::exportSpotLight(SpotLightData& data)
 {
   mTempParamSet.clear();
-  mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "I",              &data.mColor);
+  mTempParamSet.addParam(LuxParamSet::LUX_COLOR, "L",              &data.mColor);
   mTempParamSet.addParam(LuxParamSet::LUX_FLOAT, "gain",           &data.mGain);
   mTempParamSet.addParam(LuxParamSet::LUX_POINT, "from",           &data.mFrom);
   mTempParamSet.addParam(LuxParamSet::LUX_POINT, "to",             &data.mTo);
@@ -808,9 +848,9 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       flipYZ = FALSE;
       shapeParams.addParam(LuxParamSet::LUX_POINT, "P",
                            &points.front(), points.size());
-      shapeParams.addParam(LuxParamSet::LUX_TRIANGLE, "indices",
+      shapeParams.addParam(LuxParamSet::LUX_TRIANGLE, "triindices",
                            &triangles.front(), triangles.size());
-      shapeName = "trianglemesh";
+      shapeName = "mesh";
       break;
     default:
       return TRUE;
@@ -842,6 +882,73 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
   if (!mReceiver->attributeEnd())  return FALSE;
 
   return TRUE;
+}
+
+
+/// Sends a sun light with its parameters to the LuxAPI receiver.
+///
+/// @param[in]  data
+///   Structure that contains all needed sun light parameters.
+/// @return
+///   TRUE, if successful, FALSE otherwise
+Bool LuxAPIConverter::exportSunLight(SunLightData& data)
+{
+  mTempParamSet.clear();
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "gain",      &data.mGain);
+  mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "nsamples",  &data.mSamples);
+  mTempParamSet.addParam(LuxParamSet::LUX_VECTOR,  "sundir",    &data.mSunDir);
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "turbidity", &data.mTurbidity);
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "relsize",   &data.mRelSize);
+  return mReceiver->lightSource("sun", mTempParamSet);
+}
+
+
+/// Sends a sky light with its parameters to the LuxAPI receiver.
+///
+/// @param[in]  data
+///   Structure that contains all needed sky light parameters.
+/// @return
+///   TRUE, if successful, FALSE otherwise
+Bool LuxAPIConverter::exportSkyLight(SkyLightData& data)
+{
+  mTempParamSet.clear();
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "gain",      &data.mGain);
+  mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "nsamples",  &data.mSamples);
+  mTempParamSet.addParam(LuxParamSet::LUX_VECTOR,  "sundir",    &data.mSunDir);
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "turbidity", &data.mTurbidity);
+  if (data.mAdvanced) {
+    mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "aconst",    &data.mAConst);
+    mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "bconst",    &data.mBConst);
+    mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "cconst",    &data.mCConst);
+    mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "dconst",    &data.mDConst);
+    mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "econst",    &data.mEConst);
+  }
+  return mReceiver->lightSource("sky", mTempParamSet);
+}
+
+
+/// Sends a sun-sky light with its parameters to the LuxAPI receiver.
+///
+/// @param[in]  data
+///   Structure that contains all needed sun-sky light parameters.
+/// @return
+///   TRUE, if successful, FALSE otherwise
+Bool LuxAPIConverter::exportSunSkyLight(SunSkyLightData& data)
+{
+  mTempParamSet.clear();
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "gain",      &data.mGain);
+  mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "nsamples",  &data.mSamples);
+  mTempParamSet.addParam(LuxParamSet::LUX_VECTOR,  "sundir",    &data.mSunDir);
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "turbidity", &data.mTurbidity);
+  mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "relsize",   &data.mRelSize);
+  if (data.mAdvanced) {
+    mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "aconst",    &data.mAConst);
+    mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "bconst",    &data.mBConst);
+    mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "cconst",    &data.mCConst);
+    mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "dconst",    &data.mDConst);
+    mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "econst",    &data.mEConst);
+  }
+  return mReceiver->lightSource("sunsky", mTempParamSet);
 }
 
 
@@ -944,7 +1051,7 @@ Bool LuxAPIConverter::convertGeometry(PolygonObject& object,
 
   // initialise triangle and point arrays
   if (!triangles.init((mPolygonCache.size() + mQuadCount) * 3)) {
-    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertGeometry(): not enough memory to allocate triangle array");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertGeometry(): not enough memory to allocate triangle array");
   }
 
   // store polygons as triangles in array using the correct order for right-handed coords
@@ -1002,7 +1109,7 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object,
 
   // copy polygons into cache
   if (!mPolygonCache.init(polygonCount)) {
-    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheGeometry(): not enough memory to allocate polygon cache");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheGeometry(): not enough memory to allocate polygon cache");
   }
   memcpy(mPolygonCache.getArrayAddress(), polygons, sizeof(CPolygon)*polygonCount);
 
@@ -1066,13 +1173,13 @@ Bool LuxAPIConverter::convertAndCacheWithoutNormals(PolygonObject& object)
   const Vector* points = object.GetPointR();
   ULONG polygonCount = mPolygonCache.size();
   if (!pointCount || !points || !polygonCount) {
-    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithoutNormals(): geometry expected, but not found");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithoutNormals(): geometry expected, but not found");
   }
 
   // initialise point map
   FixArray1D<ULONG> pointMap;
   if (!pointMap.init(pointCount)) {
-    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithoutNormals(): not enough memory to allocate point map");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithoutNormals(): not enough memory to allocate point map");
   }
   pointMap.fillWithZero();
 
@@ -1114,7 +1221,7 @@ Bool LuxAPIConverter::convertAndCacheWithoutNormals(PolygonObject& object)
 
   // initialise point cache array
   if (!mPointCache.init(newPointCount)) {
-    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithoutNormals(): not enough memory to allocate point map");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithoutNormals(): not enough memory to allocate point map");
   }
 
   // now fill point cache only with used points and update polygons
@@ -1178,13 +1285,13 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
   const Vector* points = object.GetPointR();
   ULONG polygonCount = mPolygonCache.size();
   if (!pointCount || !points || !polygonCount) {
-    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithNormals(): geometry expected, but not found");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithNormals(): geometry expected, but not found");
   }
 
   // initialise point map
   FixArray1D<ULONG> pointMap;
   if (!pointMap.init(pointCount+1)) {
-    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate point map");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate point map");
   }
   pointMap.fillWithZero();
 
@@ -1212,13 +1319,13 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
   }
   GeDebugOut("  point2poly count: " + LongToString(point2PolyCount));
   if (point2PolyCount > MAXLONG) {
-    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithNormals(): point2Poly map will be too big for object '" + object.GetName() + "'");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithNormals(): point2Poly map will be too big for object '" + object.GetName() + "'");
   }
 
   // initialise point2poly array
   Point2PolysT point2Polys;
   if (!point2Polys.init(point2PolyCount)) {
-    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate poin2poly map");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate poin2poly map");
   }
   point2Polys.fillWithZero();
 
@@ -1280,7 +1387,7 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject& object,
 
   // initialise point cache and normal cache
   if (!mPointCache.init(newPointCount) || !mNormalCache.init(newPointCount)) {
-    ERRLOG_RETURN_FALSE("LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate point and/or normal cache");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate point and/or normal cache");
   }
 
   // now determine new node IDs and fill normal and point caches

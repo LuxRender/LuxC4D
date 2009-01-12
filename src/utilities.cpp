@@ -37,7 +37,7 @@
 ///   Specifies the parameter element to show/hide.
 /// @param[in]  show
 ///   Set this to TRUE make it visible or to FALSE to hide it.
-void ShowParameter(Description* description,
+void showParameter(Description* description,
                    LONG         paramID,
                    AtomArray*   params,
                    Bool         show)
@@ -61,7 +61,7 @@ void ShowParameter(Description* description,
 ///   of type LONG.
 /// @return
 ///   The value of the parameter or the preset value, if we couldn't fetch it.
-LONG GetParameterLong(BaseObject& object,
+LONG getParameterLong(BaseObject& object,
                       LONG        paramID,
                       LONG        preset)
 {
@@ -86,7 +86,7 @@ LONG GetParameterLong(BaseObject& object,
 ///   of type Real.
 /// @return
 ///   The value of the parameter or the preset value, if we couldn't fetch it.
-Real GetParameterReal(BaseObject& object,
+Real getParameterReal(BaseObject& object,
                       LONG        paramID,
                       Real        preset)
 {
@@ -111,7 +111,7 @@ Real GetParameterReal(BaseObject& object,
 ///   of type Vector.
 /// @return
 ///   The value of the parameter or the preset value, if we couldn't fetch it.
-Vector GetParameterVector(BaseObject&   object,
+Vector getParameterVector(BaseObject&   object,
                           LONG          paramID,
                           const Vector& preset)
 {
@@ -125,23 +125,26 @@ Vector GetParameterVector(BaseObject&   object,
 }
 
 
-/// Obtains a description parameter link of type LINK from an object.
+/// Obtains a description parameter of type LINK from an object.
 ///
 /// @param[in]  object
 ///   The object of which we want to read out the parameter.
 /// @param[in]  paramID
 ///   The ID of the description parameter.
+/// @param[in]  instanceOf
+///   The object type that is allowed in the link.
 /// @return
 ///   The link parameter (BaseList2D*) or o if we couldn't fetch it.
-BaseList2D* GetParameterLink(BaseObject&   object,
-                             LONG          paramID)
+BaseList2D* getParameterLink(BaseObject& object,
+                             LONG        paramID,
+                             LONG        instanceOf)
 {
   GeData parameter;
   if (object.GetParameter(DescLevel(paramID), parameter, 0)) {
     if (parameter.GetType() == DA_ALIASLINK) {
       BaseLink* link = parameter.GetBaseLink();
       if (link) {
-        return link->GetLink(object.GetDocument());
+        return link->GetLink(object.GetDocument(), instanceOf);
       }
     }
   }

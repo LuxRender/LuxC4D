@@ -36,38 +36,39 @@
 #define ERRLOG(msg)                                                           \
   { GePrint(msg); }
 
-/// Logs/prints an error message and returns (without a return value).
+/// Logs/prints an error message and returns without a return value.
 #define ERRLOG_RETURN(msg)                                                    \
   { ERRLOG(msg);  return; }
 
-/// Logs/prints an error message and returns with the return value FALSE.
-#define ERRLOG_RETURN_FALSE(msg)                                              \
-  { ERRLOG(msg);  return FALSE; }
+/// Logs/prints an error message and returns with the specified return value.
+#define ERRLOG_RETURN_VALUE(returnValue,msg)                                  \
+  { ERRLOG(msg);  return returnValue; }
 
-/// Logs/prints an error message, defined by an ID and returns
-/// (without a return value).
-#define ERRLOG_ID_RETURN_FALSE(id,msg)                                        \
-  { mErrorStringID=(id);  ERRLOG(msg);  return FALSE; }
+/// Logs/prints an error message, defined by an ID and returns with the
+/// specified return value.
+#define ERRLOG_ID_RETURN_VALUE(returnValue,id,msg)                            \
+  { mErrorStringID=(id);  ERRLOG(msg);  return returnValue; }
 
 
 
-void ShowParameter(Description* description,
+void showParameter(Description* description,
                    LONG         paramID,
                    AtomArray*   params,
                    Bool         show);
 
 
-LONG GetParameterLong(BaseObject& object,
+LONG getParameterLong(BaseObject& object,
                       LONG        paramID,
                       LONG        preset = 0);
-Real GetParameterReal(BaseObject& object,
+Real getParameterReal(BaseObject& object,
                       LONG        paramID,
                       Real        preset = 0.0);
-Vector GetParameterVector(BaseObject&   object,
+Vector getParameterVector(BaseObject&   object,
                           LONG          paramID,
                           const Vector& preset = Vector());
-BaseList2D* GetParameterLink(BaseObject&   object,
-                             LONG          paramID);
+BaseList2D* getParameterLink(BaseObject& object,
+                             LONG        paramID,
+                             LONG        instanceOf = 0);
 
 
 

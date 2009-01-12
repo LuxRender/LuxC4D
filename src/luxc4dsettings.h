@@ -38,7 +38,7 @@
 
 
 /***************************************************************************//*!
- This class is a video post effect allows the user to set scene specific
+ This class is a video post effect which allows the user to set scene specific
  parameters for LuxRender.
 
  This might change in the future when this plugin will (hopefully) integrate
@@ -55,23 +55,22 @@ public:
   static Bool registerPlugin(void);
 
   virtual Bool Init(GeListNode* node);
-  virtual void Free(GeListNode* node);
   virtual Bool GetDDescription(GeListNode*  node,
                                Description* description,
                                LONG&        flags);
 
-  void GetFilm(const char*& name,
+  void getFilm(const char*& name,
                LuxParamSet& paramSet);
-  void GetPixelFilter(const char*& name,
+  void getPixelFilter(const char*& name,
                       LuxParamSet& paramSet);
-  void GetSampler(const char*& name,
+  void getSampler(const char*& name,
                   LuxParamSet& paramSet);
-  void GetSurfaceIntegrator(const char*& name,
+  void getSurfaceIntegrator(const char*& name,
                             LuxParamSet& paramSet);
-  void GetExportFilename(BaseDocument& document,
+  void getExportFilename(BaseDocument& document,
                          Filename&     path,
                          Bool&         overwritingAllowed);
-  LReal GetC4D2LuxScale(void);
+  LReal getC4D2LuxScale(void);
 
 
 private:
@@ -91,18 +90,18 @@ private:
   };
 
 
-  BaseContainer* GetData(void);
+  BaseContainer* getData(void);
 
-  void CopyParam(Descr2Param<LuxBoolT>& descr2Param,
+  void copyParam(Descr2Param<LuxBoolT>& descr2Param,
                  LuxParamSet&           paramSet);
 
-  void CopyParam(Descr2Param<LuxIntegerT>& descr2Param,
+  void copyParam(Descr2Param<LuxIntegerT>& descr2Param,
                  LuxParamSet&              paramSet);
 
-  void CopyParam(Descr2Param<LuxFloatT>& descr2Param,
+  void copyParam(Descr2Param<LuxFloatT>& descr2Param,
                  LuxParamSet&            paramSet);
 
-  void CopyParam(Descr2Param<LuxStringT>& descr2Param,
+  void copyParam(Descr2Param<LuxStringT>& descr2Param,
                  LuxParamSet&            paramSet,
                  const char**            cycleEntries,
                  LONG                    cycleEntryCount);

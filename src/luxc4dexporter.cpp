@@ -59,7 +59,7 @@ Bool LuxC4DExporter::registerPlugin(void)
 Bool LuxC4DExporter::Execute(BaseDocument* document)
 {
   // check if document is valid
-  if (!document)  ERRLOG_RETURN_FALSE("LuxC4DExporter::Execute(): no document passed");
+  if (!document)  ERRLOG_RETURN_VALUE(FALSE, "LuxC4DExporter::Execute(): no document passed");
 
   // get LuxC4DSettings video post effect node - if available
   LuxC4DSettings* settingsNode = 0;
@@ -79,7 +79,7 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
   Bool overwritingAllowed = FALSE;
   mExportedFile = Filename();
   if (settingsNode) {
-    settingsNode->GetExportFilename(*document, mExportedFile, overwritingAllowed);
+    settingsNode->getExportFilename(*document, mExportedFile, overwritingAllowed);
   }
 
   // if the file already exists and overwriting is not allowed, ask the user

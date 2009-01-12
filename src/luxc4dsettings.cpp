@@ -58,12 +58,12 @@ Bool LuxC4DSettings::registerPlugin(void)
 
 
 /// Overwritten function that initialises all description parameters with the
-/// defaults.;
+/// defaults.
 ///
 /// @param[in]  node
 ///   The data node, created by C4D for storing the settings.
 /// @return
-///   TRUE if the initailisation was successful.
+///   TRUE if the initialisation was successful.
 Bool LuxC4DSettings::Init(GeListNode* node)
 {
   // get current document
@@ -78,9 +78,9 @@ Bool LuxC4DSettings::Init(GeListNode* node)
     }
   }
 
-  // obtain container from data node.
-  BaseContainer* data = ((BaseObject*)node)->GetDataInstance();
-  if (!data)  ERRLOG_RETURN_FALSE("LuxC4DSettings::Init(): No base container found.");
+  // obtain container from node
+  BaseContainer* data = getData();
+  if (!data)  return FALSE;
 
   // set sampler defaults
   data->SetLong(IDD_SAMPLER,                        IDD_SAMPLER_LOWDISCREPANCY);
@@ -176,14 +176,6 @@ Bool LuxC4DSettings::Init(GeListNode* node)
 }
 
 
-/// Overwritten function that frees all allocated resources.
-///
-/// @param[in]  node
-///   The data node, created by C4D for storing the settings.
-void LuxC4DSettings::Free(GeListNode* node)
-{}
-
-
 /// Overwritten function that is called to load a description. We use it to
 /// hide descriptions, we don't want to show due to the selection of specific
 /// parameters.
@@ -200,71 +192,71 @@ Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
                                      Description* description,
                                      LONG&        flags)
 {
-  // get container for easy access to current values
-  BaseContainer* nodeData = ((BaseObject*)node)->GetDataInstance();
-  if (!nodeData)  ERRLOG_RETURN_FALSE("LuxC4DSettings::GetDDescription(): No base container found.");
+  // obtain container from node
+  BaseContainer* data = getData();
+  if (!data)  return FALSE;
 
   // load the description from resource file
   if (!description->LoadDescription(node->GetType())) {
-    ERRLOG_RETURN_FALSE("LuxC4DSettings::GetDDescription(): Could not load description for node.");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxC4DSettings::GetDDescription(): could not load description for node");
   }
 
   // allocate empty atom array, which can be used for passing parameters into GetParameterI()
   AutoAlloc<AtomArray> params;
   if (!params) {
-    ERRLOG_RETURN_FALSE("LuxC4DSettings::GetDDescription(): Could not allocate empty AtomArray.");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxC4DSettings::GetDDescription(): could not allocate empty AtomArray");
   }
 
   // show/hide sampler parameters
-  LONG sampler = nodeData->GetLong(IDD_SAMPLER);
+  LONG sampler = data->GetLong(IDD_SAMPLER);
   Bool dumbSampler = (sampler == IDD_SAMPLER_RANDOM) ||
                      (sampler == IDD_SAMPLER_LOWDISCREPANCY);
-  ShowParameter(description, IDD_ADVANCED_SAMPLER, params, !dumbSampler);
-  ShowParameter(description, IDG_RANDOM,           params, sampler == IDD_SAMPLER_RANDOM);
-  ShowParameter(description, IDG_LOWDISCREPANCY,   params, sampler == IDD_SAMPLER_LOWDISCREPANCY);
-  ShowParameter(description, IDG_METROPOLIS,       params, sampler == IDD_SAMPLER_METROPOLIS);
-  ShowParameter(description, IDG_ERPT,             params, sampler == IDD_SAMPLER_ERPT);
-  Bool advanced = nodeData->GetBool(IDD_ADVANCED_SAMPLER);
+  showParameter(description, IDD_ADVANCED_SAMPLER, params, !dumbSampler);
+  showParameter(description, IDG_RANDOM,           params, sampler == IDD_SAMPLER_RANDOM);
+  showParameter(description, IDG_LOWDISCREPANCY,   params, sampler == IDD_SAMPLER_LOWDISCREPANCY);
+  showParameter(description, IDG_METROPOLIS,       params, sampler == IDD_SAMPLER_METROPOLIS);
+  showParameter(description, IDG_ERPT,             params, sampler == IDD_SAMPLER_ERPT);
+  Bool advanced = data->GetBool(IDD_ADVANCED_SAMPLER);
   if (sampler == IDD_SAMPLER_METROPOLIS) {
-    ShowParameter(description, IDD_METROPOLIS_MICRO_MUTATION_PROB, params, advanced);
-    ShowParameter(description, IDD_METROPOLIS_MUTATION_RANGE,      params, advanced);
-    ShowParameter(description, IDD_METROPOLIS_INIT_SAMPLES,        params, advanced);
-    ShowParameter(description, IDD_METROPOLIS_STRATA_WIDTH,        params, advanced);
-    ShowParameter(description, IDD_METROPOLIS_USE_VARIANCE,        params, advanced);
-    ShowParameter(description, IDD_METROPOLIS_USE_QR,              params, advanced);
+    showParameter(description, IDD_METROPOLIS_MICRO_MUTATION_PROB, params, advanced);
+    showParameter(description, IDD_METROPOLIS_MUTATION_RANGE,      params, advanced);
+    showParameter(description, IDD_METROPOLIS_INIT_SAMPLES,        params, advanced);
+    showParameter(description, IDD_METROPOLIS_STRATA_WIDTH,        params, advanced);
+    showParameter(description, IDD_METROPOLIS_USE_VARIANCE,        params, advanced);
+    showParameter(description, IDD_METROPOLIS_USE_QR,              params, advanced);
   } else if (sampler == IDD_SAMPLER_ERPT) {
-    ShowParameter(description, IDD_ERPT_MUTATION_RANGE,            params, advanced);
+    showParameter(description, IDD_ERPT_MUTATION_RANGE,            params, advanced);
   }
 
   // show/hide integrator parameters
-  LONG integrator = nodeData->GetLong(IDD_INTEGRATOR);
-  ShowParameter(description, IDG_PATH,             params, integrator == IDD_INTEGRATOR_PATH);
-  ShowParameter(description, IDG_DISTRIBUTED_PATH, params, integrator == IDD_INTEGRATOR_DISTRIBUTED_PATH);
-  ShowParameter(description, IDG_BIDIRECTIONAL,    params, integrator == IDD_INTEGRATOR_BIDIRECTIONAL);
+  LONG integrator = data->GetLong(IDD_INTEGRATOR);
+  showParameter(description, IDG_PATH,             params, integrator == IDD_INTEGRATOR_PATH);
+  showParameter(description, IDG_DISTRIBUTED_PATH, params, integrator == IDD_INTEGRATOR_DISTRIBUTED_PATH);
+  showParameter(description, IDG_BIDIRECTIONAL,    params, integrator == IDD_INTEGRATOR_BIDIRECTIONAL);
   if (integrator == IDD_INTEGRATOR_PATH) {
-    LONG rrStrategy = nodeData->GetLong(IDD_PATH_RR_STRATEGY);
-    ShowParameter(description, IDD_PATH_RR_CONTINUE_PROB, params, rrStrategy == IDD_PATH_RR_STRATEGY_PROBABILITY);
+    LONG rrStrategy = data->GetLong(IDD_PATH_RR_STRATEGY);
+    showParameter(description, IDD_PATH_RR_CONTINUE_PROB, params, rrStrategy == IDD_PATH_RR_STRATEGY_PROBABILITY);
   }
 
   // show/hide pixel filter parameters
-  LONG pixelFilter = nodeData->GetLong(IDD_PIXEL_FILTER);
-  ShowParameter(description, IDG_BOX_FILTER,      params, pixelFilter == IDD_PIXEL_FILTER_BOX);
-  ShowParameter(description, IDG_GAUSSIAN_FILTER, params, pixelFilter == IDD_PIXEL_FILTER_GAUSSIAN);
-  ShowParameter(description, IDG_MITCHELL_FILTER, params, pixelFilter == IDD_PIXEL_FILTER_MITCHELL);
-  ShowParameter(description, IDG_SINC_FILTER,     params, pixelFilter == IDD_PIXEL_FILTER_SINC);
-  ShowParameter(description, IDG_TRIANGLE_FILTER, params, pixelFilter == IDD_PIXEL_FILTER_TRIANGLE);
+  LONG pixelFilter = data->GetLong(IDD_PIXEL_FILTER);
+  showParameter(description, IDG_BOX_FILTER,      params, pixelFilter == IDD_PIXEL_FILTER_BOX);
+  showParameter(description, IDG_GAUSSIAN_FILTER, params, pixelFilter == IDD_PIXEL_FILTER_GAUSSIAN);
+  showParameter(description, IDG_MITCHELL_FILTER, params, pixelFilter == IDD_PIXEL_FILTER_MITCHELL);
+  showParameter(description, IDG_SINC_FILTER,     params, pixelFilter == IDD_PIXEL_FILTER_SINC);
+  showParameter(description, IDG_TRIANGLE_FILTER, params, pixelFilter == IDD_PIXEL_FILTER_TRIANGLE);
 
   // show/hide film parameters
-  Bool tonemapSettings = nodeData->GetBool(IDD_FLEXIMAGE_TONEMAP_SETTINGS);
-  ShowParameter(description, IDD_FLEXIMAGE_REINHARD_PRESCALE,  params, tonemapSettings);
-  ShowParameter(description, IDD_FLEXIMAGE_REINHARD_POSTSCALE, params, tonemapSettings);
-  ShowParameter(description, IDD_FLEXIMAGE_REINHARD_BURN,      params, tonemapSettings);
-  ShowParameter(description, IDD_FLEXIMAGE_REINHARD_DUMMY,     params, tonemapSettings);
+  Bool tonemapSettings = data->GetBool(IDD_FLEXIMAGE_TONEMAP_SETTINGS);
+  showParameter(description, IDD_FLEXIMAGE_REINHARD_PRESCALE,  params, tonemapSettings);
+  showParameter(description, IDD_FLEXIMAGE_REINHARD_POSTSCALE, params, tonemapSettings);
+  showParameter(description, IDD_FLEXIMAGE_REINHARD_BURN,      params, tonemapSettings);
+  showParameter(description, IDD_FLEXIMAGE_REINHARD_DUMMY,     params, tonemapSettings);
 
   // show/hide conversion parameters
-  LONG exportFilenameMethod = nodeData->GetLong(IDD_WHICH_EXPORT_FILENAME);
-  ShowParameter(description, IDD_EXPORT_FILENAME,   params, exportFilenameMethod == IDD_DEFINE_EXPORT_FILENAME);
-  ShowParameter(description, IDD_ALLOW_OVERWRITING, params, exportFilenameMethod != IDD_ASK_FOR_EXPORT_FILENAME);
+  LONG exportFilenameMethod = data->GetLong(IDD_WHICH_EXPORT_FILENAME);
+  showParameter(description, IDD_EXPORT_FILENAME,   params, exportFilenameMethod == IDD_DEFINE_EXPORT_FILENAME);
+  showParameter(description, IDD_ALLOW_OVERWRITING, params, exportFilenameMethod != IDD_ASK_FOR_EXPORT_FILENAME);
 
   // set flag and return
   flags |= DESCFLAGS_DESC_LOADED;
@@ -278,7 +270,7 @@ Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
 ///   Will receive the film name.
 /// @param[out]  paramSet
 ///   The set to which the parameters get added.
-void LuxC4DSettings::GetFilm(const char*& name,
+void LuxC4DSettings::getFilm(const char*& name,
                              LuxParamSet& paramSet)
 {
   // the different film names
@@ -306,7 +298,7 @@ void LuxC4DSettings::GetFilm(const char*& name,
   name = sFilmNames[IDD_FILM_FLEXIMAGE];
 
   // get base container of this node
-  BaseContainer* data = GetData();
+  BaseContainer* data = getData();
   if (!data)  return;
 
   // get pixel filter ...
@@ -316,21 +308,21 @@ void LuxC4DSettings::GetFilm(const char*& name,
   switch (film) {
     // film fleximage
     case IDD_FILM_FLEXIMAGE:
-      CopyParam(sFleximageHaltSPP,         paramSet);
-      CopyParam(sFleximageGamma,           paramSet);
+      copyParam(sFleximageHaltSPP,         paramSet);
+      copyParam(sFleximageGamma,           paramSet);
       if (data->GetBool(IDD_FLEXIMAGE_TONEMAP_SETTINGS)) {
-        CopyParam(sFleximagePrescale,  paramSet);
-        CopyParam(sFleximagePostscale, paramSet);
-        CopyParam(sFleximageBurn,      paramSet);
+        copyParam(sFleximagePrescale,  paramSet);
+        copyParam(sFleximagePostscale, paramSet);
+        copyParam(sFleximageBurn,      paramSet);
       }
-      CopyParam(sFleximagePremultiply,     paramSet);
-      CopyParam(sFleximageDisplayInterval, paramSet);
-      CopyParam(sFleximageWriteInterval,   paramSet);
-      CopyParam(sFleximageTonemappedTGA,   paramSet);
-      CopyParam(sFleximageTonemappedEXR,   paramSet);
-      CopyParam(sFleximageUnTonemappedEXR, paramSet);
-      CopyParam(sFleximageTonemappedIGI,   paramSet);
-      CopyParam(sFleximageUnTonemappedIGI, paramSet);
+      copyParam(sFleximagePremultiply,     paramSet);
+      copyParam(sFleximageDisplayInterval, paramSet);
+      copyParam(sFleximageWriteInterval,   paramSet);
+      copyParam(sFleximageTonemappedTGA,   paramSet);
+      copyParam(sFleximageTonemappedEXR,   paramSet);
+      copyParam(sFleximageUnTonemappedEXR, paramSet);
+      copyParam(sFleximageTonemappedIGI,   paramSet);
+      copyParam(sFleximageUnTonemappedIGI, paramSet);
       break;
     // invalid film -> error and return
     default:
@@ -348,7 +340,7 @@ void LuxC4DSettings::GetFilm(const char*& name,
 ///   Will receive the film name.
 /// @param[out]  paramSet
 ///   The set to which the parameters get added.
-void LuxC4DSettings::GetPixelFilter(const char*& name,
+void LuxC4DSettings::getPixelFilter(const char*& name,
                                     LuxParamSet& paramSet)
 {
   // the different pixel filter names
@@ -389,7 +381,7 @@ void LuxC4DSettings::GetPixelFilter(const char*& name,
   name = sPixelFilterNames[IDD_PIXEL_FILTER_MITCHELL];
 
   // get base container of this node
-  BaseContainer* data = GetData();
+  BaseContainer* data = getData();
   if (!data)  return;
 
   // get pixel filter ...
@@ -399,32 +391,32 @@ void LuxC4DSettings::GetPixelFilter(const char*& name,
   switch (pixelFilter) {
     // box filter 
     case IDD_PIXEL_FILTER_BOX:
-      CopyParam(sBoxWidth,  paramSet);
-      CopyParam(sBoxHeight, paramSet);
+      copyParam(sBoxWidth,  paramSet);
+      copyParam(sBoxHeight, paramSet);
       break;
     // Gaussian filter
     case IDD_PIXEL_FILTER_GAUSSIAN:
-      CopyParam(sGaussianWidth,  paramSet);
-      CopyParam(sGaussianHeight, paramSet);
-      CopyParam(sGaussianAlpha,  paramSet);
+      copyParam(sGaussianWidth,  paramSet);
+      copyParam(sGaussianHeight, paramSet);
+      copyParam(sGaussianAlpha,  paramSet);
       break;
     // Mitchell filter
     case IDD_PIXEL_FILTER_MITCHELL:
-      CopyParam(sMitchellWidth,  paramSet);
-      CopyParam(sMitchellHeight, paramSet);
-      CopyParam(sMitchellB,      paramSet);
-      CopyParam(sMitchellC,      paramSet);
+      copyParam(sMitchellWidth,  paramSet);
+      copyParam(sMitchellHeight, paramSet);
+      copyParam(sMitchellB,      paramSet);
+      copyParam(sMitchellC,      paramSet);
       break;
     // sinc filter
     case IDD_PIXEL_FILTER_SINC:
-      CopyParam(sSincWidth,  paramSet);
-      CopyParam(sSincHeight, paramSet);
-      CopyParam(sSincTau,    paramSet);
+      copyParam(sSincWidth,  paramSet);
+      copyParam(sSincHeight, paramSet);
+      copyParam(sSincTau,    paramSet);
       break;
     // triangle filter
     case IDD_PIXEL_FILTER_TRIANGLE:
-      CopyParam(sTriangleWidth,  paramSet);
-      CopyParam(sTriangleHeight, paramSet);
+      copyParam(sTriangleWidth,  paramSet);
+      copyParam(sTriangleHeight, paramSet);
       break;
     // invalid pixel filter -> error and return
     default:
@@ -442,7 +434,7 @@ void LuxC4DSettings::GetPixelFilter(const char*& name,
 ///   Will receive the film name.
 /// @param[out]  paramSet
 ///   The set to which the parameters get added.
-void LuxC4DSettings::GetSampler(const char*& name,
+void LuxC4DSettings::getSampler(const char*& name,
                                 LuxParamSet& paramSet)
 {
   // the different sampler names
@@ -493,7 +485,7 @@ void LuxC4DSettings::GetSampler(const char*& name,
   name = sSamplerNames[IDD_SAMPLER_LOWDISCREPANCY];
 
   // get base container of this node
-  BaseContainer* data = GetData();
+  BaseContainer* data = getData();
   if (!data)  return;
 
   // get sampler ...
@@ -503,37 +495,37 @@ void LuxC4DSettings::GetSampler(const char*& name,
   switch (sampler) {
     // low discrepancy sampler
     case IDD_SAMPLER_LOWDISCREPANCY:
-      CopyParam(sLowdiscrepancyPixelSampler, paramSet,
+      copyParam(sLowdiscrepancyPixelSampler, paramSet,
                 sPixelSamplerNames, IDD_PIXELSAMPLER_NUMBER);
-      CopyParam(sLowdiscrepancyPixelSamples, paramSet);
+      copyParam(sLowdiscrepancyPixelSamples, paramSet);
       break;
     // random sampler
     case IDD_SAMPLER_RANDOM:
-      CopyParam(sRandomPixelSampler, paramSet,
+      copyParam(sRandomPixelSampler, paramSet,
                 sPixelSamplerNames, IDD_PIXELSAMPLER_NUMBER);
-      CopyParam(sRandomXSamples, paramSet);
-      CopyParam(sRandomYSamples, paramSet);
+      copyParam(sRandomXSamples, paramSet);
+      copyParam(sRandomYSamples, paramSet);
       break;
     // metropolis sampler
     case IDD_SAMPLER_METROPOLIS:
-      CopyParam(sMetroLargeMutationProb, paramSet);
-      CopyParam(sMetroMaxConsecRejects,  paramSet);
+      copyParam(sMetroLargeMutationProb, paramSet);
+      copyParam(sMetroMaxConsecRejects,  paramSet);
       if (data->GetBool(IDD_ADVANCED_SAMPLER)) {
-        CopyParam(sMetroMicroMutationProb, paramSet);
-        CopyParam(sMetroMutationRange,     paramSet);
-        CopyParam(sMetroInitSamples,       paramSet);
-        CopyParam(sMetroStrataWidth,       paramSet);
-        CopyParam(sMetroUseVariance,       paramSet);
-        CopyParam(sMetroUseQR,             paramSet);
+        copyParam(sMetroMicroMutationProb, paramSet);
+        copyParam(sMetroMutationRange,     paramSet);
+        copyParam(sMetroInitSamples,       paramSet);
+        copyParam(sMetroStrataWidth,       paramSet);
+        copyParam(sMetroUseVariance,       paramSet);
+        copyParam(sMetroUseQR,             paramSet);
       }
       break;
     // ERPT sampler
     case IDD_SAMPLER_ERPT:
-      CopyParam(sERPTInitSamples,       paramSet);
-      CopyParam(sERPTChainLength,       paramSet);
-      CopyParam(sERPTMicroMutationProb, paramSet);
+      copyParam(sERPTInitSamples,       paramSet);
+      copyParam(sERPTChainLength,       paramSet);
+      copyParam(sERPTMicroMutationProb, paramSet);
       if (data->GetBool(IDD_ADVANCED_SAMPLER)) {
-        CopyParam(sERPTMutationRange, paramSet);
+        copyParam(sERPTMutationRange, paramSet);
       }
       break;
     // invalid sampler -> error and return
@@ -552,7 +544,7 @@ void LuxC4DSettings::GetSampler(const char*& name,
 ///   Will receive the film name.
 /// @param[out]  paramSet
 ///   The set to which the parameters get added.
-void LuxC4DSettings::GetSurfaceIntegrator(const char*& name,
+void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
                                           LuxParamSet& paramSet)
 {
   // the different sampler names
@@ -607,7 +599,7 @@ void LuxC4DSettings::GetSurfaceIntegrator(const char*& name,
   name = sIntegratorNames[IDD_INTEGRATOR_PATH];
 
   // get base container of this node
-  BaseContainer* data = GetData();
+  BaseContainer* data = getData();
   if (!data)  return;
 
   // get sampler...
@@ -617,37 +609,37 @@ void LuxC4DSettings::GetSurfaceIntegrator(const char*& name,
   switch (integrator) {
     // path integrator
     case IDD_INTEGRATOR_PATH:
-      CopyParam(sPathMaxDepth, paramSet);
-      CopyParam(sPathDirectLightStrategy, paramSet,
+      copyParam(sPathMaxDepth, paramSet);
+      copyParam(sPathDirectLightStrategy, paramSet,
                 sDirectLightStrategies, IDD_DIRECT_LIGHT_STRATEGY_NUMBER);
-      CopyParam(sPathRRStrategy, paramSet,
+      copyParam(sPathRRStrategy, paramSet,
                 sRRStrategies, IDD_PATH_RR_STRATEGY_NUMBER);
       if (data->GetLong(IDD_PATH_RR_STRATEGY) == IDD_PATH_RR_STRATEGY_PROBABILITY) {
-        CopyParam(sPathRRContinueProb, paramSet);
+        copyParam(sPathRRContinueProb, paramSet);
       }
       break;
     // distributed path integrator
     case IDD_INTEGRATOR_DISTRIBUTED_PATH:
-      CopyParam(sDistriPathDirectLightStrategy, paramSet,
+      copyParam(sDistriPathDirectLightStrategy, paramSet,
                 sDirectLightStrategies, IDD_DIRECT_LIGHT_STRATEGY_NUMBER);
-      CopyParam(sDistriPathDirectDirectLightSamples,   paramSet);
-      CopyParam(sDistriPathInDirectDirectLightSamples, paramSet);
-      CopyParam(sDistriPathDiffuseReflectDepth,        paramSet);
-      CopyParam(sDistriPathDiffuseReflectSamples,      paramSet);
-      CopyParam(sDistriPathDiffuseRefractDepth,        paramSet);
-      CopyParam(sDistriPathDiffuseRefractSamples,      paramSet);
-      CopyParam(sDistriPathGlossyReflectDepth,         paramSet);
-      CopyParam(sDistriPathGlossyReflectSamples,       paramSet);
-      CopyParam(sDistriPathGlossyRefractDepth,         paramSet);
-      CopyParam(sDistriPathGlossyRefractSamples,       paramSet);
-      CopyParam(sDistriPathSpecularReflectDepth,       paramSet);
-      CopyParam(sDistriPathSpecularRefractDepth,       paramSet);
+      copyParam(sDistriPathDirectDirectLightSamples,   paramSet);
+      copyParam(sDistriPathInDirectDirectLightSamples, paramSet);
+      copyParam(sDistriPathDiffuseReflectDepth,        paramSet);
+      copyParam(sDistriPathDiffuseReflectSamples,      paramSet);
+      copyParam(sDistriPathDiffuseRefractDepth,        paramSet);
+      copyParam(sDistriPathDiffuseRefractSamples,      paramSet);
+      copyParam(sDistriPathGlossyReflectDepth,         paramSet);
+      copyParam(sDistriPathGlossyReflectSamples,       paramSet);
+      copyParam(sDistriPathGlossyRefractDepth,         paramSet);
+      copyParam(sDistriPathGlossyRefractSamples,       paramSet);
+      copyParam(sDistriPathSpecularReflectDepth,       paramSet);
+      copyParam(sDistriPathSpecularRefractDepth,       paramSet);
       break;
     // bidirectional integrator
     case IDD_INTEGRATOR_BIDIRECTIONAL:
-      CopyParam(sBidirectionalEyeDepth,   paramSet);
-      CopyParam(sBidirectionalLightDepth, paramSet);
-      CopyParam(sBidirectionalDirectLightStrategy, paramSet,
+      copyParam(sBidirectionalEyeDepth,   paramSet);
+      copyParam(sBidirectionalLightDepth, paramSet);
+      copyParam(sBidirectionalDirectLightStrategy, paramSet,
                 sDirectLightStrategies, IDD_DIRECT_LIGHT_STRATEGY_NUMBER);
       break;
     // invalid integrator -> error and return
@@ -670,7 +662,7 @@ void LuxC4DSettings::GetSurfaceIntegrator(const char*& name,
 /// @param[out]  overwritingAllowed
 ///   Will be set to TRUE, if the user wants to export to that filename, even
 ///   if already a file with that path exists.
-void LuxC4DSettings::GetExportFilename(BaseDocument& document,
+void LuxC4DSettings::getExportFilename(BaseDocument& document,
                                        Filename&     path,
                                        Bool&         overwritingAllowed)
 {
@@ -679,7 +671,7 @@ void LuxC4DSettings::GetExportFilename(BaseDocument& document,
   overwritingAllowed = FALSE;
 
   // get base container and determine export filename method that was chosen
-  BaseContainer* data = GetData();
+  BaseContainer* data = getData();
   if (!data)  return;
   LONG exportFilenameMethod = data->GetLong(IDD_WHICH_EXPORT_FILENAME);
 
@@ -702,10 +694,10 @@ void LuxC4DSettings::GetExportFilename(BaseDocument& document,
 
 
 /// Returns the global scale from the settings object.
-LReal LuxC4DSettings::GetC4D2LuxScale(void)
+LReal LuxC4DSettings::getC4D2LuxScale(void)
 {
   // get base container and return the scale factor from it
-  BaseContainer* data = GetData();
+  BaseContainer* data = getData();
   if (!data)  return 0.01;
   return data->GetReal(IDD_SCALE_FACTOR);
 }
@@ -718,14 +710,14 @@ LReal LuxC4DSettings::GetC4D2LuxScale(void)
 
 
 /// Returns the data container of this node.
-BaseContainer* LuxC4DSettings::GetData(void)
+BaseContainer* LuxC4DSettings::getData(void)
 {
-  BaseContainer *data = 0;
+  BaseContainer* data = 0;
   BaseList2D* listNode = static_cast<BaseList2D*>(Get());
   if (listNode) {
     data = listNode->GetDataInstance();
   }
-  if (!data)  ERRLOG_RETURN_FALSE("LuxC4DSettings::GetData(): could not obtain base container");
+  if (!data)  ERRLOG_RETURN_VALUE(NULL, "LuxC4DSettings::getData(): could not obtain base container");
   return data;
 }
 
@@ -736,11 +728,11 @@ BaseContainer* LuxC4DSettings::GetData(void)
 ///   Structure that contains the parameter ID, name and its value buffer.
 /// @param[in]  paramSet
 ///   The set where the parameter gets added to.
-void LuxC4DSettings::CopyParam(Descr2Param<LuxBoolT>& descr2Param,
+void LuxC4DSettings::copyParam(Descr2Param<LuxBoolT>& descr2Param,
                                LuxParamSet&           paramSet)
 {
   // get base container of this object
-  BaseContainer* data = GetData();
+  BaseContainer* data = getData();
   if (!data)  return;
 
   // get float and add it to parameter set
@@ -755,11 +747,11 @@ void LuxC4DSettings::CopyParam(Descr2Param<LuxBoolT>& descr2Param,
 ///   Structure that contains the parameter ID, name and its value buffer.
 /// @param[in]  paramSet
 ///   The set where the parameter gets added to.
-void LuxC4DSettings::CopyParam(Descr2Param<LuxIntegerT>& descr2Param,
+void LuxC4DSettings::copyParam(Descr2Param<LuxIntegerT>& descr2Param,
                                LuxParamSet&              paramSet)
 {
   // get base container of this object
-  BaseContainer* data = GetData();
+  BaseContainer* data = getData();
   if (!data)  return;
 
   // get float and add it to parameter set
@@ -774,11 +766,11 @@ void LuxC4DSettings::CopyParam(Descr2Param<LuxIntegerT>& descr2Param,
 ///   Structure that contains the parameter ID, name and its value buffer.
 /// @param[in]  paramSet
 ///   The set where the parameter gets added to.
-void LuxC4DSettings::CopyParam(Descr2Param<LuxFloatT>& descr2Param,
+void LuxC4DSettings::copyParam(Descr2Param<LuxFloatT>& descr2Param,
                                LuxParamSet&            paramSet)
 {
   // get base container of this object
-  BaseContainer* data = GetData();
+  BaseContainer* data = getData();
   if (!data)  return;
 
   // get float and add it to parameter set
@@ -798,13 +790,13 @@ void LuxC4DSettings::CopyParam(Descr2Param<LuxFloatT>& descr2Param,
 ///   An array of the cycle entries as C strings.
 /// @param[in]  cycleEntryCount
 ///   The number of entries in the cycle entry array.
-void LuxC4DSettings::CopyParam(Descr2Param<LuxStringT>& descr2Param,
+void LuxC4DSettings::copyParam(Descr2Param<LuxStringT>& descr2Param,
                                LuxParamSet&            paramSet,
                                const char**            cycleEntries,
                                LONG                    cycleEntryCount)
 {
   // get base container of this object
-  BaseContainer* data = GetData();
+  BaseContainer* data = getData();
   if (!data)  return;
 
   // get and check entry from cycle

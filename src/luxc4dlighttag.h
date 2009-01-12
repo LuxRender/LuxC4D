@@ -37,6 +37,10 @@
 
 
 /***************************************************************************//*!
+ This class implements a tag that can be applied to light objects, to allow
+ the user to influence the exported light parameters without having to change
+ the C4D lights. It also gives the user more control about Lux specific settings
+ and adds Lux specific light types (e.g. sun and sky).
 *//****************************************************************************/
 class LuxC4DLightTag : public TagData
 {
@@ -45,10 +49,66 @@ class LuxC4DLightTag : public TagData
 
 public:
 
+  /// Container structure in which we return the light settings for all light
+  /// types. Only the parameters that are relevant for the specific light
+  /// type will be used, the rest will be 0.
+  struct LightParameters {
+
+    // used by all light types
+    LONG           mType;
+    Real           mBrightness;
+
+    // used by point, spot, distant and area lights
+    Vector         mColor;
+
+    // used by spot lights
+    Real           mInnerAngle;
+    Real           mOuterAngle;
+
+    // used by area lights
+    Bool           mFlippedNormals;
+    LONG           mShapeType;
+    PolygonObject* mShapeObject;
+    Vector         mShapeSize;
+
+    // used by area, sun, sky and sun-sky lights
+    LONG           mSamples;
+
+    // used by sun light
+    Real           mRelSize;
+
+    // used by sun sky and sun-sky lights
+    Real           mTurbidity;
+
+    // used by sky and sun-sky lights
+    Bool           mAdvanced;
+    Real           mA, mB, mC, mD, mE;
+  };
+
+
   static NodeData* alloc(void);
   static Bool registerPlugin(void);
 
+  static Bool getLightParameters(BaseObject&      lightObject,
+                                 LightParameters& parameters);
 
+  virtual Bool Init(GeListNode* node);
+  virtual Bool GetDDescription(GeListNode*  node,
+                               Description* description,
+                               LONG&        flags);
+  virtual Bool Message(GeListNode *node,
+                       LONG       type,
+                       void       *data);
+
+
+private:
+
+  static LONG getLightType(BaseObject& lightObject);
+  LONG getLightType(void);
+
+  BaseContainer* getData(void);
+
+  Bool copyFromObject(Bool allTypes);
 };
 
 
