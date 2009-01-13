@@ -265,6 +265,12 @@ Bool LuxAPIWriter::transform(const LuxMatrixT& matrix)
 }
 
 
+Bool LuxAPIWriter::reverseOrientation(void)
+{
+  return writeLine("ReverseOrientation");
+}
+
+
 Bool LuxAPIWriter::material(IdentifierNameT    name,
                             const LuxParamSet& paramSet)
 {

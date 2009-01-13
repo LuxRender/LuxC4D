@@ -97,7 +97,7 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
       case IDD_LIGHT_TYPE_AREA:
         parameters.mSamples        = 1;
         parameters.mFlippedNormals = FALSE;
-        parameters.mShapeType      = getParameterLong(lightObject, LIGHT_AREADETAILS_SHAPE);
+        parameters.mShapeType      = c4dShape2LuxShape(getParameterLong(lightObject, LIGHT_AREADETAILS_SHAPE));
         parameters.mShapeObject    = (PolygonObject*)getParameterLink(lightObject,
                                                                       LIGHT_AREADETAILS_OBJECT,
                                                                       Opolygon);
@@ -125,24 +125,24 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
   parameters.mType = tagData->getLightType();
   switch (parameters.mType) {
     case IDD_LIGHT_TYPE_POINT:
-      parameters.mBrightness = data->GetReal  (IDD_POINT_LIGHT_GAIN);
+      parameters.mBrightness = data->GetReal  (IDD_POINT_LIGHT_BRIGHTNESS);
       parameters.mColor      = data->GetVector(IDD_POINT_LIGHT_COLOR);
       break;
     case IDD_LIGHT_TYPE_SPOT:
-      parameters.mBrightness = data->GetReal  (IDD_SPOT_LIGHT_GAIN);
+      parameters.mBrightness = data->GetReal  (IDD_SPOT_LIGHT_BRIGHTNESS);
       parameters.mColor      = data->GetVector(IDD_SPOT_LIGHT_COLOR);
       parameters.mInnerAngle = data->GetReal  (IDD_SPOT_LIGHT_INNERANGLE);
       parameters.mOuterAngle = data->GetReal  (IDD_SPOT_LIGHT_OUTERANGLE);
       break;
     case IDD_LIGHT_TYPE_DISTANT:
-      parameters.mBrightness = data->GetReal  (IDD_DISTANT_LIGHT_GAIN);
+      parameters.mBrightness = data->GetReal  (IDD_DISTANT_LIGHT_BRIGHTNESS);
       parameters.mColor      = data->GetVector(IDD_DISTANT_LIGHT_COLOR);
       break;
     case IDD_LIGHT_TYPE_AREA:
-      parameters.mBrightness     = data->GetReal  (IDD_AREA_LIGHT_GAIN);
+      parameters.mBrightness     = data->GetReal  (IDD_AREA_LIGHT_BRIGHTNESS);
       parameters.mColor          = data->GetVector(IDD_AREA_LIGHT_COLOR);
       parameters.mFlippedNormals = data->GetBool  (IDD_AREA_LIGHT_FLIP_NORMALS);
-      parameters.mShapeType;
+      parameters.mShapeType      = data->GetLong  (IDD_AREA_LIGHT_SHAPE);
       parameters.mShapeObject    = (PolygonObject*)data->GetLink(IDD_AREA_LIGHT_OBJECT,
                                                                  document,
                                                                  Opolygon);
@@ -150,13 +150,13 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
       parameters.mSamples        = data->GetLong  (IDD_AREA_LIGHT_SAMPLES);
       break;
     case IDD_LIGHT_TYPE_SUN:
-      parameters.mBrightness = data->GetReal(IDD_SUN_LIGHT_GAIN);
+      parameters.mBrightness = data->GetReal(IDD_SUN_LIGHT_BRIGHTNESS);
       parameters.mSamples    = data->GetLong(IDD_SUN_LIGHT_SAMPLES);
       parameters.mRelSize    = data->GetReal(IDD_SUN_LIGHT_RELSIZE);
       parameters.mTurbidity  = data->GetReal(IDD_SUN_LIGHT_TURBIDITY);
       break;
     case IDD_LIGHT_TYPE_SKY:
-      parameters.mBrightness = data->GetReal(IDD_SKY_LIGHT_GAIN);
+      parameters.mBrightness = data->GetReal(IDD_SKY_LIGHT_BRIGHTNESS);
       parameters.mSamples    = data->GetLong(IDD_SKY_LIGHT_SAMPLES);
       parameters.mTurbidity  = data->GetReal(IDD_SKY_LIGHT_TURBIDITY);
       parameters.mAdvanced   = data->GetBool(IDD_SKY_LIGHT_ADVANCED);
@@ -167,7 +167,7 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
       parameters.mE          = data->GetReal(IDD_SKY_LIGHT_E_CONST);
       break;
     case IDD_LIGHT_TYPE_SUNSKY:
-      parameters.mBrightness = data->GetReal(IDD_SUNSKY_LIGHT_GAIN);
+      parameters.mBrightness = data->GetReal(IDD_SUNSKY_LIGHT_BRIGHTNESS);
       parameters.mSamples    = data->GetLong(IDD_SUNSKY_LIGHT_SAMPLES);
       parameters.mRelSize    = data->GetReal(IDD_SUNSKY_LIGHT_RELSIZE);
       parameters.mTurbidity  = data->GetReal(IDD_SUNSKY_LIGHT_TURBIDITY);
@@ -205,55 +205,55 @@ Bool LuxC4DLightTag::Init(GeListNode* node)
   data->SetLong(IDD_LIGHT_TYPE, IDD_LIGHT_TYPE_AS_OBJECT);
 
   // set point light defaults
-  data->SetVector(IDD_POINT_LIGHT_COLOR, Vector(1.0));
-  data->SetReal  (IDD_POINT_LIGHT_GAIN,  1.0);
+  data->SetVector(IDD_POINT_LIGHT_COLOR,      Vector(1.0));
+  data->SetReal  (IDD_POINT_LIGHT_BRIGHTNESS, 1.0);
 
   // set spot light defaults
   data->SetVector(IDD_SPOT_LIGHT_COLOR,      Vector(1.0));
-  data->SetReal  (IDD_SPOT_LIGHT_GAIN,       1.0);
+  data->SetReal  (IDD_SPOT_LIGHT_BRIGHTNESS, 1.0);
   data->SetReal  (IDD_SPOT_LIGHT_INNERANGLE, Rad(50.0));
   data->SetReal  (IDD_SPOT_LIGHT_OUTERANGLE, Rad(60.0));
 
   // set distant light defaults
-  data->SetVector(IDD_DISTANT_LIGHT_COLOR, Vector(1.0));
-  data->SetReal  (IDD_DISTANT_LIGHT_GAIN,  1.0);
+  data->SetVector(IDD_DISTANT_LIGHT_COLOR,      Vector(1.0));
+  data->SetReal  (IDD_DISTANT_LIGHT_BRIGHTNESS, 1.0);
 
   // set area light defaults
   data->SetVector(IDD_AREA_LIGHT_COLOR,        Vector(1.0));
-  data->SetReal  (IDD_AREA_LIGHT_GAIN,         1.0);
+  data->SetReal  (IDD_AREA_LIGHT_BRIGHTNESS,   1.0);
   data->SetBool  (IDD_AREA_LIGHT_FLIP_NORMALS, FALSE);
   data->SetLong  (IDD_AREA_LIGHT_SAMPLES,      1);
   data->SetLong  (IDD_AREA_LIGHT_SHAPE,        IDD_AREA_LIGHT_SHAPE_RECTANGLE);
   data->SetVector(IDD_AREA_LIGHT_SIZE,         Vector(100.0));
 
   // set sun light defaults
-  data->SetReal(IDD_SUN_LIGHT_GAIN,      1.0);
-  data->SetLong(IDD_SUN_LIGHT_SAMPLES,   1);
-  data->SetReal(IDD_SUN_LIGHT_TURBIDITY, 2.0);
-  data->SetReal(IDD_SUN_LIGHT_RELSIZE,   1.0);
+  data->SetReal(IDD_SUN_LIGHT_BRIGHTNESS, 1.0);
+  data->SetLong(IDD_SUN_LIGHT_SAMPLES,    1);
+  data->SetReal(IDD_SUN_LIGHT_TURBIDITY,  2.0);
+  data->SetReal(IDD_SUN_LIGHT_RELSIZE,    1.0);
 
   // set sky light defaults
-  data->SetReal(IDD_SKY_LIGHT_GAIN,      1.0);
-  data->SetLong(IDD_SKY_LIGHT_SAMPLES,   1);
-  data->SetReal(IDD_SKY_LIGHT_TURBIDITY, 2.0);
-  data->SetBool(IDD_SKY_LIGHT_ADVANCED,  FALSE);
-  data->SetReal(IDD_SKY_LIGHT_A_CONST,   1.0);
-  data->SetReal(IDD_SKY_LIGHT_B_CONST,   1.0);
-  data->SetReal(IDD_SKY_LIGHT_C_CONST,   1.0);
-  data->SetReal(IDD_SKY_LIGHT_D_CONST,   1.0);
-  data->SetReal(IDD_SKY_LIGHT_E_CONST,   1.0);
+  data->SetReal(IDD_SKY_LIGHT_BRIGHTNESS, 1.0);
+  data->SetLong(IDD_SKY_LIGHT_SAMPLES,    1);
+  data->SetReal(IDD_SKY_LIGHT_TURBIDITY,  2.0);
+  data->SetBool(IDD_SKY_LIGHT_ADVANCED,   FALSE);
+  data->SetReal(IDD_SKY_LIGHT_A_CONST,    1.0);
+  data->SetReal(IDD_SKY_LIGHT_B_CONST,    1.0);
+  data->SetReal(IDD_SKY_LIGHT_C_CONST,    1.0);
+  data->SetReal(IDD_SKY_LIGHT_D_CONST,    1.0);
+  data->SetReal(IDD_SKY_LIGHT_E_CONST,    1.0);
 
   // set sun-sky light defaults
-  data->SetReal(IDD_SUNSKY_LIGHT_GAIN,      1.0);
-  data->SetLong(IDD_SUNSKY_LIGHT_SAMPLES,   1);
-  data->SetReal(IDD_SUNSKY_LIGHT_TURBIDITY, 2.0);
-  data->SetReal(IDD_SUNSKY_LIGHT_RELSIZE,   1.0);
-  data->SetBool(IDD_SUNSKY_LIGHT_ADVANCED,  FALSE);
-  data->SetReal(IDD_SUNSKY_LIGHT_A_CONST,   1.0);
-  data->SetReal(IDD_SUNSKY_LIGHT_B_CONST,   1.0);
-  data->SetReal(IDD_SUNSKY_LIGHT_C_CONST,   1.0);
-  data->SetReal(IDD_SUNSKY_LIGHT_D_CONST,   1.0);
-  data->SetReal(IDD_SUNSKY_LIGHT_E_CONST,   1.0);
+  data->SetReal(IDD_SUNSKY_LIGHT_BRIGHTNESS, 1.0);
+  data->SetLong(IDD_SUNSKY_LIGHT_SAMPLES,    1);
+  data->SetReal(IDD_SUNSKY_LIGHT_TURBIDITY,  2.0);
+  data->SetReal(IDD_SUNSKY_LIGHT_RELSIZE,    1.0);
+  data->SetBool(IDD_SUNSKY_LIGHT_ADVANCED,   FALSE);
+  data->SetReal(IDD_SUNSKY_LIGHT_A_CONST,    1.0);
+  data->SetReal(IDD_SUNSKY_LIGHT_B_CONST,    1.0);
+  data->SetReal(IDD_SUNSKY_LIGHT_C_CONST,    1.0);
+  data->SetReal(IDD_SUNSKY_LIGHT_D_CONST,    1.0);
+  data->SetReal(IDD_SUNSKY_LIGHT_E_CONST,    1.0);
 
   return TRUE;
 }
@@ -443,6 +443,28 @@ LONG LuxC4DLightTag::getLightType(void)
 }
 
 
+/// Converts a C4D light shape type into a Lux shape type. This is done to
+/// become independant of future changes in C4D area lights.
+///
+/// @param[in]  c4dShapeType
+///   The ID of the C4D area light shape.
+/// @return
+///   The ID of the corresponding Lux area light shape.
+LONG LuxC4DLightTag::c4dShape2LuxShape(LONG c4dShapeType)
+{
+  switch (c4dShapeType) {
+    case LIGHT_AREADETAILS_SHAPE_DISC:        return IDD_AREA_LIGHT_SHAPE_DISC;
+    case LIGHT_AREADETAILS_SHAPE_RECTANGLE:   return IDD_AREA_LIGHT_SHAPE_RECTANGLE;
+    case LIGHT_AREADETAILS_SHAPE_SPHERE:      return IDD_AREA_LIGHT_SHAPE_SPHERE;
+    case LIGHT_AREADETAILS_SHAPE_CYLINDER:    return IDD_AREA_LIGHT_SHAPE_CYLINDER;
+    case LIGHT_AREADETAILS_SHAPE_CUBE:        return IDD_AREA_LIGHT_SHAPE_CUBE;
+    case LIGHT_AREADETAILS_SHAPE_HEMISPHERE:  return IDD_AREA_LIGHT_SHAPE_HEMISPHERE;
+    case LIGHT_AREADETAILS_SHAPE_OBJECT:      return IDD_AREA_LIGHT_SHAPE_OBJECT;
+    default:                                  return IDD_AREA_LIGHT_SHAPE_RECTANGLE;
+  }
+}
+
+
 /// Helper function to copy all available and usable settings from the C4D
 /// light object into the tag. This can be used to reset either the currently
 /// selected or all Lux light parameters.
@@ -472,33 +494,33 @@ Bool LuxC4DLightTag::copyFromObject(Bool allTypes)
 
   // copy point light settings
   if (allTypes || (lightType == IDD_LIGHT_TYPE_POINT)) {
-    data->SetVector(IDD_POINT_LIGHT_COLOR, getParameterVector(*object, LIGHT_COLOR));
-    data->SetReal  (IDD_POINT_LIGHT_GAIN,  getParameterReal  (*object, LIGHT_BRIGHTNESS));
+    data->SetVector(IDD_POINT_LIGHT_COLOR,      getParameterVector(*object, LIGHT_COLOR));
+    data->SetReal  (IDD_POINT_LIGHT_BRIGHTNESS, getParameterReal  (*object, LIGHT_BRIGHTNESS));
   }
 
   // copy spot light settings
   if (allTypes || (lightType == IDD_LIGHT_TYPE_SPOT)) {
     data->SetVector(IDD_SPOT_LIGHT_COLOR,      getParameterVector(*object, LIGHT_COLOR));
-    data->SetReal  (IDD_SPOT_LIGHT_GAIN,       getParameterReal  (*object, LIGHT_BRIGHTNESS));
+    data->SetReal  (IDD_SPOT_LIGHT_BRIGHTNESS, getParameterReal  (*object, LIGHT_BRIGHTNESS));
     data->SetReal  (IDD_SPOT_LIGHT_INNERANGLE, getParameterReal  (*object, LIGHT_DETAILS_INNERANGLE));
     data->SetReal  (IDD_SPOT_LIGHT_OUTERANGLE, getParameterReal  (*object, LIGHT_DETAILS_OUTERANGLE));
   }
 
   // copy distant light settings
   if (allTypes || (lightType == IDD_LIGHT_TYPE_DISTANT)) {
-    data->SetVector(IDD_DISTANT_LIGHT_COLOR, getParameterVector(*object, LIGHT_COLOR));
-    data->SetReal  (IDD_DISTANT_LIGHT_GAIN,  getParameterReal  (*object, LIGHT_BRIGHTNESS));
+    data->SetVector(IDD_DISTANT_LIGHT_COLOR,      getParameterVector(*object, LIGHT_COLOR));
+    data->SetReal  (IDD_DISTANT_LIGHT_BRIGHTNESS, getParameterReal  (*object, LIGHT_BRIGHTNESS));
   }
 
   // copy area light settings
   if (allTypes || (lightType == IDD_LIGHT_TYPE_AREA)) {
-    data->SetVector(IDD_AREA_LIGHT_COLOR, getParameterVector(*object, LIGHT_COLOR));
-    data->SetReal  (IDD_AREA_LIGHT_GAIN,  getParameterReal  (*object, LIGHT_BRIGHTNESS));
-    data->SetVector(IDD_AREA_LIGHT_SIZE,  Vector(getParameterReal(*object, LIGHT_AREADETAILS_SIZEX),
-                                                 getParameterReal(*object, LIGHT_AREADETAILS_SIZEY),
-                                                 getParameterReal(*object, LIGHT_AREADETAILS_SIZEZ)));
+    data->SetVector(IDD_AREA_LIGHT_COLOR,      getParameterVector(*object, LIGHT_COLOR));
+    data->SetReal  (IDD_AREA_LIGHT_BRIGHTNESS, getParameterReal  (*object, LIGHT_BRIGHTNESS));
+    data->SetVector(IDD_AREA_LIGHT_SIZE,       Vector(getParameterReal(*object, LIGHT_AREADETAILS_SIZEX),
+                                                      getParameterReal(*object, LIGHT_AREADETAILS_SIZEY),
+                                                      getParameterReal(*object, LIGHT_AREADETAILS_SIZEZ)));
     LONG shape = getParameterLong(*object, LIGHT_AREADETAILS_SHAPE);
-    data->SetLong  (IDD_AREA_LIGHT_SHAPE, shape);
+    data->SetLong  (IDD_AREA_LIGHT_SHAPE,      c4dShape2LuxShape(shape));
     if (shape == LIGHT_AREADETAILS_SHAPE_OBJECT) {
       data->SetLink(IDD_AREA_LIGHT_OBJECT, getParameterLink (*object, LIGHT_AREADETAILS_OBJECT));
     }
@@ -506,17 +528,17 @@ Bool LuxC4DLightTag::copyFromObject(Bool allTypes)
 
   // copy sun light settings
   if (allTypes || (lightType == IDD_LIGHT_TYPE_SUN)) {
-    data->SetReal(IDD_SUN_LIGHT_GAIN, getParameterReal(*object, LIGHT_BRIGHTNESS));
+    data->SetReal(IDD_SUN_LIGHT_BRIGHTNESS, getParameterReal(*object, LIGHT_BRIGHTNESS));
   }
 
   // copy sky light settings
   if (allTypes || (lightType == IDD_LIGHT_TYPE_SKY)) {
-    data->SetReal(IDD_SKY_LIGHT_GAIN, getParameterReal(*object, LIGHT_BRIGHTNESS));
+    data->SetReal(IDD_SKY_LIGHT_BRIGHTNESS, getParameterReal(*object, LIGHT_BRIGHTNESS));
   }
 
   // copy sun-sky light settings
   if (allTypes || (lightType == IDD_LIGHT_TYPE_SUNSKY)) {
-    data->SetReal(IDD_SUNSKY_LIGHT_GAIN, getParameterReal(*object, LIGHT_BRIGHTNESS));
+    data->SetReal(IDD_SUNSKY_LIGHT_BRIGHTNESS, getParameterReal(*object, LIGHT_BRIGHTNESS));
   }
 
   // set flag that we have copied the object settings

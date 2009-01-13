@@ -629,7 +629,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_SUN:
       {
         SunLightData data;
-        data.mGain      = parameters.mBrightness;
+        data.mGain      = parameters.mBrightness * 0.0001;
         data.mSamples   = parameters.mSamples;
         data.mSunDir    = -scaledDirection;
         data.mTurbidity = parameters.mTurbidity;
@@ -640,7 +640,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_SKY:
       {
         SkyLightData data;
-        data.mGain      = parameters.mBrightness;
+        data.mGain      = parameters.mBrightness * 0.0001;
         data.mSamples   = parameters.mSamples;
         data.mSunDir    = -scaledDirection;
         data.mTurbidity = parameters.mTurbidity;
@@ -656,7 +656,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_SUNSKY:
       {
         SunSkyLightData data;
-        data.mGain      = parameters.mBrightness;
+        data.mGain      = parameters.mBrightness * 0.0001;
         data.mSamples   = parameters.mSamples;
         data.mSunDir    = -scaledDirection;
         data.mTurbidity = parameters.mTurbidity;
@@ -757,7 +757,7 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
   // - setup shape parameters
   switch (data.mShape) {
     // disc area light
-    case LIGHT_AREADETAILS_SHAPE_DISC:
+    case IDD_AREA_LIGHT_SHAPE_DISC:
       radius = data.mSize.x * 0.5 * mC4D2LuxScale;
       data.mGain /= pi * radius * radius;
       flipYZ = TRUE;
@@ -765,7 +765,7 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       shapeName = "disk";
       break;
     // rectangle area light
-    case LIGHT_AREADETAILS_SHAPE_RECTANGLE:
+    case IDD_AREA_LIGHT_SHAPE_RECTANGLE:
       width  = data.mSize.x * mC4D2LuxScale;
       height = data.mSize.y * mC4D2LuxScale;
       data.mGain /= width * height;
@@ -775,7 +775,7 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       shapeName = "quad";
       break;
     // sphere area light
-    case LIGHT_AREADETAILS_SHAPE_SPHERE:
+    case IDD_AREA_LIGHT_SHAPE_SPHERE:
       radius = data.mSize.x * 0.5 * mC4D2LuxScale;
       data.mGain /= 4. * pi * radius * radius;
       flipYZ = TRUE;
@@ -783,7 +783,7 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       shapeName = "sphere";
       break;
     // cylinder area light
-    case LIGHT_AREADETAILS_SHAPE_CYLINDER:
+    case IDD_AREA_LIGHT_SHAPE_CYLINDER:
       radius =  data.mSize.x * 0.5 * mC4D2LuxScale;
       zMin   = -data.mSize.z * 0.5 * mC4D2LuxScale;
       zMax   =  data.mSize.z * 0.5 * mC4D2LuxScale;
@@ -795,7 +795,7 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       shapeName = "cylinder";
       break;
     // cube area light
-    case LIGHT_AREADETAILS_SHAPE_CUBE:
+    case IDD_AREA_LIGHT_SHAPE_CUBE:
       xRad = data.mSize.x * 0.5 * mC4D2LuxScale;
       yRad = data.mSize.y * 0.5 * mC4D2LuxScale;
       zRad = data.mSize.z * 0.5 * mC4D2LuxScale;
@@ -830,7 +830,7 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       shapeName = "mesh";
       break;
     // hemisphere area light
-    case LIGHT_AREADETAILS_SHAPE_HEMISPHERE:
+    case IDD_AREA_LIGHT_SHAPE_HEMISPHERE:
       radius = data.mSize.x * 0.5 * mC4D2LuxScale;
       zMin   = 0;
       data.mGain /= 2. * pi * radius * radius;
@@ -840,7 +840,7 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       shapeName = "sphere";
       break;
     // object area light
-    case LIGHT_AREADETAILS_SHAPE_OBJECT:
+    case IDD_AREA_LIGHT_SHAPE_OBJECT:
       if (!convertGeometry(*data.mShapeObject, triangles, points))  return FALSE;
       if (!triangles.size() || !points.size())  return TRUE;
       radius = Len(data.mShapeObject->GetRad()) * mC4D2LuxScale;
@@ -874,6 +874,9 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
   mTempParamSet.addParam(LuxParamSet::LUX_FLOAT,   "gain",     &data.mGain);
   mTempParamSet.addParam(LuxParamSet::LUX_INTEGER, "nsamples", &data.mSamples);
   if (!mReceiver->areaLightSource("area", mTempParamSet))  return FALSE;
+
+  // if the normals should be flipped, export "reverseorientation"
+  if (data.mFlippedNormals && !mReceiver->reverseOrientation())  return FALSE;
 
   // export area light shape
   if (!mReceiver->shape(shapeName, shapeParams))  return FALSE;

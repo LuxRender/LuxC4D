@@ -103,10 +103,12 @@ public:
 
 private:
 
+  BaseContainer* getData(void);
+
   static LONG getLightType(BaseObject& lightObject);
   LONG getLightType(void);
 
-  BaseContainer* getData(void);
+  static LONG c4dShape2LuxShape(LONG c4dShapeType);
 
   Bool copyFromObject(Bool allTypes);
 };

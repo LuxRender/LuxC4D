@@ -203,6 +203,7 @@ public:
                        IdentifierNameT    type,
                        const LuxParamSet& paramSet) =0;
   virtual Bool transform(const LuxMatrixT& matrix) =0;
+  virtual Bool reverseOrientation(void) =0;
   virtual Bool material(IdentifierNameT    name,
                         const LuxParamSet& paramSet) =0;
   virtual Bool shape(IdentifierNameT    name,

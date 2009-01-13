@@ -91,6 +91,7 @@ public:
                        const LuxParamSet& paramSet);
 
   virtual Bool transform(const LuxMatrixT& matrix);
+  virtual Bool reverseOrientation(void);
 
   virtual Bool material(IdentifierNameT    name,
                         const LuxParamSet& paramSet);

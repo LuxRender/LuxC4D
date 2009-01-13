@@ -41,21 +41,21 @@ STRINGTABLE Tluxc4dlighttag
 
   IDG_POINT_LIGHT                 "Point Light Settings";
   IDD_POINT_LIGHT_COLOR           "Color";
-  IDD_POINT_LIGHT_GAIN            "Gain";
+  IDD_POINT_LIGHT_BRIGHTNESS      "Brightness";
 
   IDG_SPOT_LIGHT                    "Spot Light Settings";
   IDD_SPOT_LIGHT_COLOR              "Color";
-  IDD_SPOT_LIGHT_GAIN               "Gain";
+  IDD_SPOT_LIGHT_BRIGHTNESS         "Brightness";
   IDD_SPOT_LIGHT_INNERANGLE         "Inner Angle";
   IDD_SPOT_LIGHT_OUTERANGLE         "Outer Angle";
   
   IDG_DISTANT_LIGHT                 "Distant Light Settings";
   IDD_DISTANT_LIGHT_COLOR           "Color";
-  IDD_DISTANT_LIGHT_GAIN            "Gain";
+  IDD_DISTANT_LIGHT_BRIGHTNESS      "Brightness";
 
   IDG_AREA_LIGHT                    "Area Light Settings";
   IDD_AREA_LIGHT_COLOR              "Color";
-  IDD_AREA_LIGHT_GAIN               "Gain";
+  IDD_AREA_LIGHT_BRIGHTNESS         "Brightness";
   IDD_AREA_LIGHT_FLIP_NORMALS       "Flip Normals";
   IDD_AREA_LIGHT_SAMPLES            "Samples";
   IDD_AREA_LIGHT_SHAPE              "Shape";
@@ -71,13 +71,13 @@ STRINGTABLE Tluxc4dlighttag
     IDD_AREA_LIGHT_SHAPE_OBJECT       "Object/Link";
 
   IDG_SUN_LIGHT                     "Sun Light Settings";
-  IDD_SUN_LIGHT_GAIN                "Gain";
+  IDD_SUN_LIGHT_BRIGHTNESS          "Brightness";
   IDD_SUN_LIGHT_SAMPLES             "Samples";
   IDD_SUN_LIGHT_TURBIDITY           "Turbidity";
   IDD_SUN_LIGHT_RELSIZE             "Rel. Size";
 
   IDG_SKY_LIGHT                     "Sky Light Settings";
-  IDD_SKY_LIGHT_GAIN                "Gain";
+  IDD_SKY_LIGHT_BRIGHTNESS          "Brightness";
   IDD_SKY_LIGHT_SAMPLES             "Samples";
   IDD_SKY_LIGHT_TURBIDITY           "Turbidity";
   IDD_SKY_LIGHT_ADVANCED            "Advanced";
@@ -88,7 +88,7 @@ STRINGTABLE Tluxc4dlighttag
   IDD_SKY_LIGHT_E_CONST             "E";
 
   IDG_SUNSKY_LIGHT                  "Sun+Sky Settings";
-  IDD_SUNSKY_LIGHT_GAIN             "Gain";
+  IDD_SUNSKY_LIGHT_BRIGHTNESS       "Brightness";
   IDD_SUNSKY_LIGHT_SAMPLES          "Samples";
   IDD_SUNSKY_LIGHT_TURBIDITY        "Turbidity";
   IDD_SUNSKY_LIGHT_RELSIZE          "Rel. Sun Size";
