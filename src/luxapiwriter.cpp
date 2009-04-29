@@ -38,7 +38,8 @@
 
 /// Constructs a new instance.
 LuxAPIWriter::LuxAPIWriter()
-: mSceneFileOpened(FALSE),
+: mFilesOpen(FALSE),
+  mWorldStarted(FALSE),
   mErrorStringID(0)
 {}
 
@@ -47,8 +48,8 @@ LuxAPIWriter::LuxAPIWriter()
 /// closed and a warning is dumped.
 LuxAPIWriter::~LuxAPIWriter(void)
 {
-  // if output fileis still open for some reason, finish it and close it
-  if (mSceneFileOpened) {
+  // if output files are still open for some reason, finish and close them
+  if (mFilesOpen) {
     ERRLOG("LuxAPIWriter::~LuxAPIWriter(): scene file wasn't closed properly");
     endScene();
   }
@@ -67,7 +68,7 @@ LuxAPIWriter::~LuxAPIWriter(void)
 Bool LuxAPIWriter::init(const Filename &sceneFile)
 {
   // if there is already an open file, finish it and close it
-  if (mSceneFileOpened) {
+  if (mFilesOpen) {
     ERRLOG("LuxAPIWriter::init(): scene file wasn't closed properly before");
     if (!endScene()) {
       ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
@@ -75,8 +76,9 @@ Bool LuxAPIWriter::init(const Filename &sceneFile)
     }
   }
 
-  // just store the filename, the file be opened later
+  // just store the filenames - they will be opened later
   mSceneFilename = sceneFile;
+  mWorldStarted = FALSE;
   mErrorStringID = 0;
   return TRUE;
 }
@@ -84,34 +86,82 @@ Bool LuxAPIWriter::init(const Filename &sceneFile)
 
 Bool LuxAPIWriter::startScene(const CHAR* head)
 {
-  if (mSceneFileOpened) {
+  // if there is already an active session, close it
+  if (mFilesOpen) {
     ERRLOG("LuxAPIWriter::startScene(): scene file wasn't closed properly before");
     if (!endScene()) {
       ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
                              "LuxAPIWriter::startScene(): could not close old scene file -> can't create new scene file");
     }
   }
+
+  // make sure that the filename actually contains something
   if (!mSceneFilename.Content()) {
     ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_INTERNAL,
                            "LuxAPIWriter::startScene(): no filename has been set");
   }
-  if (!mSceneFile->Open(mSceneFilename, GE_WRITE, FILE_DIALOG)) {
+
+  // derive the filenames for the materials and objects files from the scene
+  // filename 
+  mMaterialsFilename = mSceneFilename;
+  mMaterialsFilename.SetSuffix("lxm");
+  mObjectsFilename = mSceneFilename;
+  mObjectsFilename.SetSuffix("lxo");
+
+  // open files
+  if (!mSceneFile->Open(mSceneFilename, GE_WRITE, FILE_DIALOG) ||
+      !mMaterialsFile->Open(mMaterialsFilename, GE_WRITE, FILE_DIALOG) ||
+      !mObjectsFile->Open(mObjectsFilename, GE_WRITE, FILE_DIALOG))
+  {
+    mSceneFile->Close();
+    mMaterialsFile->Close();
+    mObjectsFile->Close();
     ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
                            "LuxAPIWriter::startScene(): could not open file '" + mSceneFilename.GetString() + "'");
   }
-  mSceneFileOpened = TRUE;
-  return writeLine(head) && writeLine("\n\n#Global Settings\n");
+  mFilesOpen = TRUE;
+
+  // write header comments
+  return writeLine(*mSceneFile, head) &&
+         writeLine(*mSceneFile, "\n\n# Global Settings\n") &&
+         writeLine(*mMaterialsFile, "# Materials File\n") &&
+         writeLine(*mObjectsFile, "# Geometry File\n");
 }
 
 
 Bool LuxAPIWriter::endScene(void)
 {
-  if (!mSceneFileOpened)  return TRUE;
-  if (!mSceneFile->Close()) {
+  // don't do anything if nothing was opened
+  if (!mFilesOpen)  return TRUE;
+
+  // write the inclusion of the the materials and objects files into the scene
+  static const ULONG cBufferSize = 1024;
+  CHAR buffer[cBufferSize];
+  Bool success = TRUE;
+  success &= writeLine(*mSceneFile, "\n# The Scene");
+  success &= writeLine(*mSceneFile, "\nWorldBegin\n\n");
+  ( String("Include \"")
+    + mMaterialsFilename.GetFileString() 
+    + String("\"") ).GetCString(buffer, cBufferSize, StUTF8);
+  success &= writeLine(*mSceneFile, buffer);
+  ( String("Include \"")
+    + mObjectsFilename.GetFileString() 
+    + String("\"") ).GetCString(buffer, cBufferSize, StUTF8);
+  success &= writeLine(*mSceneFile, buffer);
+  success &= writeLine(*mSceneFile, "\n\nWorldEnd\n");
+
+  // close the files
+  success &= mSceneFile->Close();
+  success &= mMaterialsFile->Close();
+  success &= mObjectsFile->Close();
+
+  // check if everything was done correctly
+  if (!success) {
     ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
-                           "LuxAPIWriter::endScene(): could not close scene file");
+                           "LuxAPIWriter::endScene(): could not finish scene file or close all files");
   }
-  mSceneFileOpened = FALSE;
+
+  mFilesOpen = FALSE;
   return TRUE;
 }
 
@@ -139,98 +189,100 @@ Bool LuxAPIWriter::lookAt(const LuxVectorT& camPos,
 Bool LuxAPIWriter::film(IdentifierNameT    name,
                         const LuxParamSet& paramSet)
 {
-  return writeSetting("Film", name, 0, 0, paramSet, TRUE) &&
-         writeLine(0);
+  return writeSetting(*mSceneFile, "Film", name, 0, 0, paramSet, TRUE) &&
+         writeLine(*mSceneFile, 0);
 }
 
 
 Bool LuxAPIWriter::camera(IdentifierNameT     name,
                           const LuxParamSet& paramSet)
 {
-  return writeSetting("Camera", name, 0, 0, paramSet, TRUE) &&
-         writeLine(0);
+  return writeSetting(*mSceneFile, "Camera", name, 0, 0, paramSet, TRUE) &&
+         writeLine(*mSceneFile, 0);
 }
 
 
 Bool LuxAPIWriter::pixelFilter(IdentifierNameT    name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting("PixelFilter", name, 0, 0, paramSet, TRUE) &&
-         writeLine(0);
+  return writeSetting(*mSceneFile, "PixelFilter", name, 0, 0, paramSet, TRUE) &&
+         writeLine(*mSceneFile, 0);
 }
 
 
 Bool LuxAPIWriter::sampler(IdentifierNameT    name,
                            const LuxParamSet& paramSet)
 {
-  return writeSetting("Sampler", name, 0, 0, paramSet, TRUE) &&
-         writeLine(0);
+  return writeSetting(*mSceneFile, "Sampler", name, 0, 0, paramSet, TRUE) &&
+         writeLine(*mSceneFile, 0);
 }
 
 
 Bool LuxAPIWriter::surfaceIntegrator(IdentifierNameT    name,
                                      const LuxParamSet& paramSet)
 {
-  return writeSetting("SurfaceIntegrator", name, 0, 0, paramSet, TRUE) &&
-         writeLine(0);
+  return writeSetting(*mSceneFile, "SurfaceIntegrator", name, 0, 0, paramSet, TRUE) &&
+         writeLine(*mSceneFile, 0);
 }
 
 
 Bool LuxAPIWriter::accelerator(IdentifierNameT    name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting("Accelerator", name, 0, 0, paramSet, TRUE) &&
-         writeLine(0);
+  return writeSetting(*mSceneFile, "Accelerator", name, 0, 0, paramSet, TRUE) &&
+         writeLine(*mSceneFile, 0);
 }
 
 
 Bool LuxAPIWriter::worldBegin(void)
 {
-  return writeLine("\n\n#Scene Description\n\nWorldBegin");
+  mWorldStarted = TRUE;
+  return TRUE;
 }
 
 
 Bool LuxAPIWriter::worldEnd(void)
 {
-  return writeLine("\nWorldEnd");
+  mWorldStarted = FALSE;
+  return TRUE;
 }
 
 
 Bool LuxAPIWriter::attributeBegin(void)
 {
-  return writeLine("\nAttributeBegin");
+  return writeLine(*mObjectsFile, "\nAttributeBegin");
 }
 
 
 Bool LuxAPIWriter::attributeEnd(void)
 {
-  return writeLine("AttributeEnd");
+  return writeLine(*mObjectsFile, "AttributeEnd");
 }
 
 
 Bool LuxAPIWriter::objectBegin(IdentifierNameT name)
 {
-  return writeSetting("\nObjectBegin", name);
+  return writeSetting(*mObjectsFile, "\nObjectBegin", name);
 }
 
 
 Bool LuxAPIWriter::objectEnd(void)
 {
-  return writeLine("ObjectEnd");
+  return writeLine(*mObjectsFile, "ObjectEnd");
 }
 
 
 Bool LuxAPIWriter::lightSource(IdentifierNameT    name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting("\nLightSource", name, 0, 0, paramSet, TRUE);
+  return writeSetting(*mObjectsFile, "\nLightSource", name, 0, 0, paramSet, TRUE);
 }
 
 
 Bool LuxAPIWriter::areaLightSource(IdentifierNameT    name,
                                    const LuxParamSet& paramSet)
 {
-  return writeSetting("AreaLightSource", name, 0, 0, paramSet, TRUE);
+  return writeSetting(*mObjectsFile, "AreaLightSource", name, 0, 0, paramSet, TRUE);
 }
 
 
@@ -239,7 +291,27 @@ Bool LuxAPIWriter::texture(IdentifierNameT    name,
                            IdentifierNameT    type,
                            const LuxParamSet& paramSet)
 {
-  return writeSetting("\nTexture", name, colorType, type, paramSet, TRUE);
+  return writeSetting(*mMaterialsFile, "\nTexture", name, colorType, type, paramSet, TRUE);
+}
+
+
+Bool LuxAPIWriter::makeNamedMaterial(IdentifierNameT    name,
+                                 const LuxParamSet& paramSet)
+{
+  return writeSetting(*mMaterialsFile, "MakeNamedMaterial", name, 0, 0, paramSet, TRUE);
+}
+
+
+Bool LuxAPIWriter::namedMaterial(IdentifierNameT name)
+{
+  return writeSetting(*mObjectsFile, "NamedMaterial", name);
+}
+
+
+Bool LuxAPIWriter::material(IdentifierNameT    name,
+                            const LuxParamSet& paramSet)
+{
+  return writeSetting(*mObjectsFile, "Material", name, 0, 0, paramSet, TRUE);
 }
 
 
@@ -257,7 +329,8 @@ Bool LuxAPIWriter::transform(const LuxMatrixT& matrix)
                      matrix.values[4],  matrix.values[5],  matrix.values[6],  matrix.values[7], 
                      matrix.values[8],  matrix.values[9],  matrix.values[10], matrix.values[11], 
                      matrix.values[12], matrix.values[13], matrix.values[14], matrix.values[15]);
-  if (!mSceneFile->WriteBytes(buffer, len)) {
+  BaseFile* outFile = mWorldStarted ? mObjectsFile : mSceneFile;
+  if (!outFile->WriteBytes(buffer, len)) {
     ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
                            "LuxAPIWriter::transform(): writing to file failed");
   }
@@ -267,21 +340,14 @@ Bool LuxAPIWriter::transform(const LuxMatrixT& matrix)
 
 Bool LuxAPIWriter::reverseOrientation(void)
 {
-  return writeLine("ReverseOrientation");
-}
-
-
-Bool LuxAPIWriter::material(IdentifierNameT    name,
-                            const LuxParamSet& paramSet)
-{
-  return writeSetting("Material", name, 0, 0, paramSet, TRUE);
+  return writeLine(*mObjectsFile, "ReverseOrientation");
 }
 
 
 Bool LuxAPIWriter::shape(IdentifierNameT    name,
                          const LuxParamSet& paramSet)
 {
-  return writeSetting("Shape", name, 0, 0, paramSet, TRUE);
+  return writeSetting(*mObjectsFile, "Shape", name, 0, 0, paramSet, TRUE);
 }
 
 
@@ -292,23 +358,28 @@ Bool LuxAPIWriter::shape(IdentifierNameT    name,
 
 
 /// Writes a string and terminates it with a line feed.
+///
+/// @param[in]  file
+///   Reference to the while into which the line should be written.
 /// @param[in]  text
 ///   The text to write. (can be NULL)
 /// @return
 ///   TRUE if successful, otherwise FALSE.
-Bool LuxAPIWriter::writeLine(const CHAR* text)
+Bool LuxAPIWriter::writeLine(
+  BaseFile&   file,
+  const CHAR* text)
 {
   if (text) {
     LONG len = (LONG)strlen(text);
     if (len > 0) {
-      if (!mSceneFile->WriteBytes(text, len)) {
+      if (!file.WriteBytes(text, len)) {
         ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
                                "LuxAPIWriter::writeLine(): writing to file failed");
       }
     }
   }
 
-  if (!mSceneFile->WriteChar('\n')) {
+  if (!file.WriteChar('\n')) {
     ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
                            "LuxAPIWriter::writeLine(): writing to file failed");
   }
@@ -319,20 +390,24 @@ Bool LuxAPIWriter::writeLine(const CHAR* text)
 /// Writes a simple statement of the form
 ///   <setting> [identifier]
 ///
+/// @param[in]  file
+///   Reference to the while into which the statement should be written.
 /// @param[in]  setting
 ///   The specifier of the setting (e.g. "ObjectBegin"). (must not be NULL)
 /// @param[in]  identifier1
 ///   The first identifier (e.g. the object name). (can be NULL)
 /// @return
 ///   TRUE if successful, otherwise FALSE.
-Bool LuxAPIWriter::writeSetting(SettingNameT    setting,
-                                IdentifierNameT identifier)
+Bool LuxAPIWriter::writeSetting(
+  BaseFile&       file,
+  SettingNameT    setting,
+  IdentifierNameT identifier)
 {
-  if (!mSceneFile->WriteBytes(setting, (VLONG)strlen(setting)) ||
+  if (!file.WriteBytes(setting, (VLONG)strlen(setting)) ||
       (identifier &&
-       (!mSceneFile->WriteBytes(" \"", 2) ||
-        !mSceneFile->WriteBytes(identifier, (VLONG)strlen(identifier)) ||
-        !mSceneFile->WriteBytes("\"\n", 2))))
+       (!file.WriteBytes(" \"", 2) ||
+        !file.WriteBytes(identifier, (VLONG)strlen(identifier)) ||
+        !file.WriteBytes("\"\n", 2))))
   {
     ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
                            "LuxAPIWriter::writeSetting(): writing to file failed");
@@ -346,6 +421,8 @@ Bool LuxAPIWriter::writeSetting(SettingNameT    setting,
 ///   <setting> <identifier1>? <identifier2>? <identifier3>? <parameter>*
 /// If a parameter is a value array, the values will be in separate lines.
 ///
+/// @param[in]  file
+///   Reference to the while into which the statement should be written.
 /// @param[in]  setting
 ///   The specifier of the setting (e.g. "Texture"). (must not be NULL)
 /// @param[in]  identifier1
@@ -360,18 +437,20 @@ Bool LuxAPIWriter::writeSetting(SettingNameT    setting,
 ///   Inserts a line feed after each parameter.
 /// @return
 ///   TRUE if successful, otherwise FALSE.
-Bool LuxAPIWriter::writeSetting(SettingNameT       setting,
-                                IdentifierNameT    identifier1,
-                                IdentifierNameT    identifier2,
-                                IdentifierNameT    identifier3,
-                                const LuxParamSet& paramSet,
-                                Bool               newLine)
+Bool LuxAPIWriter::writeSetting(
+  BaseFile&          file,
+  SettingNameT       setting,
+  IdentifierNameT    identifier1,
+  IdentifierNameT    identifier2,
+  IdentifierNameT    identifier3,
+  const LuxParamSet& paramSet,
+  Bool               newLine)
 {
   // these are the type identifiers used in the Lux file format
   static const struct {
     CHAR* nameStr;
     ULONG nameStrLen;
-  } cTokenType[LuxParamSet::LUX_NUMBER] =
+  } cTokenType[LUX_NUMBER] =
     { {"bool ", 5},
       {"integer ", 8},
       {"float ", 6},
@@ -387,216 +466,216 @@ Bool LuxAPIWriter::writeSetting(SettingNameT       setting,
   Bool success = TRUE;
 
   // write setting identifier
-  success &= mSceneFile->WriteBytes(setting, (VLONG)strlen(setting));
+  success &= file.WriteBytes(setting, (VLONG)strlen(setting));
   if (identifier1) {
-    success &= mSceneFile->WriteBytes(" \"", 2);
-    success &= mSceneFile->WriteBytes(identifier1, (VLONG)strlen(identifier1));
-    success &= mSceneFile->WriteChar('"');
+    success &= file.WriteBytes(" \"", 2);
+    success &= file.WriteBytes(identifier1, (VLONG)strlen(identifier1));
+    success &= file.WriteChar('"');
   }
   if (identifier2) {
-    success &= mSceneFile->WriteBytes(" \"", 2);
-    success &= mSceneFile->WriteBytes(identifier2, (VLONG)strlen(identifier2));
-    success &= mSceneFile->WriteChar('"');
+    success &= file.WriteBytes(" \"", 2);
+    success &= file.WriteBytes(identifier2, (VLONG)strlen(identifier2));
+    success &= file.WriteChar('"');
   }
   if (identifier3) {
-    success &= mSceneFile->WriteBytes(" \"", 2);
-    success &= mSceneFile->WriteBytes(identifier3, (VLONG)strlen(identifier3));
-    success &= mSceneFile->WriteChar('"');
+    success &= file.WriteBytes(" \"", 2);
+    success &= file.WriteBytes(identifier3, (VLONG)strlen(identifier3));
+    success &= file.WriteChar('"');
   }
   if (newLine) {
-    success &= mSceneFile->WriteChar('\n');
+    success &= file.WriteChar('\n');
   }
 
   // write parameters
-  CHAR        valueString[128];
-  VLONG       valueStringLen;
-  LuxParamSet::ParamTypeT    tokenType;
-  LuxParamSet::ParamNameT    tokenName;
-  LuxParamSet::ParamPointerT tokenPointer;
-  ULONG                      tokenArraySize;
-  for (LuxParamSet::ParamNumberT c=0; c<paramSet.ParamNumber(); ++c) {
+  CHAR          valueString[128];
+  VLONG         valueStringLen;
+  LuxParamTypeT tokenType;
+  LuxParamNameT tokenName;
+  LuxParamRefT  tokenValue;
+  ULONG         tokenArraySize;
+  for (LuxParamNumberT c=0; c<paramSet.ParamNumber(); ++c) {
 
     // for convenience store token data in local variables
     tokenType      = paramSet.ParamTypes()[c];
     tokenName      = paramSet.ParamNames()[c];
-    tokenPointer   = paramSet.ParamPointers()[c];
+    tokenValue     = paramSet.ParamValues()[c];
     tokenArraySize = paramSet.ParamArraySizes()[c];
 
     // write token name and type
-    success &= mSceneFile->WriteBytes(" \"", 2);
-    success &= mSceneFile->WriteBytes(cTokenType[tokenType].nameStr, cTokenType[tokenType].nameStrLen);
-    success &= mSceneFile->WriteBytes(tokenName, (VLONG)strlen(tokenName));
-    success &= mSceneFile->WriteChar('"');
+    success &= file.WriteBytes(" \"", 2);
+    success &= file.WriteBytes(cTokenType[tokenType].nameStr, cTokenType[tokenType].nameStrLen);
+    success &= file.WriteBytes(tokenName, (VLONG)strlen(tokenName));
+    success &= file.WriteChar('"');
 
     // write token values
     if (tokenArraySize > 1) {
-      success &= mSceneFile->WriteBytes(" [\n", 3);
+      success &= file.WriteBytes(" [\n", 3);
     } else {
-      success &= mSceneFile->WriteBytes(" [", 2);
+      success &= file.WriteBytes(" [", 2);
     }
     switch (tokenType) {
-      case LuxParamSet::LUX_BOOL:
+      case LUX_BOOL:
         {
-          const LuxBoolT* values = (const LuxBoolT*)tokenPointer;
+          const LuxBoolT* values = (const LuxBoolT*)tokenValue;
           if (tokenArraySize == 1) {
             if (values[0]) {
-              success &= mSceneFile->WriteBytes("\"true\"", 6);
+              success &= file.WriteBytes("\"true\"", 6);
             } else {
-              success &= mSceneFile->WriteBytes("\"false\"", 7);
+              success &= file.WriteBytes("\"false\"", 7);
             }
           } else {
             for (ULONG i=0; i<tokenArraySize; ++i) {
               if (values[i]) {
-                success &= mSceneFile->WriteBytes("\"true\"\n", 7);
+                success &= file.WriteBytes("\"true\"\n", 7);
               } else {
-                success &= mSceneFile->WriteBytes("\"false\"\n", 8);
+                success &= file.WriteBytes("\"false\"\n", 8);
               }
             }
           }
           break;
         }
-      case LuxParamSet::LUX_INTEGER:
+      case LUX_INTEGER:
         {
-          const LuxIntegerT* values = (const LuxIntegerT*)tokenPointer;
+          const LuxIntegerT* values = (const LuxIntegerT*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%d", values[0]);
-            success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+            success &= file.WriteBytes(valueString, valueStringLen);
           } else {
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%d\n", values[i]);
-              success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+              success &= file.WriteBytes(valueString, valueStringLen);
             }
           }
           break;
         }
-      case LuxParamSet::LUX_FLOAT:
+      case LUX_FLOAT:
         {
-          const LuxFloatT* values = (const LuxFloatT*)tokenPointer;
+          const LuxFloatT* values = (const LuxFloatT*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%.8g", values[0]);
-            success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+            success &= file.WriteBytes(valueString, valueStringLen);
           } else {
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%.8g\n", values[i]);
-              success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+              success &= file.WriteBytes(valueString, valueStringLen);
             }
           }
           break;
         }
-      case LuxParamSet::LUX_VECTOR:
+      case LUX_VECTOR:
         {
-          const LuxVectorT* values = (const LuxVectorT*)tokenPointer;
+          const LuxVectorT* values = (const LuxVectorT*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
                                      values[0].x, values[0].y, values[0].z);
-            success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+            success &= file.WriteBytes(valueString, valueStringLen);
           } else {
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%.8g %.8g %.8g\n",
                                        values[i].x, values[i].y, values[i].z);
-              success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+              success &= file.WriteBytes(valueString, valueStringLen);
             }
           }
           break;
         }
-      case LuxParamSet::LUX_COLOR:
+      case LUX_COLOR:
         {
-          const LuxColorT* values = (const LuxColorT*)tokenPointer;
+          const LuxColorT* values = (const LuxColorT*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
                                      values[0].c[0], values[0].c[1], values[0].c[2]);
-            success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+            success &= file.WriteBytes(valueString, valueStringLen);
           } else {
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%.8g %.8g %.8g\n",
                                        values[i].c[0], values[i].c[1], values[i].c[2]);
-              success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+              success &= file.WriteBytes(valueString, valueStringLen);
             }
           }
           break;
         }
-      case LuxParamSet::LUX_POINT:
+      case LUX_POINT:
         {
-          const LuxPointT* values = (const LuxPointT*)tokenPointer;
+          const LuxPointT* values = (const LuxPointT*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
                                      values[0].x, values[0].y, values[0].z);
-            success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+            success &= file.WriteBytes(valueString, valueStringLen);
           } else {
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%.8g %.8g %.8g\n",
                                        values[i].x, values[i].y, values[i].z);
-              success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+              success &= file.WriteBytes(valueString, valueStringLen);
             }
           }
           break;
         }
-      case LuxParamSet::LUX_NORMAL:
+      case LUX_NORMAL:
         {
-          const LuxNormalT* values = (const LuxNormalT*)tokenPointer;
+          const LuxNormalT* values = (const LuxNormalT*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
                                      values[0].x, values[0].y, values[0].z);
-            success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+            success &= file.WriteBytes(valueString, valueStringLen);
           } else {
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%.8g %.8g %.8g\n",
                                        values[i].x, values[i].y, values[i].z);
-              success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+              success &= file.WriteBytes(valueString, valueStringLen);
             }
           }
           break;
         }
-      case LuxParamSet::LUX_TRIANGLE:
+      case LUX_TRIANGLE:
         {
-          const LuxIntegerT* values = (const LuxIntegerT*)tokenPointer;
+          const LuxIntegerT* values = (const LuxIntegerT*)tokenValue;
           if (tokenArraySize == 3) {
             valueStringLen = sprintf(valueString, "%d %d %d",
                                      values[0], values[1], values[2]);
-            success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+            success &= file.WriteBytes(valueString, valueStringLen);
           } else {
             for (ULONG i=2; i<tokenArraySize; i+=3) {
               valueStringLen = sprintf(valueString, "%d %d %d\n",
                                        values[i-2], values[i-1], values[i]);
-              success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+              success &= file.WriteBytes(valueString, valueStringLen);
             }
           }
           break;
         }
-      case LuxParamSet::LUX_QUAD:
+      case LUX_QUAD:
         {
-          const LuxIntegerT* values = (const LuxIntegerT*)tokenPointer;
+          const LuxIntegerT* values = (const LuxIntegerT*)tokenValue;
           if (tokenArraySize == 4) {
             valueStringLen = sprintf(valueString, "%d %d %d %d",
                                      values[0], values[1], values[2], values[3]);
-            success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+            success &= file.WriteBytes(valueString, valueStringLen);
           } else {
             for (ULONG i=3; i<tokenArraySize; i+=4) {
               valueStringLen = sprintf(valueString, "%d %d %d %d\n",
                                        values[i-3], values[i-2], values[i-1], values[i]);
-              success &= mSceneFile->WriteBytes(valueString, valueStringLen);
+              success &= file.WriteBytes(valueString, valueStringLen);
             }
           }
           break;
         }
-      case LuxParamSet::LUX_STRING:
-      case LuxParamSet::LUX_TEXTURE:
+      case LUX_STRING:
+      case LUX_TEXTURE:
         {
-          const LuxStringT* values = (const LuxStringT*)tokenPointer;
+          const LuxStringT* values = (const LuxStringT*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = (VLONG)values[0].size();
             if (valueStringLen) {
-              success &= mSceneFile->WriteChar('"');
-              success &= mSceneFile->WriteBytes(values[0].c_str(), valueStringLen);
-              success &= mSceneFile->WriteChar('"');
+              success &= file.WriteChar('"');
+              success &= file.WriteBytes(values[0].c_str(), valueStringLen);
+              success &= file.WriteChar('"');
             }
           } else {
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = (VLONG)values[i].size();
               if (valueStringLen) {
-                success &= mSceneFile->WriteChar('"');
-                success &= mSceneFile->WriteBytes(values[i].c_str(), valueStringLen);
-                success &= mSceneFile->WriteBytes("\"\n", 2);
+                success &= file.WriteChar('"');
+                success &= file.WriteBytes(values[i].c_str(), valueStringLen);
+                success &= file.WriteBytes("\"\n", 2);
               }
             }
           }
@@ -606,12 +685,12 @@ Bool LuxAPIWriter::writeSetting(SettingNameT       setting,
         ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_INTERNAL,
                                "LuxAPIWriter::writeSetting(): invalid type specifier in token name");
     }
-    success &= mSceneFile->WriteChar(']');
-    if (newLine)  success &= mSceneFile->WriteChar('\n');
+    success &= file.WriteChar(']');
+    if (newLine)  success &= file.WriteChar('\n');
   }
 
   // write line feed, to finish statement and skip to the next line
-  if (!newLine)  success &= mSceneFile->WriteChar('\n');
+  if (!newLine)  success &= file.WriteChar('\n');
 
   // check if some of the write operations have failed
   if (!success) {

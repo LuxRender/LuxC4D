@@ -28,7 +28,8 @@
 
 
 
-#include "c4d.h"
+#include <c4d.h>
+
 #include "luxparamset.h"
 
 
@@ -80,11 +81,11 @@ private:
   /// and also provides the buffer where the parameter gets stored.
   template<class T>
   struct Descr2Param {
-    LONG                    mID;
-    T                       mParam;
-    LuxParamSet::ParamNameT mParamName;
+    LONG          mID;
+    T             mParam;
+    LuxParamNameT mParamName;
 
-    Descr2Param(LONG id, LuxParamSet::ParamNameT paramName)
+    Descr2Param(LONG id, LuxParamNameT paramName)
     : mID(id), mParamName(paramName)
     {}
   };
@@ -109,4 +110,4 @@ private:
 
 
 
-#endif	// #ifndef __LUXC4DSETTINGS_H__
+#endif  // #ifndef __LUXC4DSETTINGS_H__

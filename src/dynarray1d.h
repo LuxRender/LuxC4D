@@ -23,8 +23,8 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
-#ifndef __FIXARRAY1D_H__
-#define __FIXARRAY1D_H__  1
+#ifndef __DYNARRAY1D_H__
+#define __DYNARRAY1D_H__  1
 
 
 
@@ -45,47 +45,57 @@
  - copy operator ( T::operator=(const T&) )
 *//****************************************************************************/
 template <class T>
-class FixArray1D
+class DynArray1D
 {
   public:
 
-    FixArray1D(SizeT size=0);
-    ~FixArray1D(void);
+    DynArray1D(SizeT size=0, SizeT capacity=0);
+    ~DynArray1D();
 
-    FixArray1D(const FixArray1D& other);
-    FixArray1D& operator=(const FixArray1D& other);
+    DynArray1D(const DynArray1D& other);
+    DynArray1D& operator=(const DynArray1D& other);
 
-    Bool init(SizeT size=0);
+    Bool init(SizeT size=0, SizeT capacity=0);
+    Bool reserve(SizeT capacity);
+    Bool adaptCapacity();
+
     void fill(const T& value);
-    void fillWithZero(void);
-    void erase(void);
+    void clear();
+    void erase();
 
-    inline SizeT size(void) const;
+    inline SizeT size() const;
+    inline SizeT capacity() const;
 
     inline const T& operator[](SizeT pos) const;
     inline T&       operator[](SizeT pos);
 
-    inline const T& front(void) const;
-    inline T&       front(void);
-    inline const T& back(void) const;
-    inline T&       back(void);
+    inline const T& front() const;
+    inline T&       front();
+    inline const T& back() const;
+    inline T&       back();
 
-    inline const T* arrayAddress(void) const;
-    inline T*       arrayAddress(void);
+    inline Bool append();
+    inline Bool push(const T& value);
+    inline T    pop();
 
-    void setArrayAddress(T* data, SizeT size);
+    void remove(SizeT pos);
 
-    void adopt(FixArray1D& other);
+    inline const T* arrayAddress() const;
+    inline T*       arrayAddress();
 
 
   private:
 
     SizeT mSize;
+    SizeT mCapacity;
     T*    mData;
+
+    Bool increaseCapacity();
+    Bool newCapacity(SizeT size);
 };
 
-#include "fixarray1d_impl.h"
+#include "dynarray1d_impl.h"
 
 
 
-#endif  // #ifndef __FIXARRAY1D_H__
+#endif  // #ifndef __DYNARRAY1D_H__

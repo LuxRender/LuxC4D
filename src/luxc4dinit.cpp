@@ -29,6 +29,7 @@
 #include "luxc4dexporterrender.h"
 #include "luxc4dpreferences.h"
 #include "luxc4dlighttag.h"
+#include "luxc4dmaterialmatte.h"
 #include "luxc4dsettings.h"
 #include "utilities.h"
 
@@ -94,6 +95,18 @@ Bool PluginStart(void)
     ERRLOG("Could not register LuxC4DLightTag plugin.");
     return FALSE;
   }
+
+  // register LuxC4DMaterialGlossy
+  //if (!LuxC4DMaterialGlossy::registerPlugin()) {
+  //  ERRLOG("Could not register LuxC4DMaterialGlossy plugin.");
+  //  return FALSE;
+  //}
+
+  // register LuxC4DMaterialMatte
+  //if (!LuxC4DMaterialMatte::registerPlugin()) {
+  //  ERRLOG("Could not register LuxC4DMaterialMatte plugin.");
+  //  return FALSE;
+  //}
 
   return TRUE;
 }

@@ -163,6 +163,13 @@ private:
     LuxFloatT   mEConst;
   };
 
+  /// Structure that stores a 2D vector.
+  struct Vector2D {
+    LuxFloatT x, y;
+    inline Vector2D& operator=(const Vector& other)  {
+      x=other.x;  y=other.y;  return *this; }
+  };
+
 
   /// Helper structure for storing normal and UV references for each polygon a
   /// point is connected to. (For every point/poly combination we store one
@@ -191,12 +198,15 @@ private:
   typedef FixArray1D<LuxPointT>   PointsT;
   /// The contianer type for storing normal vectors.
   typedef FixArray1D<LuxNormalT>  NormalsT;
+  /// The container type for storing UV coordinates.
+  typedef FixArray1D<LuxFloatT>   UVsT;
 
   /// The container type for storing C4D polygons.
   typedef FixArray1D<CPolygon>    C4DPolygonsT;
   /// The container type for storing C4D normal vectors.
   typedef FixArray1D<Vector>      C4DNormalsT;
-
+  /// The container type for storing C4D UVW coordinates.
+  typedef FixArray1D<Vector2D>    C4DUVWsT;
   /// The container type for storing a set of objects.
   typedef RBTreeSet<BaseList2D*>  ObjectsT;
 
@@ -230,8 +240,6 @@ private:
   Bool exportAccelerator(void);
 
   Bool exportLights(void);
-  Bool exportTextures(void);
-  Bool exportGeometry(void);
 
   Bool exportLight(BaseObject&   object,
                    const Matrix& globalMatrix);
@@ -242,15 +250,21 @@ private:
   Bool exportSunLight(SunLightData& data);
   Bool exportSkyLight(SkyLightData& data);
   Bool exportSunSkyLight(SunSkyLightData& data);
+  
+  Bool exportStandardMaterial(void);
+
+  Bool exportGeometry(void);
 
   Bool exportPolygonObject(PolygonObject& object,
                            const Matrix&  globalMatrix);
   Bool convertGeometry(PolygonObject& object,
                        TrianglesT&    triangles,
                        PointsT&       points,
-                       NormalsT*      normals = 0);
+                       NormalsT*      normals = 0,
+                       UVsT*          uvs = 0);
   Bool convertAndCacheGeometry(PolygonObject& object,
-                               Bool           noNormals);
+                               Bool           noNormals,
+                               Bool           noUVs);
   Bool convertAndCacheWithoutNormals(PolygonObject& object);
   Bool convertAndCacheWithNormals(PolygonObject& object,
                                   C4DNormalsT&   normals);

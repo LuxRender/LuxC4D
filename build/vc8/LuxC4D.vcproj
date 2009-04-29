@@ -314,6 +314,14 @@
 			</Filter>
 		</Filter>
 		<File
+			RelativePath="..\..\src\dynarray1d.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\dynarray1d_impl.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\fixarray1d.h"
 			>
 		</File>

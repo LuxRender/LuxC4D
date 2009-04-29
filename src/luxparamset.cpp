@@ -38,34 +38,34 @@
 ///
 /// @param[in]  maxParamNumber
 ///   The maximum number of parameters this set can store.
-LuxParamSet::LuxParamSet(ParamNumberT maxParamNumber)
+LuxParamSet::LuxParamSet(LuxParamNumberT maxParamNumber)
 : mMaxParamNumber(maxParamNumber),
   mParamNumber(0)
 {
   // if the parameter number is too low:
   if (mMaxParamNumber <= 0) {
     // reset everything and return
-    mMaxParamNumber = 0;
-    mParamTypes = 0;
-    mParamNames = 0;
-    mParamPointers = 0;
+    mMaxParamNumber  = 0;
+    mParamTypes      = 0;
+    mParamNames      = 0;
+    mParamValues     = 0;
     mParamArraySizes = 0;
     ERRLOG("LuxParamSet::LuxParamSet(): maxParamNumber was <= 0!");
     return;
   }
 
   // allocated arrays for the parameter attributes and values
-  mParamTypes      = bNewNC ParamTypeT[mMaxParamNumber];
-  mParamNames      = bNewNC ParamNameT[mMaxParamNumber];
-  mParamPointers   = bNewNC ParamPointerT[mMaxParamNumber];
+  mParamTypes      = bNewNC LuxParamTypeT[mMaxParamNumber];
+  mParamNames      = bNewNC LuxParamNameT[mMaxParamNumber];
+  mParamValues     = bNewNC LuxParamRefT[mMaxParamNumber];
   mParamArraySizes = bNewNC ULONG[mMaxParamNumber];
 
   // if we couldn't allocate all arrays:
-  if (!mParamTypes || !mParamNames || !mParamPointers || !mParamArraySizes) {
+  if (!mParamTypes || !mParamNames || !mParamValues || !mParamArraySizes) {
     // reset and deallocate everything and return
     bDelete(mParamTypes);
     bDelete(mParamNames);
-    bDelete(mParamPointers);
+    bDelete(mParamValues);
     bDelete(mParamArraySizes);
     mMaxParamNumber = 0;
     ERRLOG("LuxParamSet::LuxParamSet(): not enough memory");
@@ -79,7 +79,7 @@ LuxParamSet::~LuxParamSet()
 {
   bDelete(mParamTypes);
   bDelete(mParamNames);
-  bDelete(mParamPointers);
+  bDelete(mParamValues);
   bDelete(mParamArraySizes);
 }
 
@@ -90,14 +90,14 @@ LuxParamSet::~LuxParamSet()
 ///   The data type of the parameter.
 /// @param[in]  name
 ///   The name of the parameter (must not be NULL).
-/// @param[in]  pointer
-///   The pointer to the parameter (array) (must not be NULL). The caller
+/// @param[in]  value
+///   The pointer to the parameter value (array) (must not be NULL). The caller
 ///   still owns the memory.
 /// @param[in]  arraySize
 ///   The size of te parameter array (default: 1) (must not be NULL).
-Bool LuxParamSet::addParam(ParamTypeT    type,
-                           ParamNameT    name,
-                           ParamPointerT pointer,
+Bool LuxParamSet::addParam(LuxParamTypeT type,
+                           LuxParamNameT name,
+                           LuxParamRefT  value,
                            ULONG         arraySize)
 {
   // check if therer is still some space left
@@ -107,7 +107,7 @@ Bool LuxParamSet::addParam(ParamTypeT    type,
   }
 
   // check if the passed parameters are valid
-  if (!name || !pointer || !arraySize) {
+  if (!name || !value || !arraySize) {
     ERRLOG("LuxParamSet::addParam(): 0 is not allowed for token name, token pointer or token number");
     return FALSE;
   }
@@ -115,7 +115,7 @@ Bool LuxParamSet::addParam(ParamTypeT    type,
   // store the parameter in the arrays
   mParamTypes[mParamNumber]      = type;
   mParamNames[mParamNumber]      = name;
-  mParamPointers[mParamNumber]   = pointer;
+  mParamValues[mParamNumber]     = value;
   mParamArraySizes[mParamNumber] = arraySize;
   ++mParamNumber;
   return TRUE;

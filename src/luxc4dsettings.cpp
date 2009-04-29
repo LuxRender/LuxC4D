@@ -737,7 +737,7 @@ void LuxC4DSettings::copyParam(Descr2Param<LuxBoolT>& descr2Param,
 
   // get float and add it to parameter set
   descr2Param.mParam = (data->GetBool(descr2Param.mID) != 0);
-  paramSet.addParam(LuxParamSet::LUX_BOOL, descr2Param.mParamName, &descr2Param.mParam);
+  paramSet.addParam(LUX_BOOL, descr2Param.mParamName, &descr2Param.mParam);
 }
 
 
@@ -756,7 +756,7 @@ void LuxC4DSettings::copyParam(Descr2Param<LuxIntegerT>& descr2Param,
 
   // get float and add it to parameter set
   descr2Param.mParam = data->GetLong(descr2Param.mID);
-  paramSet.addParam(LuxParamSet::LUX_INTEGER, descr2Param.mParamName, &descr2Param.mParam);
+  paramSet.addParam(LUX_INTEGER, descr2Param.mParamName, &descr2Param.mParam);
 }
 
 
@@ -775,7 +775,7 @@ void LuxC4DSettings::copyParam(Descr2Param<LuxFloatT>& descr2Param,
 
   // get float and add it to parameter set
   descr2Param.mParam = data->GetReal(descr2Param.mID);
-  paramSet.addParam(LuxParamSet::LUX_FLOAT, descr2Param.mParamName, &descr2Param.mParam);
+  paramSet.addParam(LUX_FLOAT, descr2Param.mParamName, &descr2Param.mParam);
 }
 
 
@@ -806,5 +806,5 @@ void LuxC4DSettings::copyParam(Descr2Param<LuxStringT>& descr2Param,
 
   // map entry to string and add that to parameter set
   descr2Param.mParam = cycleEntries[entry];
-  paramSet.addParam(LuxParamSet::LUX_STRING, descr2Param.mParamName, &descr2Param.mParam);
+  paramSet.addParam(LUX_STRING, descr2Param.mParamName, &descr2Param.mParam);
 }

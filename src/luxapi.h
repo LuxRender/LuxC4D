@@ -28,7 +28,7 @@
 
 
 
-#include "c4d.h"
+#include <c4d.h>
 
 #include "luxtypes.h"
 #include "luxparamset.h"
@@ -194,18 +194,38 @@ public:
   virtual Bool objectEnd(void) =0;
 
 
+  ///
   virtual Bool lightSource(IdentifierNameT    name,
                            const LuxParamSet& paramSet) =0;
+
+  ///
   virtual Bool areaLightSource(IdentifierNameT    name,
                                const LuxParamSet& paramSet) =0;
+
+  ///
   virtual Bool texture(IdentifierNameT    name,
                        IdentifierNameT    colorType,
                        IdentifierNameT    type,
                        const LuxParamSet& paramSet) =0;
-  virtual Bool transform(const LuxMatrixT& matrix) =0;
-  virtual Bool reverseOrientation(void) =0;
+
+  ///
+  virtual Bool makeNamedMaterial(IdentifierNameT    name,
+                                 const LuxParamSet& paramSet) =0;
+
+  ///
+  virtual Bool namedMaterial(IdentifierNameT name) =0;
+
+  ///
   virtual Bool material(IdentifierNameT    name,
                         const LuxParamSet& paramSet) =0;
+
+  ///
+  virtual Bool transform(const LuxMatrixT& matrix) =0;
+
+  ///
+  virtual Bool reverseOrientation(void) =0;
+
+  ///
   virtual Bool shape(IdentifierNameT    name,
                      const LuxParamSet& paramSet) =0;
 };

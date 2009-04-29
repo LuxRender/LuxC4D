@@ -28,7 +28,7 @@
 
 
 
-#include "c4d.h"
+#include <c4d.h>
 
 
 
@@ -48,6 +48,10 @@
 /// specified return value.
 #define ERRLOG_ID_RETURN_VALUE(returnValue,id,msg)                            \
   { mErrorStringID=(id);  ERRLOG(msg);  return returnValue; }
+
+
+
+typedef VULONG  SizeT;
 
 
 

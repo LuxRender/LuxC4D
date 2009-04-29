@@ -28,7 +28,7 @@
 
 
 
-#include "c4d.h"
+#include <c4d.h>
 
 #include "luxapi.h"
 
@@ -90,11 +90,15 @@ public:
                        IdentifierNameT    type,
                        const LuxParamSet& paramSet);
 
+  virtual Bool makeNamedMaterial(IdentifierNameT    name,
+                                 const LuxParamSet& paramSet);
+  virtual Bool namedMaterial(IdentifierNameT name);
+  virtual Bool material(IdentifierNameT    name,
+                      const LuxParamSet& paramSet);
+
   virtual Bool transform(const LuxMatrixT& matrix);
   virtual Bool reverseOrientation(void);
 
-  virtual Bool material(IdentifierNameT    name,
-                        const LuxParamSet& paramSet);
 
   virtual Bool shape(IdentifierNameT    name,
                      const LuxParamSet& paramSet);
@@ -104,20 +108,31 @@ private:
 
   typedef const CHAR* SettingNameT;
 
+  Bool                mFilesOpen;
   Filename            mSceneFilename;
   AutoAlloc<BaseFile> mSceneFile;
-  Bool                mSceneFileOpened;
+  Filename            mMaterialsFilename;
+  AutoAlloc<BaseFile> mMaterialsFile;
+  Filename            mObjectsFilename;
+  AutoAlloc<BaseFile> mObjectsFile;
+  Bool                mWorldStarted;
   LONG                mErrorStringID;
 
-  Bool writeLine(const CHAR* text);
-  Bool writeSetting(SettingNameT    setting,
-                    IdentifierNameT identifier);
-  Bool writeSetting(SettingNameT       setting,
-                    IdentifierNameT    identifier1,
-                    IdentifierNameT    identifier2,
-                    IdentifierNameT    identifier3,
-                    const LuxParamSet& paramSet,
-                    Bool               newLine);
+  Bool writeLine(
+    BaseFile&   file,
+    const CHAR* text);
+  Bool writeSetting(
+    BaseFile&       file,
+    SettingNameT    setting,
+    IdentifierNameT identifier);
+  Bool writeSetting(
+    BaseFile&          file,
+    SettingNameT       setting,
+    IdentifierNameT    identifier1,
+    IdentifierNameT    identifier2,
+    IdentifierNameT    identifier3,
+    const LuxParamSet& paramSet,
+    Bool               newLine);
 };
 
 

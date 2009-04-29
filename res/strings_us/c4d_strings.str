@@ -37,6 +37,9 @@ STRINGTABLE
   
   IDS_LUXC4D_LIGHT_TAG        "LuxC4D Light Tag";
   
+  IDS_LUXC4D_MATERIAL_MATTE   "Matte";
+  IDS_LUXC4D_MATERIAL_GLOSSY  "Glossy";
+  
   IDS_LUXC4D_PREFERENCES              "LuxC4D";
   IDS_LUXC4D_PREFS_LUX_PATH_FS_TITLE  "Please select the Lux Render executable";
   

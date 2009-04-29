@@ -28,7 +28,7 @@
 
 
 
-#include "c4d.h"
+#include <c4d.h>
 
 #include "luxtypes.h"
 
@@ -46,51 +46,29 @@ class LuxParamSet
 {
 public:
 
-  typedef LONG  ParamNumberT;
-  typedef CHAR* ParamNameT;
-  typedef void* ParamPointerT;
-
-
-  /// Each enumeration specifies one type used by the Lux API.
-  enum ParamTypeT {
-    LUX_BOOL = 0,
-    LUX_INTEGER,
-    LUX_FLOAT,
-    LUX_VECTOR,
-    LUX_COLOR,
-    LUX_POINT,
-    LUX_NORMAL,
-    LUX_TRIANGLE,
-    LUX_QUAD,
-    LUX_STRING,
-    LUX_TEXTURE,
-    LUX_NUMBER
-  };
-
-
-  LuxParamSet(ParamNumberT maxParamNumber);
+  LuxParamSet(LuxParamNumberT maxParamNumber);
   ~LuxParamSet();
 
-  Bool addParam(ParamTypeT    type,
-                ParamNameT    name,
-                ParamPointerT pointer,
+  Bool addParam(LuxParamTypeT type,
+                LuxParamNameT name,
+                LuxParamRefT  value,
                 ULONG         arraySize=1);
   void clear();
 
-  inline ParamNumberT         ParamNumber() const  { return mParamNumber; }
-  inline const ParamTypeT*    ParamTypes() const  { return mParamTypes; }
-  inline const ParamNameT*    ParamNames() const  { return mParamNames; }
-  inline const ParamPointerT* ParamPointers() const  { return mParamPointers; }
+  inline LuxParamNumberT      ParamNumber() const  { return mParamNumber; }
+  inline const LuxParamTypeT* ParamTypes() const  { return mParamTypes; }
+  inline const LuxParamNameT* ParamNames() const  { return mParamNames; }
+  inline const LuxParamRefT*  ParamValues() const  { return mParamValues; }
   inline const ULONG*         ParamArraySizes() const  { return mParamArraySizes; }
 
 
 private:
 
-  ParamNumberT    mMaxParamNumber;
-  ParamNumberT    mParamNumber;
-  ParamTypeT*     mParamTypes;
-  ParamNameT*     mParamNames;
-  ParamPointerT*  mParamPointers;
+  LuxParamNumberT mMaxParamNumber;
+  LuxParamNumberT mParamNumber;
+  LuxParamTypeT*  mParamTypes;
+  LuxParamNameT*  mParamNames;
+  LuxParamRefT*   mParamValues;
   ULONG*          mParamArraySizes;
 
 

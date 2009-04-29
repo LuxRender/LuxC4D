@@ -31,6 +31,32 @@
 #include <string>
 
 
+/// Each enumeration specifies one type used by the Lux API.
+enum LuxParamTypeT {
+  LUX_BOOL = 0,
+  LUX_INTEGER,
+  LUX_FLOAT,
+  LUX_VECTOR,
+  LUX_COLOR,
+  LUX_POINT,
+  LUX_NORMAL,
+  LUX_TRIANGLE,
+  LUX_QUAD,
+  LUX_STRING,
+  LUX_TEXTURE,
+  LUX_NUMBER
+};
+
+///
+typedef CHAR* LuxParamNameT;
+
+///
+typedef void* LuxParamRefT;
+
+///
+typedef LONG  LuxParamNumberT;
+
+
 /// This type represents a boolean value of the Lux API.
 typedef bool        LuxBoolT;
 /// This type represents an integer value of the Lux API.

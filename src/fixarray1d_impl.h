@@ -28,13 +28,6 @@
 
 
 
-#include <cstring>
-#include <cassert>
-
-#include "utilities.h"
-
-
-
 /*******************************************************************************
  * Implementation of template class FixArray1D
  *******************************************************************************/
@@ -105,7 +98,7 @@ Bool FixArray1D<T>::init(SizeT size)
   erase();
   if (size > 0) {
     if ((mData = bNewNC T[size]) == 0) {
-      ERRLOG("FixArray1D<T>::init(): could not allocate array of size " + LLongToString(size));
+      ERRLOG("FixArray1D::init(): could not allocate array of size " + LLongToString(size));
       return FALSE;
     }
     mSize = size;
@@ -146,7 +139,7 @@ void FixArray1D<T>::erase(void)
 
 /// Returns the size of the array.
 template <class T>
-inline typename FixArray1D<T>::SizeT FixArray1D<T>::size(void) const  
+inline SizeT FixArray1D<T>::size(void) const  
 { 
   return mSize; 
 }
@@ -222,7 +215,7 @@ inline T& FixArray1D<T>::back(void)
 
 /// Returns a const pointer to the internal data.
 template <class T>
-inline const T* FixArray1D<T>::getArrayAddress(void) const  
+inline const T* FixArray1D<T>::arrayAddress(void) const  
 { 
   return mData; 
 }
@@ -230,7 +223,7 @@ inline const T* FixArray1D<T>::getArrayAddress(void) const
 
 /// Returns a pointer to the internal data.
 template <class T>
-inline T* FixArray1D<T>::getArrayAddress(void)  
+inline T* FixArray1D<T>::arrayAddress(void)  
 { 
   return mData; 
 }

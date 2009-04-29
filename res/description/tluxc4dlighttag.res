@@ -26,7 +26,7 @@
 CONTAINER Tluxc4dlighttag
 {
   NAME Tluxc4dlighttag;
-	INCLUDE Tbase;
+  INCLUDE Tbase;
   
   GROUP ID_TAGPROPERTIES {
   
