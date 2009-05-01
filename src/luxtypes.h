@@ -32,7 +32,7 @@
 
 
 /// Each enumeration specifies one type used by the Lux API.
-enum LuxParamTypeT {
+enum LuxParamType {
   LUX_BOOL = 0,
   LUX_INTEGER,
   LUX_FLOAT,
@@ -48,31 +48,62 @@ enum LuxParamTypeT {
 };
 
 ///
-typedef CHAR* LuxParamNameT;
+typedef CHAR* LuxParamName;
 
 ///
-typedef void* LuxParamRefT;
+typedef void* LuxParamRef;
 
 ///
-typedef LONG  LuxParamNumberT;
+typedef LONG  LuxParamNumber;
 
 
 /// This type represents a boolean value of the Lux API.
-typedef bool        LuxBoolT;
+typedef bool        LuxBool;
 /// This type represents an integer value of the Lux API.
-typedef int         LuxIntegerT;
+typedef int         LuxInteger;
 /// This type represents a float value of the Lux API.
-typedef float       LuxFloatT;
+typedef float       LuxFloat;
 /// This type represents a string of the Lux API.
-typedef std::string LuxStringT;
+typedef std::string LuxString;
+
+
+
+/***************************************************************************//*!
+ This structure stores a 2D vector (used for example for UV coordinates.
+*//****************************************************************************/
+struct LuxVector2D
+{
+  LuxFloat x, y;
+
+
+  inline LuxVector2D()
+  {}
+
+  inline LuxVector2D(LuxFloat ix, LuxFloat iy)
+  : x(ix), y(iy)
+  {}
+
+  inline LuxVector2D& operator=(const Vector& other)
+  {
+    x=other.x;
+    y=other.y;
+    return *this;
+  }
+
+  inline LuxVector2D operator-(const LuxVector2D& other) const
+  {
+    return LuxVector2D(x-other.x, y-other.y);
+  }
+};
+
 
 
 /***************************************************************************//*!
  This structure is equivalent to the vector type of the Lux API.
 *//****************************************************************************/
-typedef struct LuxVector
+struct LuxVector
 {
-  LuxFloatT x, y, z;
+  LuxFloat x, y, z;
 
 
   /// Default constructor. The members are NOT cleared.
@@ -83,7 +114,7 @@ typedef struct LuxVector
   /// @param[in] ix  The X component.
   /// @param[in] iy  The Y component.
   /// @param[in] iz  The Z component.
-  inline LuxVector(LuxFloatT ix, LuxFloatT iy, LuxFloatT iz)
+  inline LuxVector(LuxFloat ix, LuxFloat iy, LuxFloat iz)
   : x(ix), y(iy), z(iz)
   {}
 
@@ -92,15 +123,16 @@ typedef struct LuxVector
   inline LuxVector(const Vector& c4dVector)
   : x(c4dVector.x), y(c4dVector.z), z(c4dVector.y)
   {}
-} LuxVectorT;
+};
+
 
 
 /***************************************************************************//*!
  This structure is equivalent to the point type of the Lux API.
 *//****************************************************************************/
-typedef struct LuxPoint
+struct LuxPoint
 {
-  LuxFloatT x, y, z;
+  LuxFloat x, y, z;
 
 
   /// Default constructor. The members are NOT cleared.
@@ -111,7 +143,7 @@ typedef struct LuxPoint
   /// @param[in] ix  The X component.
   /// @param[in] iy  The Y component.
   /// @param[in] iz  The Z component.
-  inline LuxPoint(LuxFloatT ix, LuxFloatT iy, LuxFloatT iz)
+  inline LuxPoint(LuxFloat ix, LuxFloat iy, LuxFloat iz)
   : x(ix), y(iy), z(iz)
   {}
   
@@ -131,15 +163,16 @@ typedef struct LuxPoint
     z = c4dVector.y;
     return *this;
   }
-} LuxPointT;
+};
+
 
 
 /***************************************************************************//*!
  This structure is equivalent to the normal type of the Lux API.
 *//****************************************************************************/
-typedef struct LuxNormal
+struct LuxNormal
 {
-  LuxFloatT x, y, z;
+  LuxFloat x, y, z;
 
 
   /// Default constructor. The members are NOT cleared.
@@ -150,7 +183,7 @@ typedef struct LuxNormal
   /// @param ix  The X component.
   /// @param iy  The Y component.
   /// @param iz  The Z component.
-  inline LuxNormal(LuxFloatT ix, LuxFloatT iy, LuxFloatT iz)
+  inline LuxNormal(LuxFloat ix, LuxFloat iy, LuxFloat iz)
   : x(ix), y(iy), z(iz)
   {}
 
@@ -170,15 +203,16 @@ typedef struct LuxNormal
     z = c4dVector.y;
     return *this;
   }
-} LuxNormalT;
+};
+
 
 
 /***************************************************************************//*!
  This structure is equivalent to the matrix type of the Lux API.
 *//****************************************************************************/
-typedef struct LuxMatrix
+struct LuxMatrix
 {
-  LuxFloatT values[16];
+  LuxFloat values[16];
 
 
   /// Default constructor. The members are NOT cleared.
@@ -218,15 +252,16 @@ typedef struct LuxMatrix
     values[15] = 1.0;
   }
 
-} LuxMatrixT;
+};
+
 
 
 /***************************************************************************//*!
  This structure is equivalent to the color type of the Lux API.
 *//****************************************************************************/
-typedef struct LuxColor
+struct LuxColor
 {
-  LuxFloatT c[3];
+  LuxFloat c[3];
 
 
   /// Default constructor. The members are NOT cleared.
@@ -237,7 +272,7 @@ typedef struct LuxColor
   /// @param[in] r  The red component.
   /// @param[in] g  The green component.
   /// @param[in] b  The blue component.
-  inline LuxColor(LuxFloatT r, LuxFloatT g, LuxFloatT b)
+  inline LuxColor(LuxFloat r, LuxFloat g, LuxFloat b)
   {
     c[0] = r;
     c[1] = g;
@@ -252,7 +287,7 @@ typedef struct LuxColor
     c[1] = c4dVector.y;
     c[2] = c4dVector.z;
   }
-} LuxColorT;
+};
 
 
 

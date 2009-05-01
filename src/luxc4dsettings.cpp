@@ -279,19 +279,19 @@ void LuxC4DSettings::getFilm(const char*& name,
     };
 
   // parameters for fleximage
-  static Descr2Param<LuxIntegerT> sFleximageHaltSPP        (IDD_FLEXIMAGE_HALT_SPP,               "haltspp");
-  static Descr2Param<LuxFloatT>   sFleximageGamma          (IDD_FLEXIMAGE_GAMMA,                  "gamma");
-  static Descr2Param<LuxFloatT>   sFleximagePrescale       (IDD_FLEXIMAGE_REINHARD_PRESCALE,      "reinhard_prescale");
-  static Descr2Param<LuxFloatT>   sFleximagePostscale      (IDD_FLEXIMAGE_REINHARD_POSTSCALE,     "reinhard_postscale");
-  static Descr2Param<LuxFloatT>   sFleximageBurn           (IDD_FLEXIMAGE_REINHARD_BURN,          "reinhard_burn");
-  static Descr2Param<LuxBoolT>    sFleximagePremultiply    (IDD_FLEXIMAGE_PREMULTIPLY,            "premultiplyalpha");
-  static Descr2Param<LuxIntegerT> sFleximageDisplayInterval(IDD_FLEXIMAGE_DISPLAY_INTERVAL,       "displayinterval");
-  static Descr2Param<LuxIntegerT> sFleximageWriteInterval  (IDD_FLEXIMAGE_WRITE_INTERVAL,         "writeinterval");
-  static Descr2Param<LuxBoolT>    sFleximageTonemappedTGA  (IDD_FLEXIMAGE_WRITE_TONEMAPPED_TGA,   "write_tonemapped_tga");
-  static Descr2Param<LuxBoolT>    sFleximageTonemappedEXR  (IDD_FLEXIMAGE_WRITE_TONEMAPPED_EXR,   "write_tonemapped_exr");
-  static Descr2Param<LuxBoolT>    sFleximageUnTonemappedEXR(IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_EXR, "write_untonemapped_exr");
-  static Descr2Param<LuxBoolT>    sFleximageTonemappedIGI  (IDD_FLEXIMAGE_WRITE_TONEMAPPED_IGI,   "write_tonemapped_igi");
-  static Descr2Param<LuxBoolT>    sFleximageUnTonemappedIGI(IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_IGI, "write_untonemapped_igi");
+  static Descr2Param<LuxInteger> sFleximageHaltSPP        (IDD_FLEXIMAGE_HALT_SPP,               "haltspp");
+  static Descr2Param<LuxFloat>   sFleximageGamma          (IDD_FLEXIMAGE_GAMMA,                  "gamma");
+  static Descr2Param<LuxFloat>   sFleximagePrescale       (IDD_FLEXIMAGE_REINHARD_PRESCALE,      "reinhard_prescale");
+  static Descr2Param<LuxFloat>   sFleximagePostscale      (IDD_FLEXIMAGE_REINHARD_POSTSCALE,     "reinhard_postscale");
+  static Descr2Param<LuxFloat>   sFleximageBurn           (IDD_FLEXIMAGE_REINHARD_BURN,          "reinhard_burn");
+  static Descr2Param<LuxBool>    sFleximagePremultiply    (IDD_FLEXIMAGE_PREMULTIPLY,            "premultiplyalpha");
+  static Descr2Param<LuxInteger> sFleximageDisplayInterval(IDD_FLEXIMAGE_DISPLAY_INTERVAL,       "displayinterval");
+  static Descr2Param<LuxInteger> sFleximageWriteInterval  (IDD_FLEXIMAGE_WRITE_INTERVAL,         "writeinterval");
+  static Descr2Param<LuxBool>    sFleximageTonemappedTGA  (IDD_FLEXIMAGE_WRITE_TONEMAPPED_TGA,   "write_tonemapped_tga");
+  static Descr2Param<LuxBool>    sFleximageTonemappedEXR  (IDD_FLEXIMAGE_WRITE_TONEMAPPED_EXR,   "write_tonemapped_exr");
+  static Descr2Param<LuxBool>    sFleximageUnTonemappedEXR(IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_EXR, "write_untonemapped_exr");
+  static Descr2Param<LuxBool>    sFleximageTonemappedIGI  (IDD_FLEXIMAGE_WRITE_TONEMAPPED_IGI,   "write_tonemapped_igi");
+  static Descr2Param<LuxBool>    sFleximageUnTonemappedIGI(IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_IGI, "write_untonemapped_igi");
   
 
   // set default sampler
@@ -353,28 +353,28 @@ void LuxC4DSettings::getPixelFilter(const char*& name,
     };
 
   // parameters for box filter
-  static Descr2Param<LuxFloatT> sBoxWidth (IDD_BOX_FILTER_WIDTH,  "xwidth");
-  static Descr2Param<LuxFloatT> sBoxHeight(IDD_BOX_FILTER_HEIGHT, "ywidth");
+  static Descr2Param<LuxFloat> sBoxWidth (IDD_BOX_FILTER_WIDTH,  "xwidth");
+  static Descr2Param<LuxFloat> sBoxHeight(IDD_BOX_FILTER_HEIGHT, "ywidth");
 
   // parameters for Gaussian filter
-  static Descr2Param<LuxFloatT> sGaussianWidth (IDD_GAUSSIAN_FILTER_WIDTH,  "xwidth");
-  static Descr2Param<LuxFloatT> sGaussianHeight(IDD_GAUSSIAN_FILTER_HEIGHT, "ywidth");
-  static Descr2Param<LuxFloatT> sGaussianAlpha (IDD_GAUSSIAN_FILTER_ALPHA,  "alpha");
+  static Descr2Param<LuxFloat> sGaussianWidth (IDD_GAUSSIAN_FILTER_WIDTH,  "xwidth");
+  static Descr2Param<LuxFloat> sGaussianHeight(IDD_GAUSSIAN_FILTER_HEIGHT, "ywidth");
+  static Descr2Param<LuxFloat> sGaussianAlpha (IDD_GAUSSIAN_FILTER_ALPHA,  "alpha");
 
   // parameters for Mitchell filter
-  static Descr2Param<LuxFloatT> sMitchellWidth (IDD_MITCHELL_FILTER_WIDTH,  "xwidth");
-  static Descr2Param<LuxFloatT> sMitchellHeight(IDD_MITCHELL_FILTER_HEIGHT, "ywidth");
-  static Descr2Param<LuxFloatT> sMitchellB     (IDD_MITCHELL_FILTER_B,      "B");
-  static Descr2Param<LuxFloatT> sMitchellC     (IDD_MITCHELL_FILTER_C,      "C");
+  static Descr2Param<LuxFloat> sMitchellWidth (IDD_MITCHELL_FILTER_WIDTH,  "xwidth");
+  static Descr2Param<LuxFloat> sMitchellHeight(IDD_MITCHELL_FILTER_HEIGHT, "ywidth");
+  static Descr2Param<LuxFloat> sMitchellB     (IDD_MITCHELL_FILTER_B,      "B");
+  static Descr2Param<LuxFloat> sMitchellC     (IDD_MITCHELL_FILTER_C,      "C");
 
   // parameters for sinc filter
-  static Descr2Param<LuxFloatT> sSincWidth (IDD_SINC_FILTER_WIDTH,  "xwidth");
-  static Descr2Param<LuxFloatT> sSincHeight(IDD_SINC_FILTER_HEIGHT, "ywidth");
-  static Descr2Param<LuxFloatT> sSincTau   (IDD_SINC_FILTER_TAU,    "tau");
+  static Descr2Param<LuxFloat> sSincWidth (IDD_SINC_FILTER_WIDTH,  "xwidth");
+  static Descr2Param<LuxFloat> sSincHeight(IDD_SINC_FILTER_HEIGHT, "ywidth");
+  static Descr2Param<LuxFloat> sSincTau   (IDD_SINC_FILTER_TAU,    "tau");
 
   // parameters for triangle filter
-  static Descr2Param<LuxFloatT> sTriangleWidth (IDD_TRIANGLE_FILTER_WIDTH,  "xwidth");
-  static Descr2Param<LuxFloatT> sTriangleHeight(IDD_TRIANGLE_FILTER_HEIGHT, "ywidth");
+  static Descr2Param<LuxFloat> sTriangleWidth (IDD_TRIANGLE_FILTER_WIDTH,  "xwidth");
+  static Descr2Param<LuxFloat> sTriangleHeight(IDD_TRIANGLE_FILTER_HEIGHT, "ywidth");
 
 
   // set default sampler
@@ -456,29 +456,29 @@ void LuxC4DSettings::getSampler(const char*& name,
     };
 
   // parameters for lowdiscrepancy sampler
-  static Descr2Param<LuxStringT>  sLowdiscrepancyPixelSampler(IDD_LOWDISCREPANCY_PIXELSAMPLER, "pixelsampler");
-  static Descr2Param<LuxIntegerT> sLowdiscrepancyPixelSamples(IDD_LOWDISCREPANCY_SAMPLES,      "pixelsamples");
+  static Descr2Param<LuxString>  sLowdiscrepancyPixelSampler(IDD_LOWDISCREPANCY_PIXELSAMPLER, "pixelsampler");
+  static Descr2Param<LuxInteger> sLowdiscrepancyPixelSamples(IDD_LOWDISCREPANCY_SAMPLES,      "pixelsamples");
 
   // parameters for random sampler
-  static Descr2Param<LuxStringT>  sRandomPixelSampler(IDD_RANDOM_PIXELSAMPLER, "pixelsampler");
-  static Descr2Param<LuxIntegerT> sRandomXSamples    (IDD_RANDOM_SAMPLES_X,    "xsamples");
-  static Descr2Param<LuxIntegerT> sRandomYSamples    (IDD_RANDOM_SAMPLES_Y,    "ysamples");
+  static Descr2Param<LuxString>  sRandomPixelSampler(IDD_RANDOM_PIXELSAMPLER, "pixelsampler");
+  static Descr2Param<LuxInteger> sRandomXSamples    (IDD_RANDOM_SAMPLES_X,    "xsamples");
+  static Descr2Param<LuxInteger> sRandomYSamples    (IDD_RANDOM_SAMPLES_Y,    "ysamples");
 
   // parameters for metropolis sampler
-  static Descr2Param<LuxFloatT>   sMetroLargeMutationProb(IDD_METROPOLIS_LARGE_MUTATION_PROB, "largemutationprob");
-  static Descr2Param<LuxIntegerT> sMetroMaxConsecRejects (IDD_METROPOLIS_MAX_CONSEC_REJECTS,  "maxconsecrejects");
-  static Descr2Param<LuxFloatT>   sMetroMicroMutationProb(IDD_METROPOLIS_MICRO_MUTATION_PROB, "micromutationprob");
-  static Descr2Param<LuxFloatT>   sMetroMutationRange    (IDD_METROPOLIS_MUTATION_RANGE,      "mutationrange");
-  static Descr2Param<LuxIntegerT> sMetroInitSamples      (IDD_METROPOLIS_INIT_SAMPLES,        "initsamples");
-  static Descr2Param<LuxFloatT>   sMetroStrataWidth      (IDD_METROPOLIS_STRATA_WIDTH,        "stratawidth");
-  static Descr2Param<LuxBoolT>    sMetroUseVariance      (IDD_METROPOLIS_USE_VARIANCE,        "usevariance");
-  static Descr2Param<LuxBoolT>    sMetroUseQR            (IDD_METROPOLIS_USE_QR,              "useqr");
+  static Descr2Param<LuxFloat>   sMetroLargeMutationProb(IDD_METROPOLIS_LARGE_MUTATION_PROB, "largemutationprob");
+  static Descr2Param<LuxInteger> sMetroMaxConsecRejects (IDD_METROPOLIS_MAX_CONSEC_REJECTS,  "maxconsecrejects");
+  static Descr2Param<LuxFloat>   sMetroMicroMutationProb(IDD_METROPOLIS_MICRO_MUTATION_PROB, "micromutationprob");
+  static Descr2Param<LuxFloat>   sMetroMutationRange    (IDD_METROPOLIS_MUTATION_RANGE,      "mutationrange");
+  static Descr2Param<LuxInteger> sMetroInitSamples      (IDD_METROPOLIS_INIT_SAMPLES,        "initsamples");
+  static Descr2Param<LuxFloat>   sMetroStrataWidth      (IDD_METROPOLIS_STRATA_WIDTH,        "stratawidth");
+  static Descr2Param<LuxBool>    sMetroUseVariance      (IDD_METROPOLIS_USE_VARIANCE,        "usevariance");
+  static Descr2Param<LuxBool>    sMetroUseQR            (IDD_METROPOLIS_USE_QR,              "useqr");
 
   // parameters for ERPT sampler
-  static Descr2Param<LuxIntegerT> sERPTInitSamples      (IDD_ERPT_INIT_SAMPLES,        "initsamples");
-  static Descr2Param<LuxIntegerT> sERPTChainLength      (IDD_ERPT_CHAINLENGTH,         "chainlength");
-  static Descr2Param<LuxFloatT>   sERPTMicroMutationProb(IDD_ERPT_MICRO_MUTATION_PROB, "micromutationprob");
-  static Descr2Param<LuxFloatT>   sERPTMutationRange    (IDD_ERPT_MUTATION_RANGE,      "mutationrange");
+  static Descr2Param<LuxInteger> sERPTInitSamples      (IDD_ERPT_INIT_SAMPLES,        "initsamples");
+  static Descr2Param<LuxInteger> sERPTChainLength      (IDD_ERPT_CHAINLENGTH,         "chainlength");
+  static Descr2Param<LuxFloat>   sERPTMicroMutationProb(IDD_ERPT_MICRO_MUTATION_PROB, "micromutationprob");
+  static Descr2Param<LuxFloat>   sERPTMutationRange    (IDD_ERPT_MUTATION_RANGE,      "mutationrange");
 
 
   // set default sampler
@@ -569,30 +569,30 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
     };
 
   // parameters for path integrator
-  static Descr2Param<LuxIntegerT> sPathMaxDepth           (IDD_PATH_MAX_DEPTH,             "maxdepth");
-  static Descr2Param<LuxStringT>  sPathDirectLightStrategy(IDD_PATH_DIRECT_LIGHT_STRATEGY, "strategy");
-  static Descr2Param<LuxStringT>  sPathRRStrategy         (IDD_PATH_RR_STRATEGY,           "rrstrategy");
-  static Descr2Param<LuxFloatT>   sPathRRContinueProb     (IDD_PATH_RR_CONTINUE_PROB,      "rrcontinueprob");
+  static Descr2Param<LuxInteger> sPathMaxDepth           (IDD_PATH_MAX_DEPTH,             "maxdepth");
+  static Descr2Param<LuxString>  sPathDirectLightStrategy(IDD_PATH_DIRECT_LIGHT_STRATEGY, "strategy");
+  static Descr2Param<LuxString>  sPathRRStrategy         (IDD_PATH_RR_STRATEGY,           "rrstrategy");
+  static Descr2Param<LuxFloat>   sPathRRContinueProb     (IDD_PATH_RR_CONTINUE_PROB,      "rrcontinueprob");
 
   // parameters for distributed path integrator
-  static Descr2Param<LuxStringT>  sDistriPathDirectLightStrategy       (IDD_DISTRIBUTED_PATH_DIRECT_LIGHT_STRATEGY,         "strategy");
-  static Descr2Param<LuxIntegerT> sDistriPathDirectDirectLightSamples  (IDD_DISTRIBUTED_PATH_DIRECT_DIRECT_LIGHT_SAMPLES,   "directsamples");
-  static Descr2Param<LuxIntegerT> sDistriPathInDirectDirectLightSamples(IDD_DISTRIBUTED_PATH_INDIRECT_DIRECT_LIGHT_SAMPLES, "indirectsamples");
-  static Descr2Param<LuxIntegerT> sDistriPathDiffuseReflectDepth       (IDD_DISTRIBUTED_PATH_DIFFUSE_REFLECT_DEPTH,         "diffusereflectdepth");
-  static Descr2Param<LuxIntegerT> sDistriPathDiffuseReflectSamples     (IDD_DISTRIBUTED_PATH_DIFFUSE_REFLECT_SAMPLES,       "diffusereflectsamples");
-  static Descr2Param<LuxIntegerT> sDistriPathDiffuseRefractDepth       (IDD_DISTRIBUTED_PATH_DIFFUSE_REFRACT_DEPTH,         "diffuserefractdepth");
-  static Descr2Param<LuxIntegerT> sDistriPathDiffuseRefractSamples     (IDD_DISTRIBUTED_PATH_DIFFUSE_REFRACT_SAMPLES,       "diffuserefractsamples");
-  static Descr2Param<LuxIntegerT> sDistriPathGlossyReflectDepth        (IDD_DISTRIBUTED_PATH_GLOSSY_REFLECT_DEPTH,          "glossyreflectdepth");
-  static Descr2Param<LuxIntegerT> sDistriPathGlossyReflectSamples      (IDD_DISTRIBUTED_PATH_GLOSSY_REFLECT_SAMPLES,        "glossyreflectsamples");
-  static Descr2Param<LuxIntegerT> sDistriPathGlossyRefractDepth        (IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_DEPTH,          "glossyrefractdepth");
-  static Descr2Param<LuxIntegerT> sDistriPathGlossyRefractSamples      (IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_SAMPLES,        "glossyrefractsamples");
-  static Descr2Param<LuxIntegerT> sDistriPathSpecularReflectDepth      (IDD_DISTRIBUTED_PATH_SPECULAR_REFLECT_DEPTH,        "specularreflectdepth");
-  static Descr2Param<LuxIntegerT> sDistriPathSpecularRefractDepth      (IDD_DISTRIBUTED_PATH_SPECULAR_REFRACT_DEPTH,        "specularrefractdepth");
+  static Descr2Param<LuxString>  sDistriPathDirectLightStrategy       (IDD_DISTRIBUTED_PATH_DIRECT_LIGHT_STRATEGY,         "strategy");
+  static Descr2Param<LuxInteger> sDistriPathDirectDirectLightSamples  (IDD_DISTRIBUTED_PATH_DIRECT_DIRECT_LIGHT_SAMPLES,   "directsamples");
+  static Descr2Param<LuxInteger> sDistriPathInDirectDirectLightSamples(IDD_DISTRIBUTED_PATH_INDIRECT_DIRECT_LIGHT_SAMPLES, "indirectsamples");
+  static Descr2Param<LuxInteger> sDistriPathDiffuseReflectDepth       (IDD_DISTRIBUTED_PATH_DIFFUSE_REFLECT_DEPTH,         "diffusereflectdepth");
+  static Descr2Param<LuxInteger> sDistriPathDiffuseReflectSamples     (IDD_DISTRIBUTED_PATH_DIFFUSE_REFLECT_SAMPLES,       "diffusereflectsamples");
+  static Descr2Param<LuxInteger> sDistriPathDiffuseRefractDepth       (IDD_DISTRIBUTED_PATH_DIFFUSE_REFRACT_DEPTH,         "diffuserefractdepth");
+  static Descr2Param<LuxInteger> sDistriPathDiffuseRefractSamples     (IDD_DISTRIBUTED_PATH_DIFFUSE_REFRACT_SAMPLES,       "diffuserefractsamples");
+  static Descr2Param<LuxInteger> sDistriPathGlossyReflectDepth        (IDD_DISTRIBUTED_PATH_GLOSSY_REFLECT_DEPTH,          "glossyreflectdepth");
+  static Descr2Param<LuxInteger> sDistriPathGlossyReflectSamples      (IDD_DISTRIBUTED_PATH_GLOSSY_REFLECT_SAMPLES,        "glossyreflectsamples");
+  static Descr2Param<LuxInteger> sDistriPathGlossyRefractDepth        (IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_DEPTH,          "glossyrefractdepth");
+  static Descr2Param<LuxInteger> sDistriPathGlossyRefractSamples      (IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_SAMPLES,        "glossyrefractsamples");
+  static Descr2Param<LuxInteger> sDistriPathSpecularReflectDepth      (IDD_DISTRIBUTED_PATH_SPECULAR_REFLECT_DEPTH,        "specularreflectdepth");
+  static Descr2Param<LuxInteger> sDistriPathSpecularRefractDepth      (IDD_DISTRIBUTED_PATH_SPECULAR_REFRACT_DEPTH,        "specularrefractdepth");
 
   // parameters for bidirectional integrator
-  static Descr2Param<LuxIntegerT> sBidirectionalEyeDepth           (IDD_BIDIRECTIONAL_EYE_DEPTH,             "eyedepth");
-  static Descr2Param<LuxIntegerT> sBidirectionalLightDepth         (IDD_BIDIRECTIONAL_LIGHT_DEPTH,           "lightdepth");
-  static Descr2Param<LuxStringT>  sBidirectionalDirectLightStrategy(IDD_BIDIRECTIONAL_DIRECT_LIGHT_STRATEGY, "strategy");
+  static Descr2Param<LuxInteger> sBidirectionalEyeDepth           (IDD_BIDIRECTIONAL_EYE_DEPTH,             "eyedepth");
+  static Descr2Param<LuxInteger> sBidirectionalLightDepth         (IDD_BIDIRECTIONAL_LIGHT_DEPTH,           "lightdepth");
+  static Descr2Param<LuxString>  sBidirectionalDirectLightStrategy(IDD_BIDIRECTIONAL_DIRECT_LIGHT_STRATEGY, "strategy");
 
 
   // set default sampler
@@ -728,7 +728,7 @@ BaseContainer* LuxC4DSettings::getData(void)
 ///   Structure that contains the parameter ID, name and its value buffer.
 /// @param[in]  paramSet
 ///   The set where the parameter gets added to.
-void LuxC4DSettings::copyParam(Descr2Param<LuxBoolT>& descr2Param,
+void LuxC4DSettings::copyParam(Descr2Param<LuxBool>& descr2Param,
                                LuxParamSet&           paramSet)
 {
   // get base container of this object
@@ -747,7 +747,7 @@ void LuxC4DSettings::copyParam(Descr2Param<LuxBoolT>& descr2Param,
 ///   Structure that contains the parameter ID, name and its value buffer.
 /// @param[in]  paramSet
 ///   The set where the parameter gets added to.
-void LuxC4DSettings::copyParam(Descr2Param<LuxIntegerT>& descr2Param,
+void LuxC4DSettings::copyParam(Descr2Param<LuxInteger>& descr2Param,
                                LuxParamSet&              paramSet)
 {
   // get base container of this object
@@ -766,7 +766,7 @@ void LuxC4DSettings::copyParam(Descr2Param<LuxIntegerT>& descr2Param,
 ///   Structure that contains the parameter ID, name and its value buffer.
 /// @param[in]  paramSet
 ///   The set where the parameter gets added to.
-void LuxC4DSettings::copyParam(Descr2Param<LuxFloatT>& descr2Param,
+void LuxC4DSettings::copyParam(Descr2Param<LuxFloat>& descr2Param,
                                LuxParamSet&            paramSet)
 {
   // get base container of this object
@@ -790,7 +790,7 @@ void LuxC4DSettings::copyParam(Descr2Param<LuxFloatT>& descr2Param,
 ///   An array of the cycle entries as C strings.
 /// @param[in]  cycleEntryCount
 ///   The number of entries in the cycle entry array.
-void LuxC4DSettings::copyParam(Descr2Param<LuxStringT>& descr2Param,
+void LuxC4DSettings::copyParam(Descr2Param<LuxString>& descr2Param,
                                LuxParamSet&            paramSet,
                                const char**            cycleEntries,
                                LONG                    cycleEntryCount)

@@ -83,9 +83,9 @@ private:
   struct Descr2Param {
     LONG          mID;
     T             mParam;
-    LuxParamNameT mParamName;
+    LuxParamName mParamName;
 
-    Descr2Param(LONG id, LuxParamNameT paramName)
+    Descr2Param(LONG id, LuxParamName paramName)
     : mID(id), mParamName(paramName)
     {}
   };
@@ -93,16 +93,16 @@ private:
 
   BaseContainer* getData(void);
 
-  void copyParam(Descr2Param<LuxBoolT>& descr2Param,
+  void copyParam(Descr2Param<LuxBool>& descr2Param,
                  LuxParamSet&           paramSet);
 
-  void copyParam(Descr2Param<LuxIntegerT>& descr2Param,
+  void copyParam(Descr2Param<LuxInteger>& descr2Param,
                  LuxParamSet&              paramSet);
 
-  void copyParam(Descr2Param<LuxFloatT>& descr2Param,
+  void copyParam(Descr2Param<LuxFloat>& descr2Param,
                  LuxParamSet&            paramSet);
 
-  void copyParam(Descr2Param<LuxStringT>& descr2Param,
+  void copyParam(Descr2Param<LuxString>& descr2Param,
                  LuxParamSet&            paramSet,
                  const char**            cycleEntries,
                  LONG                    cycleEntryCount);

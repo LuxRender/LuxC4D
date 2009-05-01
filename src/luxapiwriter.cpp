@@ -166,9 +166,9 @@ Bool LuxAPIWriter::endScene(void)
 }
 
 
-Bool LuxAPIWriter::lookAt(const LuxVectorT& camPos,
-                          const LuxVectorT& trgPos,
-                          const LuxVectorT& upVec)
+Bool LuxAPIWriter::lookAt(const LuxVector& camPos,
+                          const LuxVector& trgPos,
+                          const LuxVector& upVec)
 {
   const static ULONG  sBufferSize(256);
   CHAR                buffer[sBufferSize];
@@ -186,7 +186,7 @@ Bool LuxAPIWriter::lookAt(const LuxVectorT& camPos,
 }
 
 
-Bool LuxAPIWriter::film(IdentifierNameT    name,
+Bool LuxAPIWriter::film(IdentifierName    name,
                         const LuxParamSet& paramSet)
 {
   return writeSetting(*mSceneFile, "Film", name, 0, 0, paramSet, TRUE) &&
@@ -194,7 +194,7 @@ Bool LuxAPIWriter::film(IdentifierNameT    name,
 }
 
 
-Bool LuxAPIWriter::camera(IdentifierNameT     name,
+Bool LuxAPIWriter::camera(IdentifierName     name,
                           const LuxParamSet& paramSet)
 {
   return writeSetting(*mSceneFile, "Camera", name, 0, 0, paramSet, TRUE) &&
@@ -202,7 +202,7 @@ Bool LuxAPIWriter::camera(IdentifierNameT     name,
 }
 
 
-Bool LuxAPIWriter::pixelFilter(IdentifierNameT    name,
+Bool LuxAPIWriter::pixelFilter(IdentifierName    name,
                                const LuxParamSet& paramSet)
 {
   return writeSetting(*mSceneFile, "PixelFilter", name, 0, 0, paramSet, TRUE) &&
@@ -210,7 +210,7 @@ Bool LuxAPIWriter::pixelFilter(IdentifierNameT    name,
 }
 
 
-Bool LuxAPIWriter::sampler(IdentifierNameT    name,
+Bool LuxAPIWriter::sampler(IdentifierName    name,
                            const LuxParamSet& paramSet)
 {
   return writeSetting(*mSceneFile, "Sampler", name, 0, 0, paramSet, TRUE) &&
@@ -218,7 +218,7 @@ Bool LuxAPIWriter::sampler(IdentifierNameT    name,
 }
 
 
-Bool LuxAPIWriter::surfaceIntegrator(IdentifierNameT    name,
+Bool LuxAPIWriter::surfaceIntegrator(IdentifierName    name,
                                      const LuxParamSet& paramSet)
 {
   return writeSetting(*mSceneFile, "SurfaceIntegrator", name, 0, 0, paramSet, TRUE) &&
@@ -226,7 +226,7 @@ Bool LuxAPIWriter::surfaceIntegrator(IdentifierNameT    name,
 }
 
 
-Bool LuxAPIWriter::accelerator(IdentifierNameT    name,
+Bool LuxAPIWriter::accelerator(IdentifierName    name,
                                const LuxParamSet& paramSet)
 {
   return writeSetting(*mSceneFile, "Accelerator", name, 0, 0, paramSet, TRUE) &&
@@ -260,7 +260,7 @@ Bool LuxAPIWriter::attributeEnd(void)
 }
 
 
-Bool LuxAPIWriter::objectBegin(IdentifierNameT name)
+Bool LuxAPIWriter::objectBegin(IdentifierName name)
 {
   return writeSetting(*mObjectsFile, "\nObjectBegin", name);
 }
@@ -272,50 +272,50 @@ Bool LuxAPIWriter::objectEnd(void)
 }
 
 
-Bool LuxAPIWriter::lightSource(IdentifierNameT    name,
+Bool LuxAPIWriter::lightSource(IdentifierName    name,
                                const LuxParamSet& paramSet)
 {
   return writeSetting(*mObjectsFile, "\nLightSource", name, 0, 0, paramSet, TRUE);
 }
 
 
-Bool LuxAPIWriter::areaLightSource(IdentifierNameT    name,
+Bool LuxAPIWriter::areaLightSource(IdentifierName    name,
                                    const LuxParamSet& paramSet)
 {
   return writeSetting(*mObjectsFile, "AreaLightSource", name, 0, 0, paramSet, TRUE);
 }
 
 
-Bool LuxAPIWriter::texture(IdentifierNameT    name,
-                           IdentifierNameT    colorType,
-                           IdentifierNameT    type,
+Bool LuxAPIWriter::texture(IdentifierName    name,
+                           IdentifierName    colorType,
+                           IdentifierName    type,
                            const LuxParamSet& paramSet)
 {
   return writeSetting(*mMaterialsFile, "\nTexture", name, colorType, type, paramSet, TRUE);
 }
 
 
-Bool LuxAPIWriter::makeNamedMaterial(IdentifierNameT    name,
+Bool LuxAPIWriter::makeNamedMaterial(IdentifierName    name,
                                  const LuxParamSet& paramSet)
 {
   return writeSetting(*mMaterialsFile, "MakeNamedMaterial", name, 0, 0, paramSet, TRUE);
 }
 
 
-Bool LuxAPIWriter::namedMaterial(IdentifierNameT name)
+Bool LuxAPIWriter::namedMaterial(IdentifierName name)
 {
   return writeSetting(*mObjectsFile, "NamedMaterial", name);
 }
 
 
-Bool LuxAPIWriter::material(IdentifierNameT    name,
+Bool LuxAPIWriter::material(IdentifierName    name,
                             const LuxParamSet& paramSet)
 {
   return writeSetting(*mObjectsFile, "Material", name, 0, 0, paramSet, TRUE);
 }
 
 
-Bool LuxAPIWriter::transform(const LuxMatrixT& matrix)
+Bool LuxAPIWriter::transform(const LuxMatrix& matrix)
 {
   const static ULONG  sBufferSize(360);
   CHAR                buffer[sBufferSize];
@@ -344,7 +344,7 @@ Bool LuxAPIWriter::reverseOrientation(void)
 }
 
 
-Bool LuxAPIWriter::shape(IdentifierNameT    name,
+Bool LuxAPIWriter::shape(IdentifierName    name,
                          const LuxParamSet& paramSet)
 {
   return writeSetting(*mObjectsFile, "Shape", name, 0, 0, paramSet, TRUE);
@@ -365,9 +365,8 @@ Bool LuxAPIWriter::shape(IdentifierNameT    name,
 ///   The text to write. (can be NULL)
 /// @return
 ///   TRUE if successful, otherwise FALSE.
-Bool LuxAPIWriter::writeLine(
-  BaseFile&   file,
-  const CHAR* text)
+Bool LuxAPIWriter::writeLine(BaseFile&   file,
+                             const CHAR* text)
 {
   if (text) {
     LONG len = (LONG)strlen(text);
@@ -398,10 +397,9 @@ Bool LuxAPIWriter::writeLine(
 ///   The first identifier (e.g. the object name). (can be NULL)
 /// @return
 ///   TRUE if successful, otherwise FALSE.
-Bool LuxAPIWriter::writeSetting(
-  BaseFile&       file,
-  SettingNameT    setting,
-  IdentifierNameT identifier)
+Bool LuxAPIWriter::writeSetting(BaseFile&      file,
+                                SettingNameT   setting,
+                                IdentifierName identifier)
 {
   if (!file.WriteBytes(setting, (VLONG)strlen(setting)) ||
       (identifier &&
@@ -437,14 +435,13 @@ Bool LuxAPIWriter::writeSetting(
 ///   Inserts a line feed after each parameter.
 /// @return
 ///   TRUE if successful, otherwise FALSE.
-Bool LuxAPIWriter::writeSetting(
-  BaseFile&          file,
-  SettingNameT       setting,
-  IdentifierNameT    identifier1,
-  IdentifierNameT    identifier2,
-  IdentifierNameT    identifier3,
-  const LuxParamSet& paramSet,
-  Bool               newLine)
+Bool LuxAPIWriter::writeSetting(BaseFile&          file,
+                                SettingNameT       setting,
+                                IdentifierName     identifier1,
+                                IdentifierName     identifier2,
+                                IdentifierName     identifier3,
+                                const LuxParamSet& paramSet,
+                                Bool               newLine)
 {
   // these are the type identifiers used in the Lux file format
   static const struct {
@@ -489,11 +486,11 @@ Bool LuxAPIWriter::writeSetting(
   // write parameters
   CHAR          valueString[128];
   VLONG         valueStringLen;
-  LuxParamTypeT tokenType;
-  LuxParamNameT tokenName;
-  LuxParamRefT  tokenValue;
+  LuxParamType tokenType;
+  LuxParamName tokenName;
+  LuxParamRef  tokenValue;
   ULONG         tokenArraySize;
-  for (LuxParamNumberT c=0; c<paramSet.ParamNumber(); ++c) {
+  for (LuxParamNumber c=0; c<paramSet.ParamNumber(); ++c) {
 
     // for convenience store token data in local variables
     tokenType      = paramSet.ParamTypes()[c];
@@ -516,7 +513,7 @@ Bool LuxAPIWriter::writeSetting(
     switch (tokenType) {
       case LUX_BOOL:
         {
-          const LuxBoolT* values = (const LuxBoolT*)tokenValue;
+          const LuxBool* values = (const LuxBool*)tokenValue;
           if (tokenArraySize == 1) {
             if (values[0]) {
               success &= file.WriteBytes("\"true\"", 6);
@@ -536,7 +533,7 @@ Bool LuxAPIWriter::writeSetting(
         }
       case LUX_INTEGER:
         {
-          const LuxIntegerT* values = (const LuxIntegerT*)tokenValue;
+          const LuxInteger* values = (const LuxInteger*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%d", values[0]);
             success &= file.WriteBytes(valueString, valueStringLen);
@@ -550,7 +547,7 @@ Bool LuxAPIWriter::writeSetting(
         }
       case LUX_FLOAT:
         {
-          const LuxFloatT* values = (const LuxFloatT*)tokenValue;
+          const LuxFloat* values = (const LuxFloat*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%.8g", values[0]);
             success &= file.WriteBytes(valueString, valueStringLen);
@@ -564,7 +561,7 @@ Bool LuxAPIWriter::writeSetting(
         }
       case LUX_VECTOR:
         {
-          const LuxVectorT* values = (const LuxVectorT*)tokenValue;
+          const LuxVector* values = (const LuxVector*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
                                      values[0].x, values[0].y, values[0].z);
@@ -580,7 +577,7 @@ Bool LuxAPIWriter::writeSetting(
         }
       case LUX_COLOR:
         {
-          const LuxColorT* values = (const LuxColorT*)tokenValue;
+          const LuxColor* values = (const LuxColor*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
                                      values[0].c[0], values[0].c[1], values[0].c[2]);
@@ -596,7 +593,7 @@ Bool LuxAPIWriter::writeSetting(
         }
       case LUX_POINT:
         {
-          const LuxPointT* values = (const LuxPointT*)tokenValue;
+          const LuxPoint* values = (const LuxPoint*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
                                      values[0].x, values[0].y, values[0].z);
@@ -612,7 +609,7 @@ Bool LuxAPIWriter::writeSetting(
         }
       case LUX_NORMAL:
         {
-          const LuxNormalT* values = (const LuxNormalT*)tokenValue;
+          const LuxNormal* values = (const LuxNormal*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
                                      values[0].x, values[0].y, values[0].z);
@@ -628,7 +625,7 @@ Bool LuxAPIWriter::writeSetting(
         }
       case LUX_TRIANGLE:
         {
-          const LuxIntegerT* values = (const LuxIntegerT*)tokenValue;
+          const LuxInteger* values = (const LuxInteger*)tokenValue;
           if (tokenArraySize == 3) {
             valueStringLen = sprintf(valueString, "%d %d %d",
                                      values[0], values[1], values[2]);
@@ -644,7 +641,7 @@ Bool LuxAPIWriter::writeSetting(
         }
       case LUX_QUAD:
         {
-          const LuxIntegerT* values = (const LuxIntegerT*)tokenValue;
+          const LuxInteger* values = (const LuxInteger*)tokenValue;
           if (tokenArraySize == 4) {
             valueStringLen = sprintf(valueString, "%d %d %d %d",
                                      values[0], values[1], values[2], values[3]);
@@ -661,7 +658,7 @@ Bool LuxAPIWriter::writeSetting(
       case LUX_STRING:
       case LUX_TEXTURE:
         {
-          const LuxStringT* values = (const LuxStringT*)tokenValue;
+          const LuxString* values = (const LuxString*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = (VLONG)values[0].size();
             if (valueStringLen) {

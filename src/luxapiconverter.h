@@ -72,6 +72,7 @@ private:
 
   /// Enum to differentiate between different hierarchy traverses.
   enum ObjectType {
+    UNSPECIFIED_OBJECTS=0,
     POLYGON_OBJECTS,
     LIGHT_OBJECTS
   };
@@ -90,35 +91,35 @@ private:
 
   /// Structure that stores all parameters of a point light.
   struct PointLightData {
-    LuxColorT mColor;
-    LuxFloatT mGain;
-    LuxPointT mFrom;
+    LuxColor mColor;
+    LuxFloat mGain;
+    LuxPoint mFrom;
   };
 
   /// Structure that stores all parameters of a spot light.
   struct SpotLightData {
-    LuxColorT mColor;
-    LuxFloatT mGain;
-    LuxPointT mFrom;
-    LuxPointT mTo;
-    LuxFloatT mConeAngle;
-    LuxFloatT mConeDeltaAngle;
+    LuxColor mColor;
+    LuxFloat mGain;
+    LuxPoint mFrom;
+    LuxPoint mTo;
+    LuxFloat mConeAngle;
+    LuxFloat mConeDeltaAngle;
   };
 
   /// Structure that stores all parameters of a distant light.
   struct DistantLightData {
-    LuxColorT mColor;
-    LuxFloatT mGain;
-    LuxPointT mFrom;
-    LuxPointT mTo;
+    LuxColor mColor;
+    LuxFloat mGain;
+    LuxPoint mFrom;
+    LuxPoint mTo;
   };
 
   /// Structure that stores all parameters of an area light.
   struct AreaLightData {
-    LuxColorT      mColor;
-    LuxFloatT      mGain;
-    LuxBoolT       mFlippedNormals;
-    LuxIntegerT    mSamples; 
+    LuxColor      mColor;
+    LuxFloat      mGain;
+    LuxBool       mFlippedNormals;
+    LuxInteger    mSamples; 
     Matrix         mLightMatrix;
     LONG           mShape;
     Vector         mSize;
@@ -127,88 +128,65 @@ private:
 
   /// Structure that stores all parameters of a sun light.
   struct SunLightData {
-    LuxFloatT   mGain;
-    LuxIntegerT mSamples; 
-    LuxVectorT  mSunDir;
-    LuxFloatT   mTurbidity;
-    LuxFloatT   mRelSize;
+    LuxFloat   mGain;
+    LuxInteger mSamples; 
+    LuxVector  mSunDir;
+    LuxFloat   mTurbidity;
+    LuxFloat   mRelSize;
   };
 
   /// Structure that stores all parameters of a sky light.
   struct SkyLightData {
-    LuxFloatT   mGain;
-    LuxIntegerT mSamples; 
-    LuxVectorT  mSunDir;
-    LuxFloatT   mTurbidity;
+    LuxFloat   mGain;
+    LuxInteger mSamples; 
+    LuxVector  mSunDir;
+    LuxFloat   mTurbidity;
     Bool        mAdvanced;
-    LuxFloatT   mAConst;
-    LuxFloatT   mBConst;
-    LuxFloatT   mCConst;
-    LuxFloatT   mDConst;
-    LuxFloatT   mEConst;
+    LuxFloat   mAConst;
+    LuxFloat   mBConst;
+    LuxFloat   mCConst;
+    LuxFloat   mDConst;
+    LuxFloat   mEConst;
   };
 
   /// Structure that stores all parameters of a sun+sky light.
   struct SunSkyLightData {
-    LuxFloatT   mGain;
-    LuxIntegerT mSamples; 
-    LuxVectorT  mSunDir;
-    LuxFloatT   mTurbidity;
-    LuxFloatT   mRelSize;
+    LuxFloat   mGain;
+    LuxInteger mSamples; 
+    LuxVector  mSunDir;
+    LuxFloat   mTurbidity;
+    LuxFloat   mRelSize;
     Bool        mAdvanced;
-    LuxFloatT   mAConst;
-    LuxFloatT   mBConst;
-    LuxFloatT   mCConst;
-    LuxFloatT   mDConst;
-    LuxFloatT   mEConst;
+    LuxFloat   mAConst;
+    LuxFloat   mBConst;
+    LuxFloat   mCConst;
+    LuxFloat   mDConst;
+    LuxFloat   mEConst;
   };
-
-  /// Structure that stores a 2D vector.
-  struct Vector2D {
-    LuxFloatT x, y;
-    inline Vector2D& operator=(const Vector& other)  {
-      x=other.x;  y=other.y;  return *this; }
-  };
-
-
-  /// Helper structure for storing normal and UV references for each polygon a
-  /// point is connected to. (For every point/poly combination we store one
-  /// instance)
-  /// To safe memory, this structure will be overwritten with the new point ID
-  /// in the cached geometry (hence the union).
-  union Point2Poly {
-    struct {
-      Vector* normalRef;
-      // TODO: uvRef
-    } data;
-    ULONG newPoint;
-  } Point2PolyT;
-
-
-  /// The container type for storing the point-to-polygon data.
-  typedef FixArray1D<Point2Poly>  Point2PolysT;
 
   /// The container type for storing a selection of triangle IDs.
   typedef FixArray1D<ULONG>       TriangleIDsT;
   /// The container type for storing the point IDs of triangles.
-  typedef FixArray1D<LuxIntegerT> TrianglesT;
+  typedef FixArray1D<LuxInteger>  TrianglesT;
   /// The container type for storing the point IDs of triangles.
-  typedef FixArray1D<LuxIntegerT> QuadsT;
+  typedef FixArray1D<LuxInteger>  QuadsT;
   /// The container type for storing point positions.
-  typedef FixArray1D<LuxPointT>   PointsT;
+  typedef FixArray1D<LuxPoint>    PointsT;
   /// The contianer type for storing normal vectors.
-  typedef FixArray1D<LuxNormalT>  NormalsT;
-  /// The container type for storing UV coordinates.
-  typedef FixArray1D<LuxFloatT>   UVsT;
+  typedef FixArray1D<LuxNormal>   NormalsT;
+  /// The container type for storing UV coordinates as 2D vectors.
+  typedef FixArray1D<LuxVector2D> UVsT;
+  /// The container type for storing UV coordinates as float array.
+  typedef FixArray1D<LuxFloat>    UVsSerialisedT;
 
   /// The container type for storing C4D polygons.
   typedef FixArray1D<CPolygon>    C4DPolygonsT;
   /// The container type for storing C4D normal vectors.
   typedef FixArray1D<Vector>      C4DNormalsT;
-  /// The container type for storing C4D UVW coordinates.
-  typedef FixArray1D<Vector2D>    C4DUVWsT;
   /// The container type for storing a set of objects.
   typedef RBTreeSet<BaseList2D*>  ObjectsT;
+  ///
+  typedef FixArray1D<ULONG>       PointMapT;
 
 
   // references used by the whole conversion process and stored for convenience
@@ -221,12 +199,19 @@ private:
   // temporary data stored during the conversion and shared between
   // several functions
   LuxParamSet     mTempParamSet;
+  CameraObject*   mCamera;
   ObjectType      mObjectType;
+  ULONG           mLightCount;
   ObjectsT        mAreaLightObjects;
   BaseObject*     mCachedObject;
+  // stores all C4D polygons of the current object, matching mPointCache
   C4DPolygonsT    mPolygonCache;
+  // stores all points of the current object, in Lux coordinates
   PointsT         mPointCache;
+  // stores all normals of the current object, in Lux coordinates
   NormalsT        mNormalCache;
+  // stores all UVs of the current object
+  UVsT            mUVCache;
   ULONG           mQuadCount;
 
 
@@ -251,23 +236,36 @@ private:
   Bool exportSkyLight(SkyLightData& data);
   Bool exportSunSkyLight(SunSkyLightData& data);
   
+  Bool exportAutoLight(void);
+
   Bool exportStandardMaterial(void);
 
   Bool exportGeometry(void);
 
   Bool exportPolygonObject(PolygonObject& object,
                            const Matrix&  globalMatrix);
-  Bool convertGeometry(PolygonObject& object,
-                       TrianglesT&    triangles,
-                       PointsT&       points,
-                       NormalsT*      normals = 0,
-                       UVsT*          uvs = 0);
+  Bool convertGeometry(PolygonObject&  object,
+                       TrianglesT&     triangles,
+                       PointsT&        points,
+                       NormalsT*       normals = 0,
+                       UVsSerialisedT* uvs = 0);
   Bool convertAndCacheGeometry(PolygonObject& object,
                                Bool           noNormals,
                                Bool           noUVs);
   Bool convertAndCacheWithoutNormals(PolygonObject& object);
-  Bool convertAndCacheWithNormals(PolygonObject& object,
-                                  C4DNormalsT&   normals);
+  Bool convertAndCacheWithNormals(PolygonObject&     object,
+                                  const C4DNormalsT& normals);
+  Bool convertAndCacheWithUVs(PolygonObject& object,
+                              const UVsT&    uvs);
+  Bool convertAndCacheWithUVsAndNormals(PolygonObject&     object,
+                                        const UVsT&        uvs,
+                                        const C4DNormalsT& normals);
+
+  Bool setupPointMap(PolygonObject& object,
+                     ULONG&         pointCount,
+                     const Vector*& points,
+                     PointMapT&     pointMap,
+                     ULONG&         point2PolyMapSize);
 };
 
 

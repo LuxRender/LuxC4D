@@ -46,7 +46,7 @@ public:
   /// The type for storing the name of a statement, e.g. "Camera".
   typedef const CHAR*  StatementNameT;
   /// The type for storing the identifier of a statement, e.g. "perspective".
-  typedef const CHAR*  IdentifierNameT;
+  typedef const CHAR*  IdentifierName;
 
 
   /// Should be called before any other LuxAPI functions are called. It allows
@@ -75,7 +75,7 @@ public:
   ///   The parameters
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool film(IdentifierNameT    name,
+  virtual Bool film(IdentifierName    name,
                     const LuxParamSet& paramSet) =0;
 
   /// Defines a position and orientation in space, e.g. used by the camera.
@@ -90,9 +90,9 @@ public:
   ///   same plane as the Z axis and the up-vector.
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool lookAt(const LuxVectorT& camPos,
-                      const LuxVectorT& trgPos,
-                      const LuxVectorT& upVec) =0;
+  virtual Bool lookAt(const LuxVector& camPos,
+                      const LuxVector& trgPos,
+                      const LuxVector& upVec) =0;
 
   /// Specifies the camera.
   ///
@@ -102,7 +102,7 @@ public:
   ///   The additional camera parameters (e.g. "fov").
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool camera(IdentifierNameT    name,
+  virtual Bool camera(IdentifierName    name,
                       const LuxParamSet& paramSet) =0;
 
   /// Specifies the pixel filter.
@@ -113,7 +113,7 @@ public:
   ///   The additional pixel filter parameters (e.g. "xwidth").
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool pixelFilter(IdentifierNameT    name,
+  virtual Bool pixelFilter(IdentifierName    name,
                            const LuxParamSet& paramSet) =0;
 
   /// Specifies the sampler.
@@ -124,7 +124,7 @@ public:
   ///   The additional sampler parameters (e.g. "largemutationprob").
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool sampler(IdentifierNameT    name,
+  virtual Bool sampler(IdentifierName    name,
                        const LuxParamSet& paramSet) =0;
 
   /// Specifies the surface integrator.
@@ -135,7 +135,7 @@ public:
   ///   The additional surface integrator parameters (e.g. "maxdepth").
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool surfaceIntegrator(IdentifierNameT    name,
+  virtual Bool surfaceIntegrator(IdentifierName    name,
                                  const LuxParamSet& paramSet) =0;
 
   /// Specifies the ray accelerator structure.
@@ -146,7 +146,7 @@ public:
   ///   The additional accelerator parameters (e.g. "intersectcost").
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool accelerator(IdentifierNameT    name,
+  virtual Bool accelerator(IdentifierName    name,
                            const LuxParamSet& paramSet) =0;
 
 
@@ -184,7 +184,7 @@ public:
   ///
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool objectBegin(IdentifierNameT name) =0;
+  virtual Bool objectBegin(IdentifierName name) =0;
 
   /// Closes the current named level on the attribute stack and restores the
   /// previous level.
@@ -195,38 +195,38 @@ public:
 
 
   ///
-  virtual Bool lightSource(IdentifierNameT    name,
+  virtual Bool lightSource(IdentifierName    name,
                            const LuxParamSet& paramSet) =0;
 
   ///
-  virtual Bool areaLightSource(IdentifierNameT    name,
+  virtual Bool areaLightSource(IdentifierName    name,
                                const LuxParamSet& paramSet) =0;
 
   ///
-  virtual Bool texture(IdentifierNameT    name,
-                       IdentifierNameT    colorType,
-                       IdentifierNameT    type,
+  virtual Bool texture(IdentifierName    name,
+                       IdentifierName    colorType,
+                       IdentifierName    type,
                        const LuxParamSet& paramSet) =0;
 
   ///
-  virtual Bool makeNamedMaterial(IdentifierNameT    name,
+  virtual Bool makeNamedMaterial(IdentifierName    name,
                                  const LuxParamSet& paramSet) =0;
 
   ///
-  virtual Bool namedMaterial(IdentifierNameT name) =0;
+  virtual Bool namedMaterial(IdentifierName name) =0;
 
   ///
-  virtual Bool material(IdentifierNameT    name,
+  virtual Bool material(IdentifierName    name,
                         const LuxParamSet& paramSet) =0;
 
   ///
-  virtual Bool transform(const LuxMatrixT& matrix) =0;
+  virtual Bool transform(const LuxMatrix& matrix) =0;
 
   ///
   virtual Bool reverseOrientation(void) =0;
 
   ///
-  virtual Bool shape(IdentifierNameT    name,
+  virtual Bool shape(IdentifierName    name,
                      const LuxParamSet& paramSet) =0;
 };
 

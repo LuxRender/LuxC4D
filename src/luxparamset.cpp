@@ -38,7 +38,7 @@
 ///
 /// @param[in]  maxParamNumber
 ///   The maximum number of parameters this set can store.
-LuxParamSet::LuxParamSet(LuxParamNumberT maxParamNumber)
+LuxParamSet::LuxParamSet(LuxParamNumber maxParamNumber)
 : mMaxParamNumber(maxParamNumber),
   mParamNumber(0)
 {
@@ -55,9 +55,9 @@ LuxParamSet::LuxParamSet(LuxParamNumberT maxParamNumber)
   }
 
   // allocated arrays for the parameter attributes and values
-  mParamTypes      = bNewNC LuxParamTypeT[mMaxParamNumber];
-  mParamNames      = bNewNC LuxParamNameT[mMaxParamNumber];
-  mParamValues     = bNewNC LuxParamRefT[mMaxParamNumber];
+  mParamTypes      = bNewNC LuxParamType[mMaxParamNumber];
+  mParamNames      = bNewNC LuxParamName[mMaxParamNumber];
+  mParamValues     = bNewNC LuxParamRef[mMaxParamNumber];
   mParamArraySizes = bNewNC ULONG[mMaxParamNumber];
 
   // if we couldn't allocate all arrays:
@@ -95,9 +95,9 @@ LuxParamSet::~LuxParamSet()
 ///   still owns the memory.
 /// @param[in]  arraySize
 ///   The size of te parameter array (default: 1) (must not be NULL).
-Bool LuxParamSet::addParam(LuxParamTypeT type,
-                           LuxParamNameT name,
-                           LuxParamRefT  value,
+Bool LuxParamSet::addParam(LuxParamType type,
+                           LuxParamName name,
+                           LuxParamRef  value,
                            ULONG         arraySize)
 {
   // check if therer is still some space left
