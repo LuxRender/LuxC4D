@@ -32,6 +32,10 @@
 
 
 
+/*****************************************************************************
+ * Primitive but effective error logging and handling
+ *****************************************************************************/
+
 /// Logs/prints an error message.
 #define ERRLOG(msg)                                                           \
   { GePrint(msg); }
@@ -51,9 +55,21 @@
 
 
 
+/*****************************************************************************
+ * Common types
+ *****************************************************************************/
+
 typedef VULONG  SizeT;
 
 
+
+/*****************************************************************************
+ * Functions
+ *****************************************************************************/
+
+void debugLog(const CHAR* format, ...);
+
+void debugLog(const String& msg);
 
 void showParameter(Description* description,
                    LONG         paramID,
@@ -73,6 +89,45 @@ Vector getParameterVector(BaseObject&   object,
 BaseList2D* getParameterLink(BaseObject& object,
                              LONG        paramID,
                              LONG        instanceOf = 0);
+
+
+
+/*****************************************************************************
+ * Inlined functions
+ *****************************************************************************/
+
+inline Vector& normalize(Vector& v)
+{
+  Real vlen = Len(v);
+  if (vlen != 0.0f) {
+    v /= vlen;
+  } else {
+    v.x = 1.0;
+    v.y = 0.0;
+    v.z = 0.0;
+  }
+  return v;
+}
+
+
+inline const Vector* getPoints(PointObject& object)
+{
+#if _C4D_VERSION>=100
+  return object.GetPointR();
+#else
+  return object.GetPoint();
+#endif
+}
+
+
+inline const CPolygon* getPolygons(PolygonObject& object)
+{
+#if _C4D_VERSION>=100
+  return object.GetPolygonR();
+#else
+  return object.GetPolygon();
+#endif
+}
 
 
 

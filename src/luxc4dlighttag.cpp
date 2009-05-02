@@ -23,6 +23,8 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
+#include <cstring>
+
 #include <olight.h>
 
 #include "c4d_symbols.h"

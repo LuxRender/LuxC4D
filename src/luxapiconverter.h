@@ -212,6 +212,7 @@ private:
   NormalsT        mNormalCache;
   // stores all UVs of the current object
   UVsT            mUVCache;
+  // number of quads in polygon cache (used for calculating triangle count)
   ULONG           mQuadCount;
 
 
@@ -249,17 +250,17 @@ private:
                        PointsT&        points,
                        NormalsT*       normals = 0,
                        UVsSerialisedT* uvs = 0);
+  Bool convertAndCacheObject(PolygonObject& object,
+                             Bool           noNormals,
+                             Bool           noUVs);
+  Bool convertAndCacheGeometry(PolygonObject& object);
+  Bool convertAndCacheGeometry(PolygonObject&     object,
+                               const C4DNormalsT& normals);
   Bool convertAndCacheGeometry(PolygonObject& object,
-                               Bool           noNormals,
-                               Bool           noUVs);
-  Bool convertAndCacheWithoutNormals(PolygonObject& object);
-  Bool convertAndCacheWithNormals(PolygonObject&     object,
-                                  const C4DNormalsT& normals);
-  Bool convertAndCacheWithUVs(PolygonObject& object,
-                              const UVsT&    uvs);
-  Bool convertAndCacheWithUVsAndNormals(PolygonObject&     object,
-                                        const UVsT&        uvs,
-                                        const C4DNormalsT& normals);
+                               const UVsT&    uvs);
+  Bool convertAndCacheGeometry(PolygonObject&     object,
+                               const UVsT&        uvs,
+                               const C4DNormalsT& normals);
 
   Bool setupPointMap(PolygonObject& object,
                      ULONG&         pointCount,

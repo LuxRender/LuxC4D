@@ -43,9 +43,14 @@ Bool LuxC4DExporter::registerPlugin(void)
 {
   return RegisterCommandPlugin(PID_LUXC4D_EXPORTER,
                                GeLoadString(IDS_LUXC4D_EXPORTER),
-                               0, "",
+                               0,
                                GeLoadString(IDS_LUXC4D_EXPORTER_DESCR),
                                this);
+  //return RegisterCommandPlugin(PID_LUXC4D_EXPORTER,
+  //                             GeLoadString(IDS_LUXC4D_EXPORTER),
+  //                             0, "",
+  //                             GeLoadString(IDS_LUXC4D_EXPORTER_DESCR),
+  //                             this);
 }
 
 
@@ -107,7 +112,7 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
 
   // ... get export filename, if needed
   if (selectFilename) {
-    if (!mExportedFile.FileSelect(FSTYPE_ANYTHING, GE_SAVE, GeLoadString(IDS_EXPORT_FILENAME_QUERY))) {
+    if (!mExportedFile.FileSelect(FSTYPE_ANYTHING, GE_SAVE, &GeLoadString(IDS_EXPORT_FILENAME_QUERY))) {
       return FALSE;
     }
   }

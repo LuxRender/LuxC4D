@@ -371,7 +371,7 @@ Bool LuxAPIWriter::writeLine(BaseFile&   file,
   if (text) {
     LONG len = (LONG)strlen(text);
     if (len > 0) {
-      if (!file.WriteBytes(text, len)) {
+      if (!file.WriteBytes((void*)text, len)) {
         ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
                                "LuxAPIWriter::writeLine(): writing to file failed");
       }
@@ -401,10 +401,10 @@ Bool LuxAPIWriter::writeSetting(BaseFile&      file,
                                 SettingNameT   setting,
                                 IdentifierName identifier)
 {
-  if (!file.WriteBytes(setting, (VLONG)strlen(setting)) ||
+  if (!file.WriteBytes((void*)setting, (VLONG)strlen(setting)) ||
       (identifier &&
        (!file.WriteBytes(" \"", 2) ||
-        !file.WriteBytes(identifier, (VLONG)strlen(identifier)) ||
+        !file.WriteBytes((void*)identifier, (VLONG)strlen(identifier)) ||
         !file.WriteBytes("\"\n", 2))))
   {
     ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
@@ -463,20 +463,20 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
   Bool success = TRUE;
 
   // write setting identifier
-  success &= file.WriteBytes(setting, (VLONG)strlen(setting));
+  success &= file.WriteBytes((void*)setting, (VLONG)strlen(setting));
   if (identifier1) {
     success &= file.WriteBytes(" \"", 2);
-    success &= file.WriteBytes(identifier1, (VLONG)strlen(identifier1));
+    success &= file.WriteBytes((void*)identifier1, (VLONG)strlen(identifier1));
     success &= file.WriteChar('"');
   }
   if (identifier2) {
     success &= file.WriteBytes(" \"", 2);
-    success &= file.WriteBytes(identifier2, (VLONG)strlen(identifier2));
+    success &= file.WriteBytes((void*)identifier2, (VLONG)strlen(identifier2));
     success &= file.WriteChar('"');
   }
   if (identifier3) {
     success &= file.WriteBytes(" \"", 2);
-    success &= file.WriteBytes(identifier3, (VLONG)strlen(identifier3));
+    success &= file.WriteBytes((void*)identifier3, (VLONG)strlen(identifier3));
     success &= file.WriteChar('"');
   }
   if (newLine) {
@@ -663,7 +663,7 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
             valueStringLen = (VLONG)values[0].size();
             if (valueStringLen) {
               success &= file.WriteChar('"');
-              success &= file.WriteBytes(values[0].c_str(), valueStringLen);
+              success &= file.WriteBytes((void*)values[0].c_str(), valueStringLen);
               success &= file.WriteChar('"');
             }
           } else {
@@ -671,7 +671,7 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
               valueStringLen = (VLONG)values[i].size();
               if (valueStringLen) {
                 success &= file.WriteChar('"');
-                success &= file.WriteBytes(values[i].c_str(), valueStringLen);
+                success &= file.WriteBytes((void*)values[i].c_str(), valueStringLen);
                 success &= file.WriteBytes("\"\n", 2);
               }
             }

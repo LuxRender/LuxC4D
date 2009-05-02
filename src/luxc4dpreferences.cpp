@@ -101,7 +101,7 @@ LONG LuxC4DPreferencesDialog::CommandValues(LONG                 id,
       {
         Filename luxPath;
         GetFilename(IDD_LUXC4D_PREFS_LUX_PATH, luxPath);
-        if (luxPath.FileSelect(FSTYPE_ANYTHING, 0, GeLoadString(IDS_LUXC4D_PREFS_LUX_PATH_FS_TITLE))) {
+        if (luxPath.FileSelect(FSTYPE_ANYTHING, 0, &GeLoadString(IDS_LUXC4D_PREFS_LUX_PATH_FS_TITLE))) {
           SetFilename(IDD_LUXC4D_PREFS_LUX_PATH, luxPath);
           data->SetFilename(IDV_LUXC4D_PREFS_LUX_PATH, luxPath);
         }

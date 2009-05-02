@@ -23,7 +23,37 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
+#include <cstdarg>
+#include <cstdio>
+
 #include "utilities.h"
+
+
+
+///
+void debugLog(const CHAR* format, ...)
+{
+  static const SizeT cBufferSize = 2048;
+  CHAR charBuffer[cBufferSize];
+
+  va_list args;
+	va_start(args, format);
+  vsprintf(charBuffer, format, args);
+	C4DOS.Ge->GeDebugOut("%s", charBuffer);
+	va_end(args);
+}
+
+
+///
+void debugLog(const String& msg)
+{
+  static const SizeT cBufferSize = 2048;
+  CHAR charBuffer[cBufferSize];
+
+  msg.GetCString(charBuffer, cBufferSize);
+  charBuffer[cBufferSize-1] = '\0';
+	C4DOS.Ge->GeDebugOut("%s", charBuffer);
+}
 
 
 

@@ -247,9 +247,11 @@ Bool LuxAPIConverter::Do(void*         data,
         // and if it's visible:
         ((HierarchyData*)data)->mVisible)
     {
+#if _C4D_VERSION>=100
       // check if assigned layer should be rendered:
       const LayerData* layerData = object->GetLayerData(mDocument);
       if (!layerData || layerData->render) {
+#endif
         switch (object->GetType()) {
           // export polygon objects
           case Opolygon:
@@ -264,7 +266,9 @@ Bool LuxAPIConverter::Do(void*         data,
             }
             break;
         }
+#if _C4D_VERSION>=100
       }
+#endif
     }
   }
   return TRUE;
@@ -531,7 +535,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
                            * mC4D2LuxScale;
   Vector scaledPosition  = globalMatrix.off * mC4D2LuxScale;
   Vector scaledDirection = globalMatrix.v3;
-  scaledDirection.Normalize();
+  normalize(scaledDirection);
   scaledDirection *= VectorMax(scaledPosition);
 
   // don't export (almost) black lights
@@ -550,7 +554,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
 
   // now determine the data depending on the light type and export the data
   // needed for this type
-  GeDebugOut("exporting light object '" + lightObject.GetName() + "' ...");
+  debugLog("exporting light object '" + lightObject.GetName() + "' ...");
   switch (parameters.mType) {
 
     case IDD_LIGHT_TYPE_POINT:
@@ -942,7 +946,12 @@ Bool LuxAPIConverter::exportSunSkyLight(SunSkyLightData& data)
 }
 
 
+/// Exports an automatic light if no light has been exported. This is always
+/// done, even if the C4D auto light is disabled, as Lux crashes if the scene
+/// doesn't contain any lights.
 ///
+/// @return
+///   TRUE if successful, FALSE otherwise.
 Bool LuxAPIConverter::exportAutoLight(void)
 {
   // safety checks
@@ -954,11 +963,13 @@ Bool LuxAPIConverter::exportAutoLight(void)
     return TRUE;
   }
 
+  debugLog("exporting auto light ...");
+
   // calculate slightly rotated matrix based on camera matrix
   Matrix lightMatrix     = mCamera->GetMgn() * MatrixRotY(Rad(-20.0));
   Vector scaledPosition  = lightMatrix.off * mC4D2LuxScale;
   Vector scaledDirection = lightMatrix.v3;
-  scaledDirection.Normalize();
+  normalize(scaledDirection);
 
   // setup distant (parallel) light and export it
   DistantLightData data;
@@ -1018,7 +1029,7 @@ Bool LuxAPIConverter::exportGeometry(void)
 }
 
 
-/// Exports a polygon object and sends it to an implementation of LuxAPI.
+/// Exports a polygon object and sends it to a LuxAPI implementation.
 ///
 /// @param[in]  object
 ///   The polygon object to export.
@@ -1035,9 +1046,9 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
     return TRUE;
   }
 
-  GeDebugOut("exporting polygon object '" + object.GetName() + "' ...");
+  debugLog("exporting polygon object '" + object.GetName() + "' ...");
 
-  // extract geometry
+  // convert and cache geometry
   TrianglesT     triangles;
   PointsT        points;
   NormalsT       normals;
@@ -1059,7 +1070,7 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
   // write material (TODO - just a placeholder)
   if (!mReceiver->namedMaterial("_default"))  return FALSE;
 
-  // export geometry/shape
+  // export geometry/shape + normals + UVs (if given)
   mTempParamSet.clear();
   mTempParamSet.addParam(LUX_POINT, "P",
                          points.arrayAddress(), points.size());
@@ -1114,7 +1125,7 @@ Bool LuxAPIConverter::convertGeometry(PolygonObject&  object,
   GeAssert(&object != mCachedObject);
 
   // convert and cache the geometry of the object
-  if (!convertAndCacheGeometry(object, (normals == 0), (uvs == 0))) {
+  if (!convertAndCacheObject(object, (normals == 0), (uvs == 0))) {
     return FALSE;
   }
 
@@ -1170,21 +1181,24 @@ Bool LuxAPIConverter::convertGeometry(PolygonObject&  object,
 }
 
 
-/// Extracts the used geometry of an object, duplicates points with different
-/// normals and caches them for later splitting into areas with different
-/// materials.
+/// Extracts the visible geometry of an object (TODO), its vertex normals and UV
+/// coordinates. Vertices with several different normals or UV coordinates (for
+/// different adjacent polygons) are then duplicated as Lux only supports one
+/// normal and one UV coordinate per vertex. The resulting geometry is then
+/// cached for further splits for different materials later in the conversion
+/// process.
 /// 
 /// @param[in]  object
 ///   The object to convert and cache.
 /// @param[in]  noNormals
-///   Set this to TRUE if normals should be converted and cached.
+///   Set this to TRUE if no normals should be converted and cached.
 /// @param[in]  noUVs
-///   Set this to TRUE if UVs should be converted and cached.
+///   Set this to TRUE if no UVs should be converted and cached.
 /// @return
 ///   TRUE if successful, FALSE otherwise.
-Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object,
-                                              Bool           noNormals,
-                                              Bool           noUVs)
+Bool LuxAPIConverter::convertAndCacheObject(PolygonObject& object,
+                                            Bool           noNormals,
+                                            Bool           noUVs)
 {
   // clear cache
   mPolygonCache.erase();
@@ -1194,16 +1208,16 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object,
   mQuadCount = 0;
 
   // get polygons + points and return if there are none
-  SizeT polygonCount = object.GetPolygonCount();
-  const CPolygon* polygons = object.GetPolygonR();
-  SizeT pointCount = object.GetPointCount();
+  SizeT           polygonCount = object.GetPolygonCount();
+  const CPolygon* polygons     = getPolygons(object);
+  SizeT           pointCount   = object.GetPointCount();
   if (!polygonCount || !polygons || !pointCount) {
     return TRUE;
   }
 
   // copy polygons into cache
   if (!mPolygonCache.init(polygonCount)) {
-    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheGeometry(): not enough memory to allocate polygon cache");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheObject(): not enough memory to allocate polygon cache");
   }
   memcpy(mPolygonCache.arrayAddress(), polygons, sizeof(CPolygon)*polygonCount);
 
@@ -1232,7 +1246,9 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object,
     }
   }
 
-  // get first UVW tag and read out the UV coordinates
+  // get first UVW tag and read out the UV coordinates (i.e. at the moment we
+  // don't support several UV maps, as Lux can store only one Uv per vertex per
+  // polygon
   UVsT uvs;
   if (!noUVs) {
     UVWTag* uvwTag = (UVWTag*)object.GetTag(Tuvw);
@@ -1248,81 +1264,82 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object,
     }
   }
 
-  // log the info we have
+  // log which vertex attributes are available
   if (uvs.size()) {
-    GeDebugOut("  it has UV coordinates");
+    debugLog("  it has UV coordinates");
   } else {
-    GeDebugOut("  it has no UV coordinates");
+    debugLog("  it has no UV coordinates");
   }
   if (normals.size()) {
-    GeDebugOut("  it has vertex normals");
+    debugLog("  it has vertex normals");
   } else if (c4dNormals) {
-    GeDebugOut("  it has vertex normals == face normals");
+    debugLog("  it has vertex normals == face normals");
   } else {
-    GeDebugOut("  it has no vertex normals");
+    debugLog("  it has no vertex normals");
   }
 
   // if we have only points and polygons:
-  if (!normals.size() && !uvs.size())  return convertAndCacheWithoutNormals(object);
+  if (!normals.size() && !uvs.size())  return convertAndCacheGeometry(object);
   // if we have only points, polygons and normals:
-  if ( normals.size() && !uvs.size())  return convertAndCacheWithNormals(object, normals);
+  if ( normals.size() && !uvs.size())  return convertAndCacheGeometry(object, normals);
   // if we have only points, polygons and UVs:
-  if (!normals.size() &&  uvs.size())  return convertAndCacheWithUVs(object, uvs);
+  if (!normals.size() &&  uvs.size())  return convertAndCacheGeometry(object, uvs);
   // if we have points, polygons, UVs and normals:
-  return convertAndCacheWithUVsAndNormals(object, uvs, normals);
+  return convertAndCacheGeometry(object, uvs, normals);
 }
 
 
-/// Converts an object without vertex normals and caches the geometry. Called
-/// by convertAndCacheGeometry().
+/// Converts an object without vertex normals and caches the geometry. Basically
+/// it just filters out all vertices that are not used.
+/// It gets called by convertAndCacheObject(). 
 ///
 /// @param[in]  object
 ///   The object to convert.
 /// @return
 ///   TRUE if successful, FALSE otherwise.
-Bool LuxAPIConverter::convertAndCacheWithoutNormals(PolygonObject& object)
+Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object)
 {
-  // get points from C4D and polygon count from cache (polygons were already
-  // created by (convertAndCacheGeometry())
-  ULONG pointCount = object.GetPointCount();
-  const Vector* points = object.GetPointR();
-  ULONG polygonCount = mPolygonCache.size();
-  if (!pointCount || !points || !polygonCount) {
-    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithoutNormals(): geometry expected, but not found");
+  // get points from C4D and polygon count from cache (polygon cache was
+  // already created by convertAndCacheObject())
+  ULONG         pointCount = object.GetPointCount();
+  const Vector* points     = getPoints(object);
+  ULONG         polyCount  = mPolygonCache.size();
+  if (!pointCount || !points || !polyCount) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheGeometry(): geometry expected, but not found");
   }
 
   // initialise point map
   FixArray1D<ULONG> pointMap;
   if (!pointMap.init(pointCount)) {
-    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithoutNormals(): not enough memory to allocate point map");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheGeometry(): not enough memory to allocate point map");
   }
   pointMap.fillWithZero();
 
-  // determine and count which points are actually used by polygons
-  CPolygon* polygon;
+  // count how many polygons use each point
+  CPolygon* poly;
   ULONG     newPointCount = 0;
-  for (ULONG poly=0; poly<polygonCount; ++poly) {
+  for (ULONG polyIx=0; polyIx<polyCount; ++polyIx) {
     // store pointer to polygon for convenience
-    polygon = &(mPolygonCache[poly]);
+    poly = &(mPolygonCache[polyIx]);
     // 1st point of polygon
-    if (pointMap[polygon->a] == 0) {
-      pointMap[polygon->a] = MAXULONG;
+    if (pointMap[poly->a] == 0) {
+      pointMap[poly->a] = MAXULONG;
       ++newPointCount;
     }
     // 2nd point of polygon
-    if (pointMap[polygon->b] == 0) {
-      pointMap[polygon->b] = MAXULONG;
+    if (pointMap[poly->b] == 0) {
+      pointMap[poly->b] = MAXULONG;
       ++newPointCount;
     }
     // 3rd point of polygon
-    if (pointMap[polygon->c] == 0) {
-      pointMap[polygon->c] = MAXULONG;
+    if (pointMap[poly->c] == 0) {
+      pointMap[poly->c] = MAXULONG;
       ++newPointCount;
     }
     // 4th point of polygon (only if it's a quad)
-    if (polygon->c != polygon->d) {
-      if (pointMap[polygon->d] == 0) {
-        pointMap[polygon->d] = MAXULONG;
+    if (poly->c != poly->d) {
+      if (pointMap[poly->d] == 0) {
+        pointMap[poly->d] = MAXULONG;
         ++newPointCount;
       }
       ++mQuadCount;
@@ -1330,107 +1347,52 @@ Bool LuxAPIConverter::convertAndCacheWithoutNormals(PolygonObject& object)
   }
 
   // log the info we have at the moment
-  GeDebugOut("  poly count:      " + LongToString(polygonCount));
-  GeDebugOut("  point count:     " + LongToString(pointCount));
-  GeDebugOut("  new point count: " + LongToString(newPointCount));
+  debugLog("  poly count:         %lu", (unsigned long)polyCount);
+  debugLog("  point count:        %lu", (unsigned long)pointCount);
+  debugLog("  new point count:    %lu", (unsigned long)newPointCount);
 
-  // initialise point cache array
+  // initialise point cache array (which will hold only used points)
   if (!mPointCache.init(newPointCount)) {
-    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithoutNormals(): not enough memory to allocate point map");
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheGeometry(): not enough memory to allocate point map");
   }
 
-  // now fill point cache only with used points and update polygons
-  ULONG oldPointIndex, newPointIndex = 0;
-  for (ULONG polygonIndex=0; polygonIndex<polygonCount; ++polygonIndex) {
+  // now fill point cache with used points and update polygons
+  ULONG oldPointIx, newPointIx = 0;
+  for (ULONG polyIx=0; polyIx<polyCount; ++polyIx) {
     // store pointer to polygon for convenience
-    polygon = &(mPolygonCache[polygonIndex]);
+    poly = &(mPolygonCache[polyIx]);
     // 1st point of polygon
-    if (pointMap[oldPointIndex = polygon->a] == MAXULONG) {
-      mPointCache[newPointIndex] = points[oldPointIndex] * mC4D2LuxScale;
-      pointMap[oldPointIndex] = newPointIndex;
-      ++newPointIndex;
+    if (pointMap[oldPointIx = poly->a] == MAXULONG) {
+      mPointCache[newPointIx] = points[oldPointIx] * mC4D2LuxScale;
+      pointMap[oldPointIx] = newPointIx;
+      ++newPointIx;
     }
-    polygon->a = pointMap[oldPointIndex];
+    poly->a = pointMap[oldPointIx];
     // 2nd point of polygon
-    if (pointMap[oldPointIndex = polygon->b] == MAXULONG) {
-      mPointCache[newPointIndex] = points[oldPointIndex] * mC4D2LuxScale;
-      pointMap[oldPointIndex] = newPointIndex;
-      ++newPointIndex;
+    if (pointMap[oldPointIx = poly->b] == MAXULONG) {
+      mPointCache[newPointIx] = points[oldPointIx] * mC4D2LuxScale;
+      pointMap[oldPointIx] = newPointIx;
+      ++newPointIx;
     }
-    polygon->b = pointMap[oldPointIndex];
+    poly->b = pointMap[oldPointIx];
     // 3rd point of polygon
-    if (pointMap[oldPointIndex = polygon->c] == MAXULONG) {
-      mPointCache[newPointIndex] = points[oldPointIndex] * mC4D2LuxScale;
-      pointMap[oldPointIndex] = newPointIndex;
-      ++newPointIndex;
+    if (pointMap[oldPointIx = poly->c] == MAXULONG) {
+      mPointCache[newPointIx] = points[oldPointIx] * mC4D2LuxScale;
+      pointMap[oldPointIx] = newPointIx;
+      ++newPointIx;
     }
-    polygon->c = pointMap[oldPointIndex];
+    poly->c = pointMap[oldPointIx];
     // 4th point of polygon
-    if (pointMap[oldPointIndex = polygon->d] == MAXULONG) {
-      mPointCache[newPointIndex] = points[oldPointIndex] * mC4D2LuxScale;
-      pointMap[oldPointIndex] = newPointIndex;
-      ++newPointIndex;
+    if (pointMap[oldPointIx = poly->d] == MAXULONG) {
+      mPointCache[newPointIx] = points[oldPointIx] * mC4D2LuxScale;
+      pointMap[oldPointIx] = newPointIx;
+      ++newPointIx;
     }
-    polygon->d = pointMap[oldPointIndex];
+    poly->d = pointMap[oldPointIx];
   }
-  GeDebugOut("  new point index: " + LongToString(newPointIndex));
 
   // if that is not true, there is a hole in the logic
-  GeAssert(newPointIndex == newPointCount);
-
-  return TRUE;
-}
-
-
-///
-Bool LuxAPIConverter::setupPointMap(PolygonObject& object,
-                                    ULONG&         pointCount,
-                                    const Vector*& points,
-                                    PointMapT&     pointMap,
-                                    ULONG&         point2PolyMapSize)
-{
-  // get points from C4D and polygon count from cache (polygons were already
-  // created by convertAndCacheGeometry())
-  ULONG polyCount = mPolygonCache.size();
-  pointCount      = object.GetPointCount();
-  points          = object.GetPointR();
-  if (!polyCount || !pointCount || !points) {
-    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::setupPointMap(): geometry expected, but not found");
-  }
-
-  // initialise point map
-  if (!pointMap.init(pointCount+1)) {
-    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::setupPointMap(): not enough memory to allocate point map");
-  }
-  pointMap.fillWithZero();
-
-  // count number of polygons per point (+ number of quads)
-  CPolygon* poly;
-  for (ULONG polyIx=0; polyIx<polyCount; ++polyIx) {
-    poly = &(mPolygonCache[polyIx]);
-    ++pointMap[poly->a];
-    ++pointMap[poly->b];
-    ++pointMap[poly->c];
-    if (poly->c != poly->d) {
-      ++pointMap[poly->d];
-      ++mQuadCount;
-    }
-  }
-  GeDebugOut("  poly count:       " + LongToString(polyCount));
-  GeDebugOut("  point count:      " + LongToString(pointCount));
-
-  // convert polygon counts of point map into start positions in point2Poly map
-  ULONG point2PolyCount;
-  point2PolyMapSize = 0;
-  for (ULONG point=0; point<=pointCount; ++point) {
-    point2PolyCount   =  pointMap[point];
-    pointMap[point]   =  point2PolyMapSize;
-    point2PolyMapSize += point2PolyCount;
-  }
-  GeDebugOut("  point2poly map size: " + LongToString(point2PolyMapSize));
-  if (point2PolyMapSize > MAXLONG) {
-    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::setupPointMap(): point2PolyMap will be too big for object '" + object.GetName() + "'");
-  }
+  GeAssert(newPointIx == newPointCount);
 
   return TRUE;
 }
@@ -1445,8 +1407,8 @@ Bool LuxAPIConverter::setupPointMap(PolygonObject& object,
 ///   The vertex normals obtained from CINEMA 4D.
 /// @return
 ///   TRUE if successful, FALSE otherwise.
-Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject&     object,
-                                                 const C4DNormalsT& normals)
+Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
+                                              const C4DNormalsT& normals)
 {
   //
   union Point2Poly {
@@ -1535,7 +1497,7 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject&     object,
     }
     ++normal;
   }
-  GeDebugOut("  new point count:  " + LongToString(newPointCount));
+  debugLog("  new point count:     %lu", (unsigned long)newPointCount);
 
   // initialise point cache and normal cache
   if (!mPointCache.init(newPointCount) || !mNormalCache.init(newPointCount)) {
@@ -1551,13 +1513,11 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject&     object,
       if (!point2Poly->normalRef)  break;
       mPointCache[newPointIx]  = points[pointIx] * mC4D2LuxScale;
       normalised               = *(point2Poly->normalRef);
-      normalised.Normalize();
-      mNormalCache[newPointIx] = normalised;
+      mNormalCache[newPointIx] = normalize(normalised);
       point2Poly->newPoint     = newPointIx;
       ++newPointIx;
     }
   }
-  GeDebugOut("  new point index:  " + LongToString(newPointIx));
 
   // if that is not true, there is a hole in the logic
   GeAssert(newPointIx == newPointCount);
@@ -1578,8 +1538,8 @@ Bool LuxAPIConverter::convertAndCacheWithNormals(PolygonObject&     object,
 
 
 ///
-Bool LuxAPIConverter::convertAndCacheWithUVs(PolygonObject& object,
-                                             const UVsT&    uvs)
+Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object,
+                                              const UVsT&    uvs)
 {
   //
   union Point2Poly {
@@ -1668,7 +1628,7 @@ Bool LuxAPIConverter::convertAndCacheWithUVs(PolygonObject& object,
     }
     ++uv;
   }
-  GeDebugOut("  new point count:  " + LongToString(newPointCount));
+  debugLog("  new point count:     %lu", (unsigned long)newPointCount);
 
   // initialise point cache and normal cache
   if (!mPointCache.init(newPointCount) || !mUVCache.init(newPointCount)) {
@@ -1687,7 +1647,6 @@ Bool LuxAPIConverter::convertAndCacheWithUVs(PolygonObject& object,
       ++newPointIx;
     }
   }
-  GeDebugOut("  new point index:  " + LongToString(newPointIx));
 
   // if that is not true, there is a hole in the logic
   GeAssert(newPointIx == newPointCount);
@@ -1708,9 +1667,9 @@ Bool LuxAPIConverter::convertAndCacheWithUVs(PolygonObject& object,
 
 
 ///
-Bool LuxAPIConverter::convertAndCacheWithUVsAndNormals(PolygonObject&     object,
-                                                       const UVsT&        uvs,
-                                                       const C4DNormalsT& normals)
+Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
+                                              const UVsT&        uvs,
+                                              const C4DNormalsT& normals)
 {
   //
   union Point2Poly {
@@ -1827,7 +1786,7 @@ Bool LuxAPIConverter::convertAndCacheWithUVsAndNormals(PolygonObject&     object
     ++uv;
     ++normal;
   }
-  GeDebugOut("  new point count:  " + LongToString(newPointCount));
+  debugLog("  new point count:     %lu", (unsigned long)newPointCount);
 
   // initialise point cache and normal cache
   if (!mPointCache.init(newPointCount) ||
@@ -1847,13 +1806,11 @@ Bool LuxAPIConverter::convertAndCacheWithUVsAndNormals(PolygonObject&     object
       mPointCache[newPointIx]  = points[pointIx] * mC4D2LuxScale;
       mUVCache[newPointIx]     = *(point2Poly->ref.uv);
       normalised               = *(point2Poly->ref.normal);
-      normalised.Normalize();
-      mNormalCache[newPointIx] = normalised;
+      mNormalCache[newPointIx] = normalize(normalised);
       point2Poly->newPoint = newPointIx;
       ++newPointIx;
     }
   }
-  GeDebugOut("  new point index:  " + LongToString(newPointIx));
 
   // if that is not true, there is a hole in the logic
   GeAssert(newPointIx == newPointCount);
@@ -1869,5 +1826,59 @@ Bool LuxAPIConverter::convertAndCacheWithUVsAndNormals(PolygonObject&     object
 
   // set cached object (== activate cache) and return
   mCachedObject = &object;
+  return TRUE;
+}
+
+
+///
+Bool LuxAPIConverter::setupPointMap(PolygonObject& object,
+                                    ULONG&         pointCount,
+                                    const Vector*& points,
+                                    PointMapT&     pointMap,
+                                    ULONG&         point2PolyMapSize)
+{
+  // get points from C4D and polygon count from cache (polygons were already
+  // created by convertAndCacheGeometry())
+  ULONG polyCount = mPolygonCache.size();
+  pointCount      = object.GetPointCount();
+  points          = getPoints(object);
+  if (!polyCount || !pointCount || !points) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::setupPointMap(): geometry expected, but not found");
+  }
+
+  // initialise point map
+  if (!pointMap.init(pointCount+1)) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::setupPointMap(): not enough memory to allocate point map");
+  }
+  pointMap.fillWithZero();
+
+  // count number of polygons per point (+ number of quads)
+  CPolygon* poly;
+  for (ULONG polyIx=0; polyIx<polyCount; ++polyIx) {
+    poly = &(mPolygonCache[polyIx]);
+    ++pointMap[poly->a];
+    ++pointMap[poly->b];
+    ++pointMap[poly->c];
+    if (poly->c != poly->d) {
+      ++pointMap[poly->d];
+      ++mQuadCount;
+    }
+  }
+  debugLog("  poly count:          %lu", (unsigned long)polyCount);
+  debugLog("  point count:         %lu", (unsigned long)pointCount);
+
+  // convert polygon counts of point map into start positions in point2Poly map
+  ULONG point2PolyCount;
+  point2PolyMapSize = 0;
+  for (ULONG point=0; point<=pointCount; ++point) {
+    point2PolyCount   =  pointMap[point];
+    pointMap[point]   =  point2PolyMapSize;
+    point2PolyMapSize += point2PolyCount;
+  }
+  debugLog("  point2poly map size: %lu", (unsigned long)point2PolyMapSize);
+  if (point2PolyMapSize > MAXLONG) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::setupPointMap(): point2PolyMap will be too big for object '" + object.GetName() + "'");
+  }
+
   return TRUE;
 }
