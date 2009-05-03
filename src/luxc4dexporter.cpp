@@ -43,14 +43,9 @@ Bool LuxC4DExporter::registerPlugin(void)
 {
   return RegisterCommandPlugin(PID_LUXC4D_EXPORTER,
                                GeLoadString(IDS_LUXC4D_EXPORTER),
-                               0,
+                               0, 0,
                                GeLoadString(IDS_LUXC4D_EXPORTER_DESCR),
                                this);
-  //return RegisterCommandPlugin(PID_LUXC4D_EXPORTER,
-  //                             GeLoadString(IDS_LUXC4D_EXPORTER),
-  //                             0, "",
-  //                             GeLoadString(IDS_LUXC4D_EXPORTER_DESCR),
-  //                             this);
 }
 
 

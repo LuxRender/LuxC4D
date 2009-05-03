@@ -29,7 +29,6 @@
 #include "luxc4dexporterrender.h"
 #include "luxc4dpreferences.h"
 #include "luxc4dlighttag.h"
-#include "luxc4dmaterialmatte.h"
 #include "luxc4dsettings.h"
 #include "utilities.h"
 
