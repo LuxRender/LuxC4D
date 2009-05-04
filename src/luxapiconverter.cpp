@@ -1410,14 +1410,8 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object)
 Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
                                               const C4DNormalsT& normals)
 {
-  //
-  union Point2Poly {
-    const Vector* normalRef;
-    ULONG         newPoint;
-  };
-
   // The container type for storing the point-to-polygon data.
-  typedef FixArray1D<Point2Poly>  Point2PolyMapT;
+  typedef FixArray1D<Point2PolyN>  Point2PolyMapT;
 
 
   // initialise point map
@@ -1446,7 +1440,7 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
   ULONG         polyCount = mPolygonCache.size();
   CPolygon*     poly;
   ULONG         newPointCount = 0;
-  Point2Poly*   point2Poly;
+  Point2PolyN*  point2Poly;
   const Vector* normal = &(normals[0]);
   Bool          isQuad;
   for (ULONG polyIx=0; polyIx<polyCount; ++polyIx) {
@@ -1541,14 +1535,8 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
 Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object,
                                               const UVsT&    uvs)
 {
-  //
-  union Point2Poly {
-    const LuxVector2D* uvRef;
-    ULONG              newPoint;
-  };
-
   // The container type for storing the point-to-polygon data.
-  typedef FixArray1D<Point2Poly>  Point2PolyMapT;
+  typedef FixArray1D<Point2PolyU>  Point2PolyMapT;
 
 
   // initialise point map
@@ -1577,7 +1565,7 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object,
   ULONG              polyCount = mPolygonCache.size();
   CPolygon*          poly;
   ULONG              newPointCount = 0;
-  Point2Poly*        point2Poly;
+  Point2PolyU*       point2Poly;
   const LuxVector2D* uv = &(uvs[0]);
   Bool               isQuad;
   for (ULONG polyIx=0; polyIx<polyCount; ++polyIx) {
@@ -1671,17 +1659,8 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
                                               const UVsT&        uvs,
                                               const C4DNormalsT& normals)
 {
-  //
-  union Point2Poly {
-    struct {
-      const LuxVector2D* uv;
-      const Vector*      normal;
-    }                  ref;
-    ULONG              newPoint;
-  };
-
   // The container type for storing the point-to-polygon data.
-  typedef FixArray1D<Point2Poly>  Point2PolyMapT;
+  typedef FixArray1D<Point2PolyUN>  Point2PolyMapT;
 
 
   // initialise point map
@@ -1710,7 +1689,7 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
   ULONG              polyCount = mPolygonCache.size();
   CPolygon*          poly;
   ULONG              newPointCount = 0;
-  Point2Poly*        point2Poly;
+  Point2PolyUN*      point2Poly;
   const LuxVector2D* uv = &(uvs[0]);
   const Vector*      normal = &(normals[0]);
   Bool               isQuad;

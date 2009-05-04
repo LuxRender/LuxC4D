@@ -84,7 +84,7 @@ Bool LuxAPIWriter::init(const Filename &sceneFile)
 }
 
 
-Bool LuxAPIWriter::startScene(const CHAR* head)
+Bool LuxAPIWriter::startScene(const char* head)
 {
   // if there is already an active session, close it
   if (mFilesOpen) {
@@ -186,8 +186,8 @@ Bool LuxAPIWriter::lookAt(const LuxVector& camPos,
 }
 
 
-Bool LuxAPIWriter::film(IdentifierName    name,
-                        const LuxParamSet& paramSet)
+Bool LuxAPIWriter::film(const IdentifierName name,
+                        const LuxParamSet&   paramSet)
 {
   return writeSetting(*mSceneFile, "Film", name, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
@@ -202,7 +202,7 @@ Bool LuxAPIWriter::camera(IdentifierName     name,
 }
 
 
-Bool LuxAPIWriter::pixelFilter(IdentifierName    name,
+Bool LuxAPIWriter::pixelFilter(IdentifierName     name,
                                const LuxParamSet& paramSet)
 {
   return writeSetting(*mSceneFile, "PixelFilter", name, 0, 0, paramSet, TRUE) &&
@@ -210,7 +210,7 @@ Bool LuxAPIWriter::pixelFilter(IdentifierName    name,
 }
 
 
-Bool LuxAPIWriter::sampler(IdentifierName    name,
+Bool LuxAPIWriter::sampler(IdentifierName     name,
                            const LuxParamSet& paramSet)
 {
   return writeSetting(*mSceneFile, "Sampler", name, 0, 0, paramSet, TRUE) &&
@@ -218,7 +218,7 @@ Bool LuxAPIWriter::sampler(IdentifierName    name,
 }
 
 
-Bool LuxAPIWriter::surfaceIntegrator(IdentifierName    name,
+Bool LuxAPIWriter::surfaceIntegrator(IdentifierName     name,
                                      const LuxParamSet& paramSet)
 {
   return writeSetting(*mSceneFile, "SurfaceIntegrator", name, 0, 0, paramSet, TRUE) &&
@@ -226,7 +226,7 @@ Bool LuxAPIWriter::surfaceIntegrator(IdentifierName    name,
 }
 
 
-Bool LuxAPIWriter::accelerator(IdentifierName    name,
+Bool LuxAPIWriter::accelerator(IdentifierName     name,
                                const LuxParamSet& paramSet)
 {
   return writeSetting(*mSceneFile, "Accelerator", name, 0, 0, paramSet, TRUE) &&
@@ -260,7 +260,7 @@ Bool LuxAPIWriter::attributeEnd(void)
 }
 
 
-Bool LuxAPIWriter::objectBegin(IdentifierName name)
+Bool LuxAPIWriter::objectBegin(const IdentifierName name)
 {
   return writeSetting(*mObjectsFile, "\nObjectBegin", name);
 }
@@ -272,31 +272,31 @@ Bool LuxAPIWriter::objectEnd(void)
 }
 
 
-Bool LuxAPIWriter::lightSource(IdentifierName    name,
+Bool LuxAPIWriter::lightSource(IdentifierName     name,
                                const LuxParamSet& paramSet)
 {
   return writeSetting(*mObjectsFile, "\nLightSource", name, 0, 0, paramSet, TRUE);
 }
 
 
-Bool LuxAPIWriter::areaLightSource(IdentifierName    name,
+Bool LuxAPIWriter::areaLightSource(IdentifierName     name,
                                    const LuxParamSet& paramSet)
 {
   return writeSetting(*mObjectsFile, "AreaLightSource", name, 0, 0, paramSet, TRUE);
 }
 
 
-Bool LuxAPIWriter::texture(IdentifierName    name,
-                           IdentifierName    colorType,
-                           IdentifierName    type,
+Bool LuxAPIWriter::texture(IdentifierName     name,
+                           IdentifierName     colorType,
+                           IdentifierName     type,
                            const LuxParamSet& paramSet)
 {
   return writeSetting(*mMaterialsFile, "\nTexture", name, colorType, type, paramSet, TRUE);
 }
 
 
-Bool LuxAPIWriter::makeNamedMaterial(IdentifierName    name,
-                                 const LuxParamSet& paramSet)
+Bool LuxAPIWriter::makeNamedMaterial(IdentifierName     name,
+                                     const LuxParamSet& paramSet)
 {
   return writeSetting(*mMaterialsFile, "MakeNamedMaterial", name, 0, 0, paramSet, TRUE);
 }
@@ -308,7 +308,7 @@ Bool LuxAPIWriter::namedMaterial(IdentifierName name)
 }
 
 
-Bool LuxAPIWriter::material(IdentifierName    name,
+Bool LuxAPIWriter::material(IdentifierName     name,
                             const LuxParamSet& paramSet)
 {
   return writeSetting(*mObjectsFile, "Material", name, 0, 0, paramSet, TRUE);
@@ -344,7 +344,7 @@ Bool LuxAPIWriter::reverseOrientation(void)
 }
 
 
-Bool LuxAPIWriter::shape(IdentifierName    name,
+Bool LuxAPIWriter::shape(IdentifierName     name,
                          const LuxParamSet& paramSet)
 {
   return writeSetting(*mObjectsFile, "Shape", name, 0, 0, paramSet, TRUE);
@@ -403,9 +403,9 @@ Bool LuxAPIWriter::writeSetting(BaseFile&      file,
 {
   if (!file.WriteBytes((void*)setting, (VLONG)strlen(setting)) ||
       (identifier &&
-       (!file.WriteBytes(" \"", 2) ||
+       (!file.WriteBytes((void*)" \"", 2) ||
         !file.WriteBytes((void*)identifier, (VLONG)strlen(identifier)) ||
-        !file.WriteBytes("\"\n", 2))))
+        !file.WriteBytes((void*)"\"\n", 2))))
   {
     ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
                            "LuxAPIWriter::writeSetting(): writing to file failed");
@@ -465,17 +465,17 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
   // write setting identifier
   success &= file.WriteBytes((void*)setting, (VLONG)strlen(setting));
   if (identifier1) {
-    success &= file.WriteBytes(" \"", 2);
+    success &= file.WriteBytes((void*)" \"", 2);
     success &= file.WriteBytes((void*)identifier1, (VLONG)strlen(identifier1));
     success &= file.WriteChar('"');
   }
   if (identifier2) {
-    success &= file.WriteBytes(" \"", 2);
+    success &= file.WriteBytes((void*)" \"", 2);
     success &= file.WriteBytes((void*)identifier2, (VLONG)strlen(identifier2));
     success &= file.WriteChar('"');
   }
   if (identifier3) {
-    success &= file.WriteBytes(" \"", 2);
+    success &= file.WriteBytes((void*)" \"", 2);
     success &= file.WriteBytes((void*)identifier3, (VLONG)strlen(identifier3));
     success &= file.WriteChar('"');
   }
@@ -499,16 +499,16 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
     tokenArraySize = paramSet.ParamArraySizes()[c];
 
     // write token name and type
-    success &= file.WriteBytes(" \"", 2);
+    success &= file.WriteBytes((void*)" \"", 2);
     success &= file.WriteBytes(cTokenType[tokenType].nameStr, cTokenType[tokenType].nameStrLen);
     success &= file.WriteBytes(tokenName, (VLONG)strlen(tokenName));
     success &= file.WriteChar('"');
 
     // write token values
     if (tokenArraySize > 1) {
-      success &= file.WriteBytes(" [\n", 3);
+      success &= file.WriteBytes((void*)" [\n", 3);
     } else {
-      success &= file.WriteBytes(" [", 2);
+      success &= file.WriteBytes((void*)" [", 2);
     }
     switch (tokenType) {
       case LUX_BOOL:
@@ -516,16 +516,16 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
           const LuxBool* values = (const LuxBool*)tokenValue;
           if (tokenArraySize == 1) {
             if (values[0]) {
-              success &= file.WriteBytes("\"true\"", 6);
+              success &= file.WriteBytes((void*)"\"true\"", 6);
             } else {
-              success &= file.WriteBytes("\"false\"", 7);
+              success &= file.WriteBytes((void*)"\"false\"", 7);
             }
           } else {
             for (ULONG i=0; i<tokenArraySize; ++i) {
               if (values[i]) {
-                success &= file.WriteBytes("\"true\"\n", 7);
+                success &= file.WriteBytes((void*)"\"true\"\n", 7);
               } else {
-                success &= file.WriteBytes("\"false\"\n", 8);
+                success &= file.WriteBytes((void*)"\"false\"\n", 8);
               }
             }
           }
@@ -672,7 +672,7 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
               if (valueStringLen) {
                 success &= file.WriteChar('"');
                 success &= file.WriteBytes((void*)values[i].c_str(), valueStringLen);
-                success &= file.WriteBytes("\"\n", 2);
+                success &= file.WriteBytes((void*)"\"\n", 2);
               }
             }
           }

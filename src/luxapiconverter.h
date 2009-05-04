@@ -163,7 +163,30 @@ private:
     LuxFloat   mDConst;
     LuxFloat   mEConst;
   };
+  
+  
+  // Union which is used for the conversion of vertices with normals.
+  union Point2PolyN {
+    const Vector* normalRef;
+    ULONG         newPoint;
+  };
 
+  // Union which is used for the conversion of vertices with UVs.
+  union Point2PolyU {
+    const LuxVector2D* uvRef;
+    ULONG              newPoint;
+  };
+
+  // Union which is used for the conversion of vertices with UVs and normals.
+  union Point2PolyUN {
+    struct {
+      const LuxVector2D* uv;
+      const Vector*      normal;
+    }                  ref;
+    ULONG              newPoint;
+  };
+  
+  
   /// The container type for storing a selection of triangle IDs.
   typedef FixArray1D<ULONG>       TriangleIDsT;
   /// The container type for storing the point IDs of triangles.

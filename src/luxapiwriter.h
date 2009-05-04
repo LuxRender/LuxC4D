@@ -48,29 +48,29 @@ public:
   Bool init(const Filename& sceneFile);
   inline LONG errorStringID(void) const;
 
-  virtual Bool startScene(const CHAR* head);
+  virtual Bool startScene(const char* head);
   virtual Bool endScene(void);
 
-  virtual Bool film(IdentifierName    name,
+  virtual Bool film(IdentifierName     name,
                     const LuxParamSet& paramSet);
 
   virtual Bool lookAt(const LuxVector& camPos,
                       const LuxVector& trgPos,
                       const LuxVector& upVec);
 
-  virtual Bool camera(IdentifierName    name,
+  virtual Bool camera(IdentifierName     name,
                       const LuxParamSet& paramSet);
 
-  virtual Bool pixelFilter(IdentifierName    name,
+  virtual Bool pixelFilter(IdentifierName     name,
                            const LuxParamSet& paramSet);
 
-  virtual Bool sampler(IdentifierName    name,
+  virtual Bool sampler(IdentifierName     name,
                        const LuxParamSet& paramSet);
 
-  virtual Bool surfaceIntegrator(IdentifierName    name,
+  virtual Bool surfaceIntegrator(IdentifierName     name,
                                  const LuxParamSet& paramSet);
 
-  virtual Bool accelerator(IdentifierName    name,
+  virtual Bool accelerator(IdentifierName     name,
                            const LuxParamSet& paramSet);
 
   virtual Bool worldBegin(void);
@@ -80,33 +80,33 @@ public:
   virtual Bool objectBegin(IdentifierName name);
   virtual Bool objectEnd(void);
 
-  virtual Bool lightSource(IdentifierName    name,
+  virtual Bool lightSource(IdentifierName     name,
                            const LuxParamSet& paramSet);
-  virtual Bool areaLightSource(IdentifierName    name,
+  virtual Bool areaLightSource(IdentifierName     name,
                                const LuxParamSet& paramSet);
 
-  virtual Bool texture(IdentifierName    name,
-                       IdentifierName    colorType,
-                       IdentifierName    type,
+  virtual Bool texture(IdentifierName     name,
+                       IdentifierName     colorType,
+                       IdentifierName     type,
                        const LuxParamSet& paramSet);
 
-  virtual Bool makeNamedMaterial(IdentifierName    name,
+  virtual Bool makeNamedMaterial(IdentifierName     name,
                                  const LuxParamSet& paramSet);
   virtual Bool namedMaterial(IdentifierName name);
-  virtual Bool material(IdentifierName    name,
-                      const LuxParamSet& paramSet);
+  virtual Bool material(IdentifierName     name,
+                        const LuxParamSet& paramSet);
 
   virtual Bool transform(const LuxMatrix& matrix);
   virtual Bool reverseOrientation(void);
 
 
-  virtual Bool shape(IdentifierName    name,
+  virtual Bool shape(IdentifierName     name,
                      const LuxParamSet& paramSet);
 
 
 private:
 
-  typedef const CHAR* SettingNameT;
+  typedef const char* SettingNameT;
 
   Bool                mFilesOpen;
   Filename            mSceneFilename;
@@ -118,21 +118,19 @@ private:
   Bool                mWorldStarted;
   LONG                mErrorStringID;
 
-  Bool writeLine(
-    BaseFile&   file,
-    const CHAR* text);
-  Bool writeSetting(
-    BaseFile&       file,
-    SettingNameT    setting,
-    IdentifierName identifier);
+  Bool writeLine(BaseFile&   file,
+                 const CHAR* text);
+  Bool writeSetting(BaseFile&            file,
+                    SettingNameT         setting,
+                    const IdentifierName identifier);
   Bool writeSetting(
     BaseFile&          file,
     SettingNameT       setting,
-    IdentifierName    identifier1,
-    IdentifierName    identifier2,
-    IdentifierName    identifier3,
+    IdentifierName     identifier1,
+    IdentifierName     identifier2,
+    IdentifierName     identifier3,
     const LuxParamSet& paramSet,
-    Bool               newLine);
+    Bool                newLine);
 };
 
 
