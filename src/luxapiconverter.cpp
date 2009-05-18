@@ -29,6 +29,7 @@
 #include "luxapiconverter.h"
 #include "luxc4dlighttag.h"
 #include "luxc4dsettings.h"
+#include "luxmaterialdata.h"
 #include "tluxc4dlighttag.h"
 #include "utilities.h"
 
@@ -76,7 +77,6 @@ void LuxAPIConverter::clearTemporaryData(void)
 {
   mTempParamSet.clear();
   mCamera       = 0;
-  mObjectType   = UNSPECIFIED_OBJECTS;
   mLightCount   = 0;
   mAreaLightObjects.erase();
   mCachedObject = 0;
@@ -84,6 +84,7 @@ void LuxAPIConverter::clearTemporaryData(void)
   mPointCache.erase();
   mNormalCache.erase();
   mUVCache.erase();
+  mDo           = 0;
 }
 
 
@@ -194,6 +195,10 @@ void* LuxAPIConverter::Alloc(void)
 void LuxAPIConverter::Free(void* data)
 {
   HierarchyData* hierarchyData = (HierarchyData*)data;
+  if (hierarchyData->mStartedNewScope) {
+    mReceiver->comment("end of object '" + hierarchyData->mObjectName + "'");
+    mReceiver->attributeEnd();
+  }
   gDelete(hierarchyData);
 }
 
@@ -208,7 +213,7 @@ void LuxAPIConverter::Free(void* data)
 void LuxAPIConverter::CopyTo(void* src, void* dst)
 {
   if (src && dst) {
-    *(HierarchyData*)dst = *(HierarchyData*)src;
+    ((HierarchyData*)dst)->mVisible = ((HierarchyData*)src)->mVisible;
   }
 }
 
@@ -216,16 +221,16 @@ void LuxAPIConverter::CopyTo(void* src, void* dst)
 /// Does the actual object export. It will be called during the object tree
 /// traversal in Hierarchy::Run() for every object.
 ///
-/// @param[in]  data
-///   Private helper data that was passed from the parent object.
+/// @param[in/out]  data
+///   Private helper data that was passed from the parent object (as a copy).
 /// @param[in]  object
 ///   The current object of this iteration.
 /// @param[in]  globalMatrix
 ///   The global matrix of the current object.
-/// @param[in]
+/// @param[in]  controlObject
 ///   Is TRUE, if the current object is an input object for a generator or
 ///   deformer, i.e. the current object is invisible, but there is somewhere
-///   in the hierarchy  generated/deformed copy of it.
+///   in the hierarchy a generated/deformed copy of it.
 /// @return
 ///   TRUE if it was executed successfully and we should continue to traverse
 ///   through the hierarchy
@@ -234,44 +239,17 @@ Bool LuxAPIConverter::Do(void*         data,
                          const Matrix& globalMatrix,
                          Bool          controlObject)
 {
-  // if there is an object:
-  if (object) {
-    // get render visibilty and store it in HierarchyData, if it's explicit
-    // (otherwise the implicit visibility from the parent object will be used)
-    LONG mode = object->GetRenderMode();
-    if (data && (mode != MODE_UNDEF)) {
-      ((HierarchyData*)data)->mVisible = (mode == MODE_ON);
-    }
-    // if it's not an object that is used by a generator or deformer as input
-    if (!controlObject &&
-        // and if it's visible:
-        ((HierarchyData*)data)->mVisible)
-    {
-#if _C4D_VERSION>=100
-      // check if assigned layer should be rendered:
-      const LayerData* layerData = object->GetLayerData(mDocument);
-      if (!layerData || layerData->render) {
-#endif
-        switch (object->GetType()) {
-          // export polygon objects
-          case Opolygon:
-            if ((mObjectType == POLYGON_OBJECTS) && !mAreaLightObjects.get(object)) {
-              return exportPolygonObject(*((PolygonObject*)object), globalMatrix);
-            }
-            break;
-          // export light objects
-          case Olight:
-            if ((mObjectType == LIGHT_OBJECTS) && object->GetDeformMode()) {
-              return exportLight(*object, globalMatrix);
-            }
-            break;
-        }
-#if _C4D_VERSION>=100
-      }
-#endif
-    }
+  // only if there is an object:
+  if (!object)  return TRUE;
+
+  // get render visibility and store it in HierarchyData, if it's explicit
+  // (otherwise the implicit visibility from the parent object will be used)
+  LONG mode = object->GetRenderMode();
+  if (data && (mode != MODE_UNDEF)) {
+    ((HierarchyData*)data)->mVisible = (mode == MODE_ON);
   }
-  return TRUE;
+
+  return (this->*mDo)((HierarchyData*)data, object, globalMatrix, controlObject);
 }
 
 
@@ -506,9 +484,36 @@ Bool LuxAPIConverter::exportLights(void)
   GeAssert(mReceiver);
 
   // traverse complete scene hierarchy and export all needed objects
-  mObjectType = LIGHT_OBJECTS;
-  HierarchyData data(TRUE);
+  mDo = &LuxAPIConverter::doLightExport;
+  HierarchyData data;
   return Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER, &data, 0);
+}
+
+
+///
+Bool LuxAPIConverter::doLightExport(HierarchyData* data,
+                                    BaseObject*    object,
+                                    const Matrix&  globalMatrix,
+                                    Bool           controlObject)
+{
+  // skip generator objects, invisible objects, objects that are no lights
+  // or lights that are not enabled
+  if (controlObject || !data->mVisible ||
+      (object->GetType() != Olight) || !object->GetDeformMode())
+  {
+    return TRUE;
+  }
+
+#if _C4D_VERSION>=100
+  // skip objects that belong to a layer that should not be rendered
+  const LayerData* layerData = object->GetLayerData(mDocument);
+  if (layerData && !layerData->render) {
+    return TRUE;
+  }
+#endif
+
+  // export light object
+  return exportLight(*object, globalMatrix);
 }
 
 
@@ -974,7 +979,7 @@ Bool LuxAPIConverter::exportAutoLight(void)
   // setup distant (parallel) light and export it
   DistantLightData data;
   data.mColor = Vector(1.0);
-  data.mGain  = 1.0;
+  data.mGain  = 0.001;
   data.mFrom  = scaledPosition;
   data.mTo    = scaledPosition + scaledDirection;
   ++mLightCount;
@@ -994,13 +999,10 @@ Bool LuxAPIConverter::exportStandardMaterial(void)
   GeAssert(mReceiver);
 
   // create colour texture for default matte material
-  LuxColor color(0.80, 0.80, 0.80);
+  LuxColor color(0.20, 0.20, 0.80);
   mTempParamSet.clear();
-  //mTempParamSet.addParam(LUX_COLOR, "value", &color);
-  //if (!mReceiver->texture("_default::color", "color", "constant", mTempParamSet))  return FALSE;
-  LuxString defaultTexture = "UV.png";
-  mTempParamSet.addParam(LUX_STRING, "filename", &defaultTexture);
-  if (!mReceiver->texture("_default::color", "color", "imagemap", mTempParamSet))  return FALSE;
+  mTempParamSet.addParam(LUX_COLOR, "value", &color);
+  if (!mReceiver->texture("_default::color", "color", "constant", mTempParamSet))  return FALSE;
 
   // create default matte material "_default"
   LuxString materialType = "matte";
@@ -1022,10 +1024,171 @@ Bool LuxAPIConverter::exportGeometry(void)
   GeAssert(mDocument);
   GeAssert(mReceiver);
 
+  // open global attribute scope where the default material is defined
+  if (!mReceiver->comment("start of world scope with default material") ||
+      !mReceiver->attributeBegin() ||
+      !mReceiver->namedMaterial("_default"))
+  {
+    return FALSE;
+  }
+
   // traverse complete scene hierarchy and export all needed objects
-  mObjectType = POLYGON_OBJECTS;
-  HierarchyData data(TRUE);
-  return Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER | VFLAG_POLYGONAL, &data, 0);
+  mDo = &LuxAPIConverter::doGeometryExport;
+  HierarchyData data;
+  if (!Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER | VFLAG_POLYGONAL, &data, 0)) {
+    return FALSE;
+  }
+
+  // close global attribute scope
+  if (!mReceiver->comment("end of world scope") || !mReceiver->attributeEnd()) {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+
+///
+Bool LuxAPIConverter::doGeometryExport(HierarchyData* data,
+                                       BaseObject*    object,
+                                       const Matrix&  globalMatrix,
+                                       Bool           controlObject)
+{
+  // find texture tag with valid link that is not restricted to a selection
+  TextureTag*   textureTag = 0;
+  BaseMaterial* material = 0;
+  for (BaseTag* tag=object->GetFirstTag(); tag; tag=tag->GetNext()) {
+    if (tag->GetType() == Ttexture) {
+      material = (BaseMaterial*)getParameterLink(*tag, TEXTURETAG_MATERIAL, Mbase);
+      if (!material) {
+        continue;
+      }
+      String restriction = getParameterString(*tag, TEXTURETAG_RESTRICTION);
+      if (restriction.Content()) {
+        continue;
+      }
+      textureTag = (TextureTag*)tag;
+      break;
+    }
+  }
+
+  // if we have found a valid texture tag, export material
+  if (textureTag && material) {
+    LuxString materialName;
+    if (!exportMaterial(*textureTag, *material, materialName))  return FALSE;
+    data->mStartedNewScope = TRUE;
+    data->mObjectName = object->GetName();
+    if (!mReceiver->comment("start of object '" + data->mObjectName + "'"))  return FALSE;
+    if (!mReceiver->attributeBegin())  return FALSE;
+    if (!mReceiver->namedMaterial(materialName.c_str()))  return FALSE;
+  }
+
+  // skip generator objects, invisible objects, objects that are no polygon
+  // objects or objects that have already been exported as area light
+  if (controlObject || !data->mVisible ||
+      (object->GetType() != Opolygon) || mAreaLightObjects.get(object))
+  {
+    return TRUE;
+  }
+
+#if _C4D_VERSION>=100
+  // skip objects that belong to a layer that should not be rendered
+  const LayerData* layerData = object->GetLayerData(mDocument);
+  if (layerData && !layerData->render) {
+    return TRUE;
+  }
+#endif
+
+  // start new scope, if not done already (for the new default material)
+  if (!data->mStartedNewScope) {
+    data->mStartedNewScope = TRUE;
+    data->mObjectName = object->GetName();
+    if (!mReceiver->comment("start of object '" + data->mObjectName + "'"))  return FALSE;
+    if (!mReceiver->attributeBegin())  return FALSE;
+  }
+
+  // export polygon object
+  return exportPolygonObject(*((PolygonObject*)object), globalMatrix);
+}
+
+
+///
+Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
+                                     BaseMaterial& material,
+                                     LuxString&    materialName)
+{
+  // get object the tag is assigned to and its name
+  BaseObject* object = textureTag.GetObject();
+  String c4dMaterialName;
+  if (object) {
+    c4dMaterialName = object->GetName();
+  }
+
+  // get the material
+  c4dMaterialName += "::";
+  c4dMaterialName += material.GetName();
+  convert2LuxString(c4dMaterialName, materialName);
+
+  if (material.IsInstanceOf(Mmaterial)) {
+    // TODO: export different materials, depending on the enabled channels
+    // for now we just export a matte material
+    return exportMatteMaterial(textureTag, (Material&)material, materialName);
+  } else {
+    // export dummy matte material with average colour of material
+    LuxColor color = material.GetAverageColor();
+    mTempParamSet.clear();
+    mTempParamSet.addParam(LUX_COLOR, "value", &color);
+    LuxString kdTexture = materialName + "::color";
+    if (!mReceiver->texture(kdTexture.c_str(), "color", "constant", mTempParamSet))  return FALSE;
+
+    LuxString materialType = "matte";
+    mTempParamSet.clear();
+    mTempParamSet.addParam(LUX_STRING,  "type", &materialType);
+    mTempParamSet.addParam(LUX_TEXTURE, "Kd",   &kdTexture);
+    return mReceiver->makeNamedMaterial(materialName.c_str(), mTempParamSet);
+  }
+}
+
+
+///
+Bool LuxAPIConverter::exportMatteMaterial(TextureTag&   textureTag,
+                                          BaseMaterial& material,
+                                          LuxString&    materialName)
+{
+  LuxTextureDataH texture;
+  LuxMaterialData materialData(gLuxMatteInfo);
+  if (getParameterLong(material, MATERIAL_USE_COLOR)) {
+    BaseList2D* bitmapLink;
+    bitmapLink = getParameterLink(material, MATERIAL_COLOR_SHADER, Xbitmap);
+    if (bitmapLink) {
+      Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
+      Filename fullPath;
+      GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
+      texture = gNewNC LuxImageMapData(COLOR_TEXTURE, fullPath);
+    } else {
+      LuxColor color = getParameterVector(material, MATERIAL_COLOR_COLOR);
+      texture = gNewNC LuxConstantTextureData(color);
+    }
+    if (!materialData.setChannel(LUX_MATTE_DIFFUSE, texture)) {
+      ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMatteMaterial(): could not set channel in material");
+    }
+  }
+
+  if (getParameterLong(material, MATERIAL_USE_BUMP)) {
+    BaseList2D* bitmapLink;
+    bitmapLink = getParameterLink(material, MATERIAL_BUMP_SHADER, Xbitmap);
+    if (bitmapLink) {
+      Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
+      Filename fullPath;
+      GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
+      texture = gNewNC LuxImageMapData(FLOAT_TEXTURE, fullPath);
+      if (!materialData.setChannel(LUX_MATTE_BUMP, texture)) {
+        ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMatteMaterial(): could not set channel in material");
+      }
+    }
+  }
+
+  return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
 
 
@@ -1060,15 +1223,9 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
   // skip empty objects
   if (!triangles.size() || !points.size())  return TRUE;
 
-  // AttributeBegin
-  if (!mReceiver->attributeBegin())  return FALSE;
-
   // write transformation matrix
   LuxMatrix  transformMatrix(globalMatrix, mC4D2LuxScale);
   if (!mReceiver->transform(transformMatrix))  return FALSE;
-
-  // write material (TODO - just a placeholder)
-  if (!mReceiver->namedMaterial("_default"))  return FALSE;
 
   // export geometry/shape + normals + UVs (if given)
   mTempParamSet.clear();
@@ -1079,15 +1236,12 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
                            normals.arrayAddress(), normals.size());
   }
   if (uvs.size()) {
-    mTempParamSet.addParam(LUX_FLOAT, "UV",
+    mTempParamSet.addParam(LUX_UV, "UV",
                            uvs.arrayAddress(), uvs.size());
   }
   mTempParamSet.addParam(LUX_TRIANGLE, "triindices",
                          triangles.arrayAddress(), triangles.size());
   if (!mReceiver->shape("mesh", mTempParamSet))  return FALSE;
-
-  // AttributeEnd
-  if (!mReceiver->attributeEnd())  return FALSE;
 
   return TRUE;
 }
@@ -1415,16 +1569,16 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
 
 
   // initialise point map
-  ULONG         pointCount, point2PolyMapSize;
+  ULONG         pointCount;
   const Vector* points;
   PointMapT     pointMap;
-  if (!setupPointMap(object, pointCount, points, pointMap, point2PolyMapSize)) {
+  if (!setupPointMap(object, pointCount, points, pointMap)) {
     return FALSE;
   }
 
   // initialise point2poly map
   Point2PolyMapT point2PolyMap;
-  if (!point2PolyMap.init(point2PolyMapSize)) {
+  if (!point2PolyMap.init(pointMap[pointCount])) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithNormals(): not enough memory to allocate poin2PolyMap");
   }
   point2PolyMap.fillWithZero();
@@ -1540,16 +1694,16 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object,
 
 
   // initialise point map
-  ULONG         pointCount, point2PolyMapSize;
+  ULONG         pointCount;
   const Vector* points;
   PointMapT     pointMap;
-  if (!setupPointMap(object, pointCount, points, pointMap, point2PolyMapSize)) {
+  if (!setupPointMap(object, pointCount, points, pointMap)) {
     return FALSE;
   }
 
   // initialise point2poly map
   Point2PolyMapT point2PolyMap;
-  if (!point2PolyMap.init(point2PolyMapSize)) {
+  if (!point2PolyMap.init(pointMap[pointCount])) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithUVs(): not enough memory to allocate poin2PolyMap");
   }
   point2PolyMap.fillWithZero();
@@ -1654,6 +1808,11 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject& object,
 }
 
 
+/// This function takes the point and UV coordinates and normals of all
+/// polygons and creates for each UV/normal combination of a point one
+/// instance in the point cache. ( 
+/// combinations for different polygons. We do that because Lux supports only
+/// one UV coordinate and one normal per point.
 ///
 Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
                                               const UVsT&        uvs,
@@ -1664,16 +1823,16 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
 
 
   // initialise point map
-  ULONG         pointCount, point2PolyMapSize;
+  ULONG         pointCount;
   const Vector* points;
   PointMapT     pointMap;
-  if (!setupPointMap(object, pointCount, points, pointMap, point2PolyMapSize)) {
+  if (!setupPointMap(object, pointCount, points, pointMap)) {
     return FALSE;
   }
 
   // initialise point2poly map
   Point2PolyMapT point2PolyMap;
-  if (!point2PolyMap.init(point2PolyMapSize)) {
+  if (!point2PolyMap.init(pointMap[pointCount])) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertAndCacheWithUVsAndNormals(): not enough memory to allocate poin2PolyMap");
   }
   point2PolyMap.fillWithZero();
@@ -1809,12 +1968,29 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
 }
 
 
+/// This functions creates an array with n+1 entries, where n is the point
+/// count of the object. This array will be a helper index into the
+/// point2PolyMap, which will be created later:
 ///
+/// The entry range for vertex i in the point2PolyMap is
+///   pointMap[i] ... pointMap[i+1]-1
+///
+/// The last entry contains the size of the point2PolyMap.
+///
+/// @param[in]  object
+///   The polygon object that is currently converted and cached.
+/// @param[out]  pointCount
+///   The number of points of the polygon object (is provided for convenience).
+/// @param[out]  points
+///   The pointer to the point coordinate array (is provided for convenience).
+/// @param[out]  pointMap
+///   The point map which is created.
+/// @return
+///   TRUE if executed successfully, FALSE otherwise.
 Bool LuxAPIConverter::setupPointMap(PolygonObject& object,
                                     ULONG&         pointCount,
                                     const Vector*& points,
-                                    PointMapT&     pointMap,
-                                    ULONG&         point2PolyMapSize)
+                                    PointMapT&     pointMap)
 {
   // get points from C4D and polygon count from cache (polygons were already
   // created by convertAndCacheGeometry())
@@ -1847,14 +2023,16 @@ Bool LuxAPIConverter::setupPointMap(PolygonObject& object,
   debugLog("  point count:         %lu", (unsigned long)pointCount);
 
   // convert polygon counts of point map into start positions in point2Poly map
-  ULONG point2PolyCount;
-  point2PolyMapSize = 0;
+  ULONG point2PolyCount, point2PolyMapSize = 0;
   for (ULONG point=0; point<=pointCount; ++point) {
     point2PolyCount   =  pointMap[point];
     pointMap[point]   =  point2PolyMapSize;
     point2PolyMapSize += point2PolyCount;
   }
   debugLog("  point2poly map size: %lu", (unsigned long)point2PolyMapSize);
+
+  // make sure that there are not too many polygons, which might cause integer
+  // overflows somewhere else
   if (point2PolyMapSize > MAXLONG) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::setupPointMap(): point2PolyMap will be too big for object '" + object.GetName() + "'");
   }

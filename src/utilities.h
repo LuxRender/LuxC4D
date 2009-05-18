@@ -30,6 +30,8 @@
 
 #include <c4d.h>
 
+#include "luxtypes.h"
+
 
 
 /*****************************************************************************
@@ -71,25 +73,38 @@ void debugLog(const CHAR* format, ...);
 
 void debugLog(const String& msg);
 
+void convert2LuxString(const String& c4dString,
+                       LuxString&    luxString);
+
+void convert2LuxString(const Filename& c4dPath,
+                       LuxString&      luxString);
+
 void showParameter(Description* description,
                    LONG         paramID,
                    AtomArray*   params,
                    Bool         show);
 
-
-LONG getParameterLong(BaseObject& object,
-                      LONG        paramID,
-                      LONG        preset = 0);
-Real getParameterReal(BaseObject& object,
-                      LONG        paramID,
-                      Real        preset = 0.0);
-Vector getParameterVector(BaseObject&   object,
+LONG getParameterLong(C4DAtom& object,
+                      LONG     paramID,
+                      LONG     preset = 0);
+Real getParameterReal(C4DAtom& object,
+                      LONG     paramID,
+                      Real     preset = 0.0);
+Vector getParameterVector(C4DAtom&      object,
                           LONG          paramID,
                           const Vector& preset = Vector());
-BaseList2D* getParameterLink(BaseObject& object,
+String getParameterString(C4DAtom&      atom,
+                          LONG          paramID,
+                          const String& preset = String());
+Filename getParameterFilename(C4DAtom&        atom,
+                              LONG            paramID,
+                              const Filename& preset = Filename());
+BaseList2D* getParameterLink(GeListNode& node,
                              LONG        paramID,
                              LONG        instanceOf = 0);
 
+//Filename getRelativePath(const Filename& path,
+//                         const Filename& startPath);
 
 
 /*****************************************************************************

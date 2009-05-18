@@ -47,6 +47,13 @@ public:
   typedef const char*  IdentifierName;
 
 
+  ///
+  virtual Bool comment(const char* text) =0;
+
+  ///
+  virtual Bool comment(const String& text) =0;
+
+
   /// Should be called before any other LuxAPI functions are called. It allows
   /// the implementations to do some initial work.
   ///

@@ -48,6 +48,9 @@ public:
   Bool init(const Filename& sceneFile);
   inline LONG errorStringID(void) const;
 
+  virtual Bool comment(const char* text);
+  virtual Bool comment(const String& text);
+
   virtual Bool startScene(const char* head);
   virtual Bool endScene(void);
 
@@ -117,7 +120,10 @@ private:
   AutoAlloc<BaseFile> mObjectsFile;
   Bool                mWorldStarted;
   LONG                mErrorStringID;
+  CHAR                mComment[2048];
+  ULONG               mCommentLen;
 
+  void writeComment(BaseFile& file);
   Bool writeLine(BaseFile&   file,
                  const CHAR* text);
   Bool writeSetting(BaseFile&            file,

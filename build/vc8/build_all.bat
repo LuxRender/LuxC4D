@@ -54,6 +54,12 @@ call :BUILD_AND_COMPRESS
 set CONFIG=R10.5_Release
 set CONFIG_ZIP=win32_r10.5_release
 call :BUILD_AND_COMPRESS
+set CONFIG=R11.0_Debug
+set CONFIG_ZIP=win32_r11.0_debug
+call :BUILD_AND_COMPRESS
+set CONFIG=R11.0_Release
+set CONFIG_ZIP=win32_r11.0_release
+call :BUILD_AND_COMPRESS
 
 rem  Remove plugin files
 rmdir /s /q %DISTRI_DIR%\LuxC4D

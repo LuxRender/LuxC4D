@@ -32,6 +32,8 @@
 
 
 /// Each enumeration specifies one type used by the Lux API.
+/// NOTE: Changes here must also be applied to cTokenType of
+///       LuxAPIWriter::writeSetting().
 enum LuxParamType {
   LUX_BOOL = 0,
   LUX_INTEGER,
@@ -39,12 +41,13 @@ enum LuxParamType {
   LUX_VECTOR,
   LUX_COLOR,
   LUX_POINT,
+  LUX_UV,
   LUX_NORMAL,
   LUX_TRIANGLE,
   LUX_QUAD,
   LUX_STRING,
   LUX_TEXTURE,
-  LUX_NUMBER
+  LUX_TYPE_NUMBER
 };
 
 ///

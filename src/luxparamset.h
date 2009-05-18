@@ -52,14 +52,14 @@ public:
   Bool addParam(LuxParamType type,
                 LuxParamName name,
                 LuxParamRef  value,
-                ULONG         arraySize=1);
+                ULONG        arraySize=1);
   void clear();
 
   inline LuxParamNumber      ParamNumber() const  { return mParamNumber; }
   inline const LuxParamType* ParamTypes() const  { return mParamTypes; }
   inline const LuxParamName* ParamNames() const  { return mParamNames; }
   inline const LuxParamRef*  ParamValues() const  { return mParamValues; }
-  inline const ULONG*         ParamArraySizes() const  { return mParamArraySizes; }
+  inline const ULONG*        ParamArraySizes() const  { return mParamArraySizes; }
 
 
 private:
@@ -69,7 +69,7 @@ private:
   LuxParamType*  mParamTypes;
   LuxParamName*  mParamNames;
   LuxParamRef*   mParamValues;
-  ULONG*          mParamArraySizes;
+  ULONG*         mParamArraySizes;
 
 
   LuxParamSet() {}

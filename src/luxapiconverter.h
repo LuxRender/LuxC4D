@@ -70,21 +70,16 @@ public:
 
 private:
 
-  /// Enum to differentiate between different hierarchy traverses.
-  enum ObjectType {
-    UNSPECIFIED_OBJECTS=0,
-    POLYGON_OBJECTS,
-    LIGHT_OBJECTS
-  };
-
-
-  /// Helper structure to keep track of visibility during hierarchy traversal.
+  /// Helper structure to keep track of visibility and textures during
+  /// hierarchy traversal.
   struct HierarchyData {
 
-    Bool       mVisible;
+    Bool   mVisible;
+    Bool   mStartedNewScope;
+    String mObjectName;
 
-    HierarchyData(Bool visible = TRUE)
-    : mVisible(visible)
+    HierarchyData(Bool visible=TRUE, Bool startedNewScope=FALSE)
+    : mVisible(visible), mStartedNewScope(startedNewScope)
     {}
   };
  
@@ -165,19 +160,19 @@ private:
   };
   
   
-  // Union which is used for the conversion of vertices with normals.
+  // Union which is used during conversion of vertices with normals.
   union Point2PolyN {
     const Vector* normalRef;
     ULONG         newPoint;
   };
 
-  // Union which is used for the conversion of vertices with UVs.
+  // Union which is used during conversion of vertices with UVs.
   union Point2PolyU {
     const LuxVector2D* uvRef;
     ULONG              newPoint;
   };
 
-  // Union which is used for the conversion of vertices with UVs and normals.
+  // Union which is used during conversion of vertices with UVs and normals.
   union Point2PolyUN {
     struct {
       const LuxVector2D* uv;
@@ -223,7 +218,6 @@ private:
   // several functions
   LuxParamSet     mTempParamSet;
   CameraObject*   mCamera;
-  ObjectType      mObjectType;
   ULONG           mLightCount;
   ObjectsT        mAreaLightObjects;
   BaseObject*     mCachedObject;
@@ -238,6 +232,12 @@ private:
   // number of quads in polygon cache (used for calculating triangle count)
   ULONG           mQuadCount;
 
+  // the current conversion function that will be called by Do()
+  Bool            (LuxAPIConverter::*mDo)(HierarchyData* data,
+                                          BaseObject*    object,
+                                          const Matrix&  globalMatrix,
+                                          Bool           controlObject);
+
 
   void clearTemporaryData(void);
   
@@ -249,6 +249,10 @@ private:
   Bool exportAccelerator(void);
 
   Bool exportLights(void);
+  Bool doLightExport(HierarchyData* data,
+                     BaseObject*    object,
+                     const Matrix&  globalMatrix,
+                     Bool           controlObject);
 
   Bool exportLight(BaseObject&   object,
                    const Matrix& globalMatrix);
@@ -265,6 +269,17 @@ private:
   Bool exportStandardMaterial(void);
 
   Bool exportGeometry(void);
+  Bool doGeometryExport(HierarchyData* data,
+                        BaseObject*    object,
+                        const Matrix&  globalMatrix,
+                        Bool           controlObject);
+
+  Bool exportMaterial(TextureTag&   textureTag,
+                      BaseMaterial& material,
+                      LuxString&    materialName);
+  Bool exportMatteMaterial(TextureTag&   textureTag,
+                           BaseMaterial& material,
+                           LuxString&    materialName);
 
   Bool exportPolygonObject(PolygonObject& object,
                            const Matrix&  globalMatrix);
@@ -288,8 +303,7 @@ private:
   Bool setupPointMap(PolygonObject& object,
                      ULONG&         pointCount,
                      const Vector*& points,
-                     PointMapT&     pointMap,
-                     ULONG&         point2PolyMapSize);
+                     PointMapT&     pointMap);
 };
 
 

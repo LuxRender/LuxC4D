@@ -56,6 +56,34 @@ void debugLog(const String& msg)
 }
 
 
+///
+void convert2LuxString(const String& c4dString,
+                       LuxString&    luxString)
+{
+  CHAR buffer[2048];
+  c4dString.GetCString(buffer, sizeof(buffer));
+  buffer[sizeof(buffer)-1] = '\0';
+  luxString = buffer;
+}
+
+
+///
+void convert2LuxString(const Filename& c4dPath,
+                       LuxString&      luxString)
+{
+  CHAR buffer[2048];
+  c4dPath.GetString().GetCString(buffer, sizeof(buffer));
+  buffer[sizeof(buffer)-1] = '\0';
+
+  for (CHAR* c=buffer; *c!='\0'; ++c) {
+    if (*c == '\\') {
+      *c = '/';
+    }
+  }
+
+  luxString = buffer;
+}
+
 
 /// Makes a parameter visible or hides it.
 ///
@@ -82,8 +110,8 @@ void showParameter(Description* description,
 
 /// Obtains a description parameter of type LONG of an object.
 ///
-/// @param[in]  object
-///   The object of which we want to read out the parameter.
+/// @param[in]  atom
+///   The atom of which we want to read out the parameter.
 /// @param[in]  paramID
 ///   The ID of the description parameter.
 /// @param[in]  preset
@@ -91,15 +119,13 @@ void showParameter(Description* description,
 ///   of type LONG.
 /// @return
 ///   The value of the parameter or the preset value, if we couldn't fetch it.
-LONG getParameterLong(BaseObject& object,
-                      LONG        paramID,
-                      LONG        preset)
+LONG getParameterLong(C4DAtom& atom,
+                      LONG     paramID,
+                      LONG     preset)
 {
   GeData parameter;
-  if (object.GetParameter(DescLevel(paramID), parameter, 0)) {
-    if (parameter.GetType() == DA_LONG) {
-      return parameter.GetLong();
-    }
+  if (atom.GetParameter(DescLevel(paramID), parameter, 0)) {
+    return parameter.GetLong();
   }
   return preset;
 }
@@ -107,8 +133,8 @@ LONG getParameterLong(BaseObject& object,
 
 /// Obtains a description parameter of type Real of an object.
 ///
-/// @param[in]  object
-///   The object of which we want to read out the parameter.
+/// @param[in]  atom
+///   The atom of which we want to read out the parameter.
 /// @param[in]  paramID
 ///   The ID of the description parameter.
 /// @param[in]  preset
@@ -116,15 +142,13 @@ LONG getParameterLong(BaseObject& object,
 ///   of type Real.
 /// @return
 ///   The value of the parameter or the preset value, if we couldn't fetch it.
-Real getParameterReal(BaseObject& object,
-                      LONG        paramID,
-                      Real        preset)
+Real getParameterReal(C4DAtom& atom,
+                      LONG     paramID,
+                      Real     preset)
 {
   GeData parameter;
-  if (object.GetParameter(DescLevel(paramID), parameter, 0)) {
-    if (parameter.GetType() == DA_REAL) {
-      return parameter.GetReal();
-    }
+  if (atom.GetParameter(DescLevel(paramID), parameter, 0)) {
+    return parameter.GetReal();
   }
   return preset;
 }
@@ -132,8 +156,8 @@ Real getParameterReal(BaseObject& object,
 
 /// Obtains a description parameter of type Vector of an object.
 ///
-/// @param[in]  object
-///   The object of which we want to read out the parameter.
+/// @param[in]  atom
+///   The atom of which we want to read out the parameter.
 /// @param[in]  paramID
 ///   The ID of the description parameter.
 /// @param[in]  preset
@@ -141,15 +165,39 @@ Real getParameterReal(BaseObject& object,
 ///   of type Vector.
 /// @return
 ///   The value of the parameter or the preset value, if we couldn't fetch it.
-Vector getParameterVector(BaseObject&   object,
+Vector getParameterVector(C4DAtom&      atom,
                           LONG          paramID,
                           const Vector& preset)
 {
   GeData parameter;
-  if (object.GetParameter(DescLevel(paramID), parameter, 0)) {
-    if (parameter.GetType() == DA_VECTOR) {
-      return parameter.GetVector();
-    }
+  if (atom.GetParameter(DescLevel(paramID), parameter, 0)) {
+    return parameter.GetVector();
+  }
+  return preset;
+}
+
+
+///
+String getParameterString(C4DAtom&      atom,
+                          LONG          paramID,
+                          const String& preset)
+{
+  GeData parameter;
+  if (atom.GetParameter(DescLevel(paramID), parameter, 0)) {
+    return parameter.GetString();
+  }
+  return preset;
+}
+
+
+//
+Filename getParameterFilename(C4DAtom&        atom,
+                              LONG            paramID,
+                              const Filename& preset)
+{
+  GeData parameter;
+  if (atom.GetParameter(DescLevel(paramID), parameter, 0)) {
+    return parameter.GetFilename();
   }
   return preset;
 }
@@ -157,26 +205,39 @@ Vector getParameterVector(BaseObject&   object,
 
 /// Obtains a description parameter of type LINK from an object.
 ///
-/// @param[in]  object
-///   The object of which we want to read out the parameter.
+/// @param[in]  node
+///   The atom node of which we want to read out the parameter.
 /// @param[in]  paramID
 ///   The ID of the description parameter.
 /// @param[in]  instanceOf
 ///   The object type that is allowed in the link.
 /// @return
 ///   The link parameter (BaseList2D*) or o if we couldn't fetch it.
-BaseList2D* getParameterLink(BaseObject& object,
+BaseList2D* getParameterLink(GeListNode& node,
                              LONG        paramID,
                              LONG        instanceOf)
 {
   GeData parameter;
-  if (object.GetParameter(DescLevel(paramID), parameter, 0)) {
-    if (parameter.GetType() == DA_ALIASLINK) {
-      BaseLink* link = parameter.GetBaseLink();
-      if (link) {
-        return link->GetLink(object.GetDocument(), instanceOf);
-      }
+  if (node.GetParameter(DescLevel(paramID), parameter, 0)) {
+    BaseLink* link = parameter.GetBaseLink();
+    if (link) {
+      return link->GetLink(node.GetDocument(), instanceOf);
     }
   }
   return 0;
 }
+
+
+///
+//Filename getRelativePath(const Filename& path,
+//                         const Filename& startPath)
+//{
+//  String pathDirStr = path.GetDirectory().GetString().ToLower();
+//  if (pathDir
+//  String startDirStr = startPath.GetDirectory().GetString().ToLower();
+//
+//  LONG startDirLength = startDirStr.GetLength();
+//  for (LONG pos=0; pos<startDirLength; ++pos) {
+//    if (pathDirStr
+//  }
+//}

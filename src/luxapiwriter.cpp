@@ -41,7 +41,9 @@ LuxAPIWriter::LuxAPIWriter()
 : mFilesOpen(FALSE),
   mWorldStarted(FALSE),
   mErrorStringID(0)
-{}
+{
+  mCommentLen = 0;
+}
 
 
 /// Destroys the instance. If the scene file wasn't closed before, it will be
@@ -80,6 +82,7 @@ Bool LuxAPIWriter::init(const Filename &sceneFile)
   mSceneFilename = sceneFile;
   mWorldStarted = FALSE;
   mErrorStringID = 0;
+  mCommentLen = 0;
   return TRUE;
 }
 
@@ -139,7 +142,7 @@ Bool LuxAPIWriter::endScene(void)
   CHAR buffer[cBufferSize];
   Bool success = TRUE;
   success &= writeLine(*mSceneFile, "\n# The Scene");
-  success &= writeLine(*mSceneFile, "\nWorldBegin\n\n");
+  success &= writeLine(*mSceneFile, "WorldBegin\n");
   ( String("Include \"")
     + mMaterialsFilename.GetFileString() 
     + String("\"") ).GetCString(buffer, cBufferSize, StUTF8);
@@ -148,7 +151,7 @@ Bool LuxAPIWriter::endScene(void)
     + mObjectsFilename.GetFileString() 
     + String("\"") ).GetCString(buffer, cBufferSize, StUTF8);
   success &= writeLine(*mSceneFile, buffer);
-  success &= writeLine(*mSceneFile, "\n\nWorldEnd\n");
+  success &= writeLine(*mSceneFile, "\nWorldEnd");
 
   // close the files
   success &= mSceneFile->Close();
@@ -166,6 +169,26 @@ Bool LuxAPIWriter::endScene(void)
 }
 
 
+Bool LuxAPIWriter::comment(const char* text)
+{
+  for (mCommentLen=0; mCommentLen<sizeof(mComment); ++mCommentLen) {
+    if ((mComment[mCommentLen] = text[mCommentLen]) == 0) {
+      break;
+    }
+  }
+  mComment[sizeof(mComment)-1] = '\0';
+  return TRUE;
+}
+
+
+Bool LuxAPIWriter::comment(const String& text)
+{
+  mCommentLen = text.GetCString(mComment, sizeof(mComment), StUTF8);
+  mComment[sizeof(mComment)-1] = '\0';
+  return TRUE;
+}
+
+
 Bool LuxAPIWriter::lookAt(const LuxVector& camPos,
                           const LuxVector& trgPos,
                           const LuxVector& upVec)
@@ -173,11 +196,17 @@ Bool LuxAPIWriter::lookAt(const LuxVector& camPos,
   const static ULONG  sBufferSize(256);
   CHAR                buffer[sBufferSize];
 
+  // write comment, if there is one
+  writeComment(mSceneFile);
+
+  // create C string with LookAt + parameters
   LONG len = sprintf(buffer,
                      "LookAt %.8g %.8g %.8g  %.8g %.8g %.8g  %.8g %.8g %.8g\n",
                      camPos.x, camPos.y, camPos.z,
                      trgPos.x, trgPos.y, trgPos.z,
                      upVec.x,  upVec.y,  upVec.z);
+
+  // write LookAt string
   if (!mSceneFile->WriteBytes(buffer, len)) {
     ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
                            "LuxAPIWriter::lookAt(): writing to file failed");
@@ -189,6 +218,7 @@ Bool LuxAPIWriter::lookAt(const LuxVector& camPos,
 Bool LuxAPIWriter::film(const IdentifierName name,
                         const LuxParamSet&   paramSet)
 {
+  writeComment(mSceneFile);
   return writeSetting(*mSceneFile, "Film", name, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
@@ -197,6 +227,7 @@ Bool LuxAPIWriter::film(const IdentifierName name,
 Bool LuxAPIWriter::camera(IdentifierName     name,
                           const LuxParamSet& paramSet)
 {
+  writeComment(mSceneFile);
   return writeSetting(*mSceneFile, "Camera", name, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
@@ -205,6 +236,7 @@ Bool LuxAPIWriter::camera(IdentifierName     name,
 Bool LuxAPIWriter::pixelFilter(IdentifierName     name,
                                const LuxParamSet& paramSet)
 {
+  writeComment(mSceneFile);
   return writeSetting(*mSceneFile, "PixelFilter", name, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
@@ -213,6 +245,7 @@ Bool LuxAPIWriter::pixelFilter(IdentifierName     name,
 Bool LuxAPIWriter::sampler(IdentifierName     name,
                            const LuxParamSet& paramSet)
 {
+  writeComment(mSceneFile);
   return writeSetting(*mSceneFile, "Sampler", name, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
@@ -221,6 +254,7 @@ Bool LuxAPIWriter::sampler(IdentifierName     name,
 Bool LuxAPIWriter::surfaceIntegrator(IdentifierName     name,
                                      const LuxParamSet& paramSet)
 {
+  writeComment(mSceneFile);
   return writeSetting(*mSceneFile, "SurfaceIntegrator", name, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
@@ -229,6 +263,7 @@ Bool LuxAPIWriter::surfaceIntegrator(IdentifierName     name,
 Bool LuxAPIWriter::accelerator(IdentifierName     name,
                                const LuxParamSet& paramSet)
 {
+  writeComment(mSceneFile);
   return writeSetting(*mSceneFile, "Accelerator", name, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
@@ -250,24 +285,30 @@ Bool LuxAPIWriter::worldEnd(void)
 
 Bool LuxAPIWriter::attributeBegin(void)
 {
-  return writeLine(*mObjectsFile, "\nAttributeBegin");
+  mObjectsFile->WriteChar('\n');
+  writeComment(mObjectsFile);
+  return writeLine(*mObjectsFile, "AttributeBegin");
 }
 
 
 Bool LuxAPIWriter::attributeEnd(void)
 {
-  return writeLine(*mObjectsFile, "AttributeEnd");
+  writeComment(mObjectsFile);
+  return writeLine(*mObjectsFile, "AttributeEnd\n");
 }
 
 
 Bool LuxAPIWriter::objectBegin(const IdentifierName name)
 {
+  mObjectsFile->WriteChar('\n');
+  writeComment(mObjectsFile);
   return writeSetting(*mObjectsFile, "\nObjectBegin", name);
 }
 
 
 Bool LuxAPIWriter::objectEnd(void)
 {
+  writeComment(mObjectsFile);
   return writeLine(*mObjectsFile, "ObjectEnd");
 }
 
@@ -275,13 +316,16 @@ Bool LuxAPIWriter::objectEnd(void)
 Bool LuxAPIWriter::lightSource(IdentifierName     name,
                                const LuxParamSet& paramSet)
 {
-  return writeSetting(*mObjectsFile, "\nLightSource", name, 0, 0, paramSet, TRUE);
+  mObjectsFile->WriteChar('\n');
+  writeComment(mObjectsFile);
+  return writeSetting(*mObjectsFile, "LightSource", name, 0, 0, paramSet, TRUE);
 }
 
 
 Bool LuxAPIWriter::areaLightSource(IdentifierName     name,
                                    const LuxParamSet& paramSet)
 {
+  writeComment(mObjectsFile);
   return writeSetting(*mObjectsFile, "AreaLightSource", name, 0, 0, paramSet, TRUE);
 }
 
@@ -291,19 +335,25 @@ Bool LuxAPIWriter::texture(IdentifierName     name,
                            IdentifierName     type,
                            const LuxParamSet& paramSet)
 {
-  return writeSetting(*mMaterialsFile, "\nTexture", name, colorType, type, paramSet, TRUE);
+  mObjectsFile->WriteChar('\n');
+  writeComment(mMaterialsFile);
+  return writeSetting(*mMaterialsFile, "Texture", name, colorType, type, paramSet, TRUE);
 }
 
 
 Bool LuxAPIWriter::makeNamedMaterial(IdentifierName     name,
                                      const LuxParamSet& paramSet)
 {
-  return writeSetting(*mMaterialsFile, "MakeNamedMaterial", name, 0, 0, paramSet, TRUE);
+  writeComment(mMaterialsFile);
+  Bool success = writeSetting(*mMaterialsFile, "MakeNamedMaterial", name, 0, 0, paramSet, TRUE);
+  success &= mMaterialsFile->WriteChar('\n');
+  return success;
 }
 
 
 Bool LuxAPIWriter::namedMaterial(IdentifierName name)
 {
+  writeComment(mObjectsFile);
   return writeSetting(*mObjectsFile, "NamedMaterial", name);
 }
 
@@ -311,6 +361,7 @@ Bool LuxAPIWriter::namedMaterial(IdentifierName name)
 Bool LuxAPIWriter::material(IdentifierName     name,
                             const LuxParamSet& paramSet)
 {
+  writeComment(mObjectsFile);
   return writeSetting(*mObjectsFile, "Material", name, 0, 0, paramSet, TRUE);
 }
 
@@ -319,6 +370,11 @@ Bool LuxAPIWriter::transform(const LuxMatrix& matrix)
 {
   const static ULONG  sBufferSize(360);
   CHAR                buffer[sBufferSize];
+
+  BaseFile* outFile = mWorldStarted ? mObjectsFile : mSceneFile;
+
+  // write buffered comment, if there is one
+  writeComment(*outFile);
 
   LONG len = sprintf(buffer,
                      "Transform [%.8g %.8g %.8g %.8g  "
@@ -329,7 +385,6 @@ Bool LuxAPIWriter::transform(const LuxMatrix& matrix)
                      matrix.values[4],  matrix.values[5],  matrix.values[6],  matrix.values[7], 
                      matrix.values[8],  matrix.values[9],  matrix.values[10], matrix.values[11], 
                      matrix.values[12], matrix.values[13], matrix.values[14], matrix.values[15]);
-  BaseFile* outFile = mWorldStarted ? mObjectsFile : mSceneFile;
   if (!outFile->WriteBytes(buffer, len)) {
     ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
                            "LuxAPIWriter::transform(): writing to file failed");
@@ -340,6 +395,7 @@ Bool LuxAPIWriter::transform(const LuxMatrix& matrix)
 
 Bool LuxAPIWriter::reverseOrientation(void)
 {
+  writeComment(mObjectsFile);
   return writeLine(*mObjectsFile, "ReverseOrientation");
 }
 
@@ -347,6 +403,7 @@ Bool LuxAPIWriter::reverseOrientation(void)
 Bool LuxAPIWriter::shape(IdentifierName     name,
                          const LuxParamSet& paramSet)
 {
+  writeComment(mObjectsFile);
   return writeSetting(*mObjectsFile, "Shape", name, 0, 0, paramSet, TRUE);
 }
 
@@ -355,6 +412,18 @@ Bool LuxAPIWriter::shape(IdentifierName     name,
 /*****************************************************************************
  * Implementation of private member functions of class LuxAPIWriter.
  *****************************************************************************/
+
+
+///
+void LuxAPIWriter::writeComment(BaseFile& file)
+{
+  if (mCommentLen) {
+    file.WriteBytes((void*)"# ", 2);
+    file.WriteBytes((void*)mComment, mCommentLen);
+    file.WriteChar('\n');
+    mCommentLen = 0;
+  }
+}
 
 
 /// Writes a string and terminates it with a line feed.
@@ -443,17 +512,19 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
                                 const LuxParamSet& paramSet,
                                 Bool               newLine)
 {
-  // these are the type identifiers used in the Lux file format
+  // These are the type identifiers used in the Lux file format.
+  // NOTE: Changes in LuxParamType must be applied here too.
   static const struct {
     CHAR* nameStr;
     ULONG nameStrLen;
-  } cTokenType[LUX_NUMBER] =
+  } cTokenType[LUX_TYPE_NUMBER] =
     { {"bool ", 5},
       {"integer ", 8},
       {"float ", 6},
       {"vector ", 7},
       {"color ", 6},
       {"point ", 6},
+      {"float ", 6},
       {"normal ", 7},
       {"integer ", 8},
       {"integer ", 8},
@@ -602,6 +673,22 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%.8g %.8g %.8g\n",
                                        values[i].x, values[i].y, values[i].z);
+              success &= file.WriteBytes(valueString, valueStringLen);
+            }
+          }
+          break;
+        }
+      case LUX_UV:
+        {
+          const LuxFloat* values = (const LuxFloat*)tokenValue;
+          if (tokenArraySize == 2) {
+            valueStringLen = sprintf(valueString, "%.8g %.8g",
+                                     values[0], values[1]);
+            success &= file.WriteBytes(valueString, valueStringLen);
+          } else {
+            for (ULONG i=1; i<tokenArraySize; i+=2) {
+              valueStringLen = sprintf(valueString, "%.8g %.8g\n",
+                                       values[i-1], values[i]);
               success &= file.WriteBytes(valueString, valueStringLen);
             }
           }

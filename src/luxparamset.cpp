@@ -98,7 +98,7 @@ LuxParamSet::~LuxParamSet()
 Bool LuxParamSet::addParam(LuxParamType type,
                            LuxParamName name,
                            LuxParamRef  value,
-                           ULONG         arraySize)
+                           ULONG        arraySize)
 {
   // check if therer is still some space left
   if (mParamNumber >= mMaxParamNumber) {
