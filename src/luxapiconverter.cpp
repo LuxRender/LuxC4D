@@ -1155,9 +1155,9 @@ Bool LuxAPIConverter::exportMatteMaterial(TextureTag&   textureTag,
                                           BaseMaterial& material,
                                           LuxString&    materialName)
 {
-  LuxTextureDataH texture;
   LuxMaterialData materialData(gLuxMatteInfo);
   if (getParameterLong(material, MATERIAL_USE_COLOR)) {
+    LuxTextureDataH texture;
     BaseList2D* bitmapLink;
     bitmapLink = getParameterLink(material, MATERIAL_COLOR_SHADER, Xbitmap);
     if (bitmapLink) {
@@ -1170,7 +1170,7 @@ Bool LuxAPIConverter::exportMatteMaterial(TextureTag&   textureTag,
       texture = gNewNC LuxConstantTextureData(color);
     }
     if (!materialData.setChannel(LUX_MATTE_DIFFUSE, texture)) {
-      ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMatteMaterial(): could not set channel in material");
+      ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMatteMaterial(): could not set color channel in material");
     }
   }
 
@@ -1178,12 +1178,18 @@ Bool LuxAPIConverter::exportMatteMaterial(TextureTag&   textureTag,
     BaseList2D* bitmapLink;
     bitmapLink = getParameterLink(material, MATERIAL_BUMP_SHADER, Xbitmap);
     if (bitmapLink) {
+      LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(FLOAT_TEXTURE);
+
       Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
       Filename fullPath;
       GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
-      texture = gNewNC LuxImageMapData(FLOAT_TEXTURE, fullPath);
-      if (!materialData.setChannel(LUX_MATTE_BUMP, texture)) {
-        ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMatteMaterial(): could not set channel in material");
+      scaledTexture->mTexture1 = gNewNC LuxImageMapData(FLOAT_TEXTURE, fullPath);
+
+      LuxFloat strength = 0.01 * getParameterReal(material, MATERIAL_BUMP_STRENGTH);
+      scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(strength);
+
+      if (!materialData.setChannel(LUX_MATTE_BUMP, scaledTexture)) {
+        ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMatteMaterial(): could not set bump channel in material");
       }
     }
   }

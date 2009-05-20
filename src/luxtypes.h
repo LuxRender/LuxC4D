@@ -79,13 +79,21 @@ struct LuxVector2D
   LuxFloat x, y;
 
 
+  ///
   inline LuxVector2D()
   {}
 
+  ///
+  inline LuxVector2D(LuxFloat xy)
+  : x(xy), y(xy)
+  {}
+
+  ///
   inline LuxVector2D(LuxFloat ix, LuxFloat iy)
   : x(ix), y(iy)
   {}
 
+  ///
   inline LuxVector2D& operator=(const Vector& other)
   {
     x=other.x;
@@ -93,6 +101,7 @@ struct LuxVector2D
     return *this;
   }
 
+  ///
   inline LuxVector2D operator-(const LuxVector2D& other) const
   {
     return LuxVector2D(x-other.x, y-other.y);
@@ -111,6 +120,12 @@ struct LuxVector
 
   /// Default constructor. The members are NOT cleared.
   inline LuxVector()
+  {}
+
+  /// Constructor that also initialises the data members.
+  /// @param[in] xyz  The value that will be stored in X, Y and Z components.
+  inline LuxVector(LuxFloat xyz)
+  : x(xyz), y(xyz), z(xyz)
   {}
 
   /// Constructor that also initialises the data members.
@@ -140,6 +155,12 @@ struct LuxPoint
 
   /// Default constructor. The members are NOT cleared.
   inline LuxPoint()
+  {}
+
+  /// Constructor that also initialises the data members.
+  /// @param[in] xyz  The value that will be stored in X, Y and Z components.
+  inline LuxPoint(LuxFloat xyz)
+  : x(xyz), y(xyz), z(xyz)
   {}
 
   /// Constructor that also initialises the data members.
@@ -180,6 +201,12 @@ struct LuxNormal
 
   /// Default constructor. The members are NOT cleared.
   inline LuxNormal()
+  {}
+
+  /// Constructor that also initialises the data members.
+  /// @param[in] xyz  The value that will be stored in X, Y and Z components.
+  inline LuxNormal(LuxFloat xyz)
+  : x(xyz), y(xyz), z(xyz)
   {}
 
   /// Constructor that also initialises the data members.
@@ -272,6 +299,15 @@ struct LuxColor
   {}
 
   /// Constructor that also initialises the data members.
+  /// @param[in] rgb  The value that will ve stored in red, green and blue component.
+  inline LuxColor(LuxFloat rgb)
+  {
+    c[0] = rgb;
+    c[1] = rgb;
+    c[2] = rgb;
+  }
+
+  /// Constructor that also initialises the data members.
   /// @param[in] r  The red component.
   /// @param[in] g  The green component.
   /// @param[in] b  The blue component.
@@ -289,6 +325,14 @@ struct LuxColor
     c[0] = c4dVector.x;
     c[1] = c4dVector.y;
     c[2] = c4dVector.z;
+  }
+
+  ///
+  inline LuxColor operator^(const LuxColor& other) const
+  {
+    return LuxColor(c[0] * other.c[0],
+                    c[1] * other.c[1],
+                    c[2] * other.c[2]);
   }
 };
 

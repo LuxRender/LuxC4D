@@ -1,3 +1,28 @@
+/************************************************************************
+ * LuxC4D - CINEMA 4D plug-in for export to LuxRender                   *
+ * (http://www.luxrender.net)                                           *
+ *                                                                      *
+ * Author:                                                              *
+ * Marcus Spranger (abstrax)                                            *
+ *                                                                      *
+ ************************************************************************
+ *                                                                      *
+ * This file is part of LuxC4D.                                         *
+ *                                                                      *
+ * LuxC4D is free software: you can redistribute it and/or modify       *
+ * it under the terms of the GNU General Public License as published by *
+ * the Free Software Foundation, either version 3 of the License, or    *
+ * (at your option) any later version.                                  *
+ *                                                                      *
+ * LuxC4D is distributed in the hope that it will be useful,            *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+ * GNU General Public License for more details.                         *
+ *                                                                      *
+ * You should have received a copy of the GNU General Public License    *
+ * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
+ ************************************************************************/
+
 #ifndef __LUXTEXTUREDATA_H__
 #define __LUXTEXTUREDATA_H__
 
@@ -16,6 +41,8 @@ enum LuxTextureType {
 
 
 
+/***************************************************************************//*!
+*//****************************************************************************/
 class LuxTextureData
 {
   public:
@@ -24,28 +51,32 @@ class LuxTextureData
 
 
     inline LuxTextureData(LuxTextureType type) : mType(type) {}
-
-    virtual Bool isConstantTexture() const;
-
-    virtual Bool sendToAPI(LuxAPI&                receiver,
-                           LuxAPI::IdentifierName name) const =0;
+    virtual ~LuxTextureData() {}
 
     Bool sendToAPIAndAddToParamSet(LuxAPI&                receiver,
                                    LuxParamSet&           paramSet,
                                    LuxAPI::IdentifierName paramName,
-                                   const LuxString&       textureName) const;
+                                   const LuxString&       textureName);
+
+    virtual Bool isConstant() const;
+    virtual const LuxFloat& constantFloat();
+    virtual const LuxColor& constantColor();
+
+    virtual Bool sendToAPI(LuxAPI&          receiver,
+                           const LuxString& name) =0;
 
 
   protected:
 
     Bool sendToAPIHelper(LuxAPI&                receiver,
-                         LuxAPI::IdentifierName name,
+                         const LuxString&       name,
                          LuxAPI::IdentifierName typeName,
                          const LuxParamSet&     paramSet) const;
 
 
   private:
 
+    /// We don't need and don't want a copy operator.
     LuxTextureData& operator=(const LuxTextureData& other) {}
 };
 
@@ -53,65 +84,80 @@ typedef Handle<LuxTextureData>  LuxTextureDataH;
 
 
 
+/***************************************************************************//*!
+*//****************************************************************************/
 class LuxConstantTextureData : public LuxTextureData
 {
   public:
 
+    LuxFloat mFloat;
+    LuxColor mColor;
+
+
+    LuxConstantTextureData(LuxTextureType type);
     LuxConstantTextureData(LuxFloat value);
     LuxConstantTextureData(const LuxColor& color);
 
-    virtual Bool isConstantTexture() const;
-    inline const LuxFloat& value() const { return mValue; }
-    inline const LuxColor& color() const { return mColor; }
+    virtual Bool isConstant() const;
+    virtual const LuxFloat& constantFloat();
+    virtual const LuxColor& constantColor();
 
-    virtual Bool sendToAPI(LuxAPI&                receiver,
-                           LuxAPI::IdentifierName name) const;
-
-
-  private:
-
-    LuxFloat mValue;
-    LuxColor mColor;
+    virtual Bool sendToAPI(LuxAPI&          receiver,
+                           const LuxString& name);
 };
 
+typedef Handle<LuxConstantTextureData>  LuxConstantTextureDataH;
 
 
+
+/***************************************************************************//*!
+*//****************************************************************************/
 class LuxScaleTextureData : public LuxTextureData
 {
   public:
 
-    LuxScaleTextureData(LuxFloat scale);
-    LuxScaleTextureData(const LuxColor& scale);
-
-    virtual Bool sendToAPI(LuxAPI&                receiver,
-                           LuxAPI::IdentifierName name) const;
-  
-    
-  private:
-    
-    LuxFloat        mValueScale;
-    LuxColor        mColorScale;
     LuxTextureDataH mTexture1;
     LuxTextureDataH mTexture2;
+
+
+    LuxScaleTextureData(LuxTextureType type);
+
+    virtual Bool isConstant() const;
+    virtual const LuxFloat& constantFloat();
+    virtual const LuxColor& constantColor();
+
+    virtual Bool sendToAPI(LuxAPI&          receiver,
+                           const LuxString& name);
+
+
+  protected:
+
+    LuxFloat mConstantFloat;
+    LuxColor mConstantColor;
 };
 
+typedef Handle<LuxScaleTextureData>  LuxScaleTextureDataH;
 
 
+
+/***************************************************************************//*!
+*//****************************************************************************/
 class LuxImageMapData : public LuxTextureData
 {
   public:
 
-    LuxImageMapData(LuxTextureType  type,
-                    const Filename& path);
-
-    virtual Bool sendToAPI(LuxAPI&                receiver,
-                           LuxAPI::IdentifierName name) const;
-  
-    
-  private:
-    
     Filename mPath;
+
+
+    LuxImageMapData(LuxTextureType type);
+    LuxImageMapData(LuxTextureType  type,
+                    const Filename& path );
+
+    virtual Bool sendToAPI(LuxAPI&          receiver,
+                           const LuxString& name);
 };
+
+typedef Handle<LuxImageMapData>  LuxImageMapDataH;
 
 
 
