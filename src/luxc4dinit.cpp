@@ -50,12 +50,12 @@ Bool PluginStart(void)
   // register LuxC4DPreferences
   gPreferences = gNewNC LuxC4DPreferences;
   if (!gPreferences) {
-    ERRLOG("Could not allocate LuxC4DPreferences hook class.");
+    ERRLOG("Could not allocate LuxC4DPreferences plugin.");
     return FALSE;
   }
-  if (!gPreferences->registerHook()) {
+  if (!gPreferences->registerPlugin()) {
     gDelete(gPreferences);
-    ERRLOG("Could not register LuxC4DPreferences .");
+    ERRLOG("Could not register LuxC4DPreferences plugin.");
     return FALSE;
   }
 
@@ -114,9 +114,7 @@ Bool PluginStart(void)
 /// Hook that is called during the shut down of CINEMA 4D. Here we can
 /// deallocate all resources, that are not owned by CINEMA 4D.
 void PluginEnd(void)
-{
-  gDelete(gPreferences);
-}
+{}
 
 
 /// Hook that is called for different messages.

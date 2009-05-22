@@ -126,11 +126,11 @@ enum LuxMatteChannelId {
 static const LuxChannelInfo gLuxMatteChannelInfos[] = 
   {
     // LUX_MATTE_DIFFUSE
-    { COLOR_TEXTURE, "Kd",      "Kd"    },
+    { LUX_COLOR_TEXTURE, "Kd",      "Kd"    },
     // LUX_MATTE_SIGMA
-    { FLOAT_TEXTURE, "sigma",   "sigma" },
+    { LUX_FLOAT_TEXTURE, "sigma",   "sigma" },
     // LUX_MATTE_BUMP
-    { FLOAT_TEXTURE, "bumpmap", "bump"  }
+    { LUX_FLOAT_TEXTURE, "bumpmap", "bump"  }
   };
 
 static const LuxMaterialInfo gLuxMatteInfo =

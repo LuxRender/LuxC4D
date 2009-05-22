@@ -33,6 +33,7 @@
 #include "fixarray1d.h"
 #include "luxapi.h"
 #include "luxc4dsettings.h"
+#include "luxtexturedata.h"
 #include "rbtreeset.h"
 
 
@@ -280,6 +281,17 @@ private:
   Bool exportMatteMaterial(TextureTag&   textureTag,
                            BaseMaterial& material,
                            LuxString&    materialName);
+  LuxTextureDataH convertFloatChannel(TextureTag&   textureTag,
+                                      BaseMaterial& material,
+                                      LONG          shaderId,
+                                      LONG          strengthId,
+                                      Real          strengthScale = 1.0f);
+  LuxTextureDataH convertColorChannel(TextureTag&   textureTag,
+                                      BaseMaterial& material,
+                                      LONG          shaderId,
+                                      LONG          colorId,
+                                      LONG          brightnessId,
+                                      LONG          mixerId);
 
   Bool exportPolygonObject(PolygonObject& object,
                            const Matrix&  globalMatrix);

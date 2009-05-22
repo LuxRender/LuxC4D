@@ -29,10 +29,6 @@
 
 
 
-#define PID_LUXC4D_EXPORTERRENDER 1023253
-
-
-
 /*****************************************************************************
  * Implementation of public member functions of class LuxC4DExporterRender.
  *****************************************************************************/
@@ -62,8 +58,12 @@ Bool LuxC4DExporterRender::Execute(BaseDocument* document)
 {
   // get Lux executable
   Filename luxPath = gPreferences->getLuxPath();
-  if (!luxPath.Content() || !GeFExist(luxPath)) {
-    GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_INVALID), GEMB_OK);
+  if (!luxPath.Content()) {
+    GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_EMPTY), GEMB_OK);
+    return FALSE;
+  }
+  if (!GeFExist(luxPath)) {
+    GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_DOESNT_EXIST, luxPath.GetString()), GEMB_OK);
     return FALSE;
   }
 

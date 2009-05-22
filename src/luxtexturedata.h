@@ -34,8 +34,8 @@
 
 
 enum LuxTextureType {
-  FLOAT_TEXTURE = 0,
-  COLOR_TEXTURE,
+  LUX_FLOAT_TEXTURE = 0,
+  LUX_COLOR_TEXTURE,
   LUX_TEXTURE_TYPE_COUNT
 };
 
@@ -62,9 +62,6 @@ class LuxTextureData
     virtual const LuxFloat& constantFloat();
     virtual const LuxColor& constantColor();
 
-    virtual Bool sendToAPI(LuxAPI&          receiver,
-                           const LuxString& name) =0;
-
 
   protected:
 
@@ -72,6 +69,9 @@ class LuxTextureData
                          const LuxString&       name,
                          LuxAPI::IdentifierName typeName,
                          const LuxParamSet&     paramSet) const;
+
+    virtual Bool sendToAPI(LuxAPI&          receiver,
+                           const LuxString& name) =0;
 
 
   private:
@@ -81,6 +81,67 @@ class LuxTextureData
 };
 
 typedef Handle<LuxTextureData>  LuxTextureDataH;
+
+
+
+/***************************************************************************//*!
+*//****************************************************************************/
+class LuxScaleTextureData : public LuxTextureData
+{
+  public:
+
+    LuxTextureDataH mTexture1;
+    LuxTextureDataH mTexture2;
+
+
+    LuxScaleTextureData(LuxTextureType type);
+
+    virtual Bool isConstant() const;
+    virtual const LuxFloat& constantFloat();
+    virtual const LuxColor& constantColor();
+
+
+  protected:
+
+    LuxFloat mConstantFloat;
+    LuxColor mConstantColor;
+
+    virtual Bool sendToAPI(LuxAPI&          receiver,
+                           const LuxString& name);
+};
+
+typedef Handle<LuxScaleTextureData>  LuxScaleTextureDataH;
+
+
+
+/***************************************************************************//*!
+*//****************************************************************************/
+class LuxMixTextureData : public LuxTextureData
+{
+  public:
+
+    LuxTextureDataH mTexture1;
+    LuxTextureDataH mTexture2;
+    LuxFloat        mAmount;
+
+
+    LuxMixTextureData(LuxTextureType type);
+
+    virtual Bool isConstant() const;
+    virtual const LuxFloat& constantFloat();
+    virtual const LuxColor& constantColor();
+
+
+  protected:
+
+    LuxFloat mConstantFloat;
+    LuxColor mConstantColor;
+
+    virtual Bool sendToAPI(LuxAPI&          receiver,
+                           const LuxString& name);
+};
+
+typedef Handle<LuxMixTextureData>  LuxMixTextureDataH;
 
 
 
@@ -102,41 +163,14 @@ class LuxConstantTextureData : public LuxTextureData
     virtual const LuxFloat& constantFloat();
     virtual const LuxColor& constantColor();
 
+
+  protected:
+
     virtual Bool sendToAPI(LuxAPI&          receiver,
                            const LuxString& name);
 };
 
 typedef Handle<LuxConstantTextureData>  LuxConstantTextureDataH;
-
-
-
-/***************************************************************************//*!
-*//****************************************************************************/
-class LuxScaleTextureData : public LuxTextureData
-{
-  public:
-
-    LuxTextureDataH mTexture1;
-    LuxTextureDataH mTexture2;
-
-
-    LuxScaleTextureData(LuxTextureType type);
-
-    virtual Bool isConstant() const;
-    virtual const LuxFloat& constantFloat();
-    virtual const LuxColor& constantColor();
-
-    virtual Bool sendToAPI(LuxAPI&          receiver,
-                           const LuxString& name);
-
-
-  protected:
-
-    LuxFloat mConstantFloat;
-    LuxColor mConstantColor;
-};
-
-typedef Handle<LuxScaleTextureData>  LuxScaleTextureDataH;
 
 
 
@@ -152,6 +186,9 @@ class LuxImageMapData : public LuxTextureData
     LuxImageMapData(LuxTextureType type);
     LuxImageMapData(LuxTextureType  type,
                     const Filename& path );
+
+
+  protected:
 
     virtual Bool sendToAPI(LuxAPI&          receiver,
                            const LuxString& name);

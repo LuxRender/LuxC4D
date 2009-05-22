@@ -32,6 +32,10 @@
 
 
 
+#define PID_LUXC4D_EXPORTERRENDER 1023253
+
+
+
 /***************************************************************************//*!
  The CommandData plugin that triggers an export into a .lxs file and then calls
  Lux to render it.

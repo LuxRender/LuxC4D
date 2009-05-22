@@ -39,7 +39,7 @@ Bool LuxTextureData::sendToAPIAndAddToParamSet(LuxAPI&                receiver,
   // special handling of constant textures, which we don't create explicitely,
   // but store as a parameter
   if (isConstant()) {
-    if (mType == FLOAT_TEXTURE) {
+    if (mType == LUX_FLOAT_TEXTURE) {
       if (!paramSet.addParam(LUX_FLOAT, (CHAR*)paramName, (void*)&constantFloat())) {
         ERRLOG_RETURN_VALUE(FALSE, "LuxTextureData::addToParamSet(): could not add float to parameter set");
       }
@@ -102,60 +102,6 @@ const LuxColor& LuxTextureData::constantColor()
 
 
 /*****************************************************************************
- * Implementation of member functions of class LuxConstantTextureData.
- *****************************************************************************/
-
-LuxConstantTextureData::LuxConstantTextureData(LuxTextureType type)
-: LuxTextureData(type)
-{}
-
-
-LuxConstantTextureData::LuxConstantTextureData(LuxFloat value)
-: LuxTextureData(FLOAT_TEXTURE),
-  mFloat(value)
-{}
-
-
-LuxConstantTextureData::LuxConstantTextureData(const LuxColor& color)
-: LuxTextureData(COLOR_TEXTURE),
-  mColor(color)
-{}
-
-
-Bool LuxConstantTextureData::isConstant() const
-{
-  return TRUE;
-}
-
-
-const LuxFloat& LuxConstantTextureData::constantFloat()
-{
-  return mFloat;
-}
-
-
-const LuxColor& LuxConstantTextureData::constantColor()
-{
-  return mColor;
-}
-
-
-Bool LuxConstantTextureData::sendToAPI(LuxAPI&          receiver,
-                                       const LuxString& name)
-{
-  LuxParamSet paramSet(1);
-
-  if (mType == FLOAT_TEXTURE) {
-    paramSet.addParam(LUX_FLOAT, "value", (void*)&mFloat);
-  } else {
-    paramSet.addParam(LUX_COLOR, "color", (void*)&mColor);
-  }
-  return sendToAPIHelper(receiver, name, "constant", paramSet);
-}
-
-
-
-/*****************************************************************************
  * Implementation of member functions of class LuxScaleTextureData.
  *****************************************************************************/
 
@@ -212,6 +158,124 @@ Bool LuxScaleTextureData::sendToAPI(LuxAPI&          receiver,
     ERRLOG_RETURN_VALUE(FALSE, "LuxScaleTextureData::sendToAPI(): could not export textures");
   }
   return sendToAPIHelper(receiver, name, "scale", paramSet);
+}
+
+
+
+/*****************************************************************************
+ * Implementation of member functions of class LuxMixTextureData.
+ *****************************************************************************/
+
+LuxMixTextureData::LuxMixTextureData(LuxTextureType type)
+: LuxTextureData(type)
+{}
+
+
+Bool LuxMixTextureData::isConstant() const
+{
+  GeAssert(mTexture1);
+  GeAssert(mTexture2);
+
+  return mTexture1->isConstant() && mTexture2->isConstant();
+}
+
+
+const LuxFloat& LuxMixTextureData::constantFloat()
+{
+  GeAssert(mTexture1);
+  GeAssert(mTexture2);
+
+  mConstantFloat = mTexture1->constantFloat() * (1.0f - mAmount) +
+                   mTexture2->constantFloat() * mAmount;
+  return mConstantFloat;
+}
+
+
+const LuxColor& LuxMixTextureData::constantColor()
+{
+  GeAssert(mTexture1);
+  GeAssert(mTexture2);
+
+  mConstantColor = mTexture1->constantColor() * (1.0f - mAmount) +
+                   mTexture2->constantColor() * mAmount;
+  return mConstantColor;
+}
+
+
+Bool LuxMixTextureData::sendToAPI(LuxAPI&          receiver,
+                                  const LuxString& name)
+{
+  GeAssert(mTexture1);
+  GeAssert(mTexture2);
+
+  if ((mTexture1->mType != mType) || (mTexture2->mType != mType)) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxMixTextureData::sendToAPI(): mTexture1 or mTexture2 have invalid texture type");
+  }
+
+  LuxParamSet paramSet(3);
+  LuxString texture1Name = name + ".tex1";
+  LuxString texture2Name = name + ".tex2";
+  if (!mTexture1->sendToAPIAndAddToParamSet(receiver, paramSet, "tex1", texture1Name) ||
+      !mTexture2->sendToAPIAndAddToParamSet(receiver, paramSet, "tex2", texture2Name))
+  {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxMixTextureData::sendToAPI(): could not export textures");
+  }
+  paramSet.addParam(LUX_FLOAT, "amount", &mAmount);
+  return sendToAPIHelper(receiver, name, "mix", paramSet);
+}
+
+
+
+/*****************************************************************************
+ * Implementation of member functions of class LuxConstantTextureData.
+ *****************************************************************************/
+
+LuxConstantTextureData::LuxConstantTextureData(LuxTextureType type)
+: LuxTextureData(type)
+{}
+
+
+LuxConstantTextureData::LuxConstantTextureData(LuxFloat value)
+: LuxTextureData(LUX_FLOAT_TEXTURE),
+  mFloat(value)
+{}
+
+
+LuxConstantTextureData::LuxConstantTextureData(const LuxColor& color)
+: LuxTextureData(LUX_COLOR_TEXTURE),
+  mColor(color)
+{}
+
+
+Bool LuxConstantTextureData::isConstant() const
+{
+  return TRUE;
+}
+
+
+const LuxFloat& LuxConstantTextureData::constantFloat()
+{
+  return mFloat;
+}
+
+
+const LuxColor& LuxConstantTextureData::constantColor()
+{
+  return mColor;
+}
+
+
+Bool LuxConstantTextureData::sendToAPI(LuxAPI&          receiver,
+                                       const LuxString& name)
+{
+  LuxParamSet paramSet(1);
+
+  if (mType == LUX_FLOAT_TEXTURE) {
+    paramSet.addParam(LUX_FLOAT, "value", (void*)&mFloat);
+  } else {
+    paramSet.addParam(LUX_COLOR, "color", (void*)&mColor);
+  }
+  return sendToAPIHelper(receiver, name, "constant", paramSet);
 }
 
 

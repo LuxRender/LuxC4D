@@ -1156,45 +1156,113 @@ Bool LuxAPIConverter::exportMatteMaterial(TextureTag&   textureTag,
                                           LuxString&    materialName)
 {
   LuxMaterialData materialData(gLuxMatteInfo);
+
   if (getParameterLong(material, MATERIAL_USE_COLOR)) {
-    LuxTextureDataH texture;
-    BaseList2D* bitmapLink;
-    bitmapLink = getParameterLink(material, MATERIAL_COLOR_SHADER, Xbitmap);
-    if (bitmapLink) {
-      Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
-      Filename fullPath;
-      GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
-      texture = gNewNC LuxImageMapData(COLOR_TEXTURE, fullPath);
-    } else {
-      LuxColor color = getParameterVector(material, MATERIAL_COLOR_COLOR);
-      texture = gNewNC LuxConstantTextureData(color);
-    }
-    if (!materialData.setChannel(LUX_MATTE_DIFFUSE, texture)) {
-      ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMatteMaterial(): could not set color channel in material");
+    if (!materialData.setChannel(LUX_MATTE_DIFFUSE,
+                                 convertColorChannel(textureTag,
+                                                     material,
+                                                     MATERIAL_COLOR_SHADER,
+                                                     MATERIAL_COLOR_COLOR,
+                                                     MATERIAL_COLOR_BRIGHTNESS,
+                                                     MATERIAL_COLOR_TEXTURESTRENGTH)))
+    {
+      ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMatteMaterial(): could not conmvert color channel in material");
     }
   }
 
   if (getParameterLong(material, MATERIAL_USE_BUMP)) {
-    BaseList2D* bitmapLink;
-    bitmapLink = getParameterLink(material, MATERIAL_BUMP_SHADER, Xbitmap);
-    if (bitmapLink) {
-      LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(FLOAT_TEXTURE);
-
-      Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
-      Filename fullPath;
-      GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
-      scaledTexture->mTexture1 = gNewNC LuxImageMapData(FLOAT_TEXTURE, fullPath);
-
-      LuxFloat strength = 0.01 * getParameterReal(material, MATERIAL_BUMP_STRENGTH);
-      scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(strength);
-
-      if (!materialData.setChannel(LUX_MATTE_BUMP, scaledTexture)) {
-        ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMatteMaterial(): could not set bump channel in material");
-      }
+    if (!materialData.setChannel(LUX_MATTE_BUMP,
+                                 convertFloatChannel(textureTag,
+                                                     material,
+                                                     MATERIAL_BUMP_SHADER,
+                                                     MATERIAL_BUMP_STRENGTH,
+                                                     0.01)))
+    {
+      ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMatteMaterial(): could not convert color channel in material");
     }
   }
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
+}
+
+
+///
+LuxTextureDataH LuxAPIConverter::convertFloatChannel(TextureTag&   textureTag,
+                                                     BaseMaterial& material,
+                                                     LONG          shaderId,
+                                                     LONG          strengthId,
+                                                     Real          strengthScale)
+{
+  // fetch bitmap shader, if available
+  BaseList2D* bitmapLink = getParameterLink(material, shaderId, Xbitmap);
+
+  // get texture strength
+  LuxFloat strength = getParameterReal(material, strengthId, 1.0f);
+
+  // if the material channel doesn't have a bitmap shader or the texture
+  // strength is too small, just create a constant texture of the value 0.0
+  if ((strength < 0.001f) || !bitmapLink) {
+    return gNewNC LuxConstantTextureData(0.0f);
+  }
+
+  // if we are here, we've got a bitmap shader -> let's create a imagemap texture
+  Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
+  Filename fullPath;
+  GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
+  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE, fullPath);
+
+  // if strength is not ~1.0, scale texture
+  strength *= strengthScale;
+  if ((strength < 0.999f) || (strength > 1.001f)) {
+    LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_FLOAT_TEXTURE);
+    scaledTexture->mTexture1 = gNewNC LuxConstantTextureData(strength);
+    scaledTexture->mTexture2 = texture;
+    texture = scaledTexture;
+  }
+
+  return texture;
+}
+
+
+///
+LuxTextureDataH LuxAPIConverter::convertColorChannel(TextureTag&   textureTag,
+                                                     BaseMaterial& material,
+                                                     LONG          shaderId,
+                                                     LONG          colorId,
+                                                     LONG          brightnessId,
+                                                     LONG          mixerId)
+{
+  // fetch bitmap shader, if available
+  BaseList2D* bitmapLink = getParameterLink(material, shaderId, Xbitmap);
+
+  // get texture strength and base colour
+  LuxFloat strength = getParameterReal(material, mixerId, 1.0f);
+  LuxColor color = getParameterVector(material, colorId) *
+                   getParameterReal(material, brightnessId, 1.0f);
+
+  // if the material channel doesn't have a bitmap shader or the texture
+  // strength is too small, just create a constant texture of the colour which
+  // is also specified in the channel
+  if ((strength < 0.001f) || !bitmapLink) {
+    return gNewNC LuxConstantTextureData(color);
+  }
+
+  // if we are here, we've got a bitmap shader -> let's create a imagemap texture
+  Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
+  Filename fullPath;
+  GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
+  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_COLOR_TEXTURE, fullPath);
+
+  // if the texture strength is < 100%, we mix the colour with the texture
+  if (strength < 0.999f) {
+    LuxMixTextureDataH mixTexture = gNewNC LuxMixTextureData(LUX_COLOR_TEXTURE);
+    mixTexture->mTexture1 = gNewNC LuxConstantTextureData(color);
+    mixTexture->mTexture2 = texture;
+    mixTexture->mAmount = strength;
+    texture = mixTexture;
+  }
+
+  return texture;
 }
 
 

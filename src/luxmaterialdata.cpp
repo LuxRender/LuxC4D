@@ -44,6 +44,9 @@ Bool LuxMaterialData::setChannel(ULONG           channelId,
     ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setChannel(): invalid channel ID (" +
                                LongToString(channelId) + ")");
   }
+  if (!texture) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setChannel(): no texture passed");
+  }
   if (mInfo->mChannelInfos[channelId].mType != texture->mType) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setChannel(): type mismatch -> can't set texture in channel with ID " +
                                LongToString(channelId));
