@@ -55,6 +55,7 @@ Bool LuxC4DLightTag::registerPlugin(void)
                            TAG_VISIBLE,
                            alloc,
                            "Tluxc4dlighttag",
+                           "icon_lighttag.tif",
                            0);
 }
 

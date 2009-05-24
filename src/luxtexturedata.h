@@ -28,7 +28,7 @@
 
 
 
-#include "handle.h"
+#include "autoref.h"
 #include "luxapi.h"
 
 
@@ -80,7 +80,7 @@ class LuxTextureData
     LuxTextureData& operator=(const LuxTextureData& other) {}
 };
 
-typedef Handle<LuxTextureData>  LuxTextureDataH;
+typedef AutoRef<LuxTextureData>  LuxTextureDataH;
 
 
 
@@ -110,7 +110,7 @@ class LuxScaleTextureData : public LuxTextureData
                            const LuxString& name);
 };
 
-typedef Handle<LuxScaleTextureData>  LuxScaleTextureDataH;
+typedef AutoRef<LuxScaleTextureData>  LuxScaleTextureDataH;
 
 
 
@@ -141,7 +141,7 @@ class LuxMixTextureData : public LuxTextureData
                            const LuxString& name);
 };
 
-typedef Handle<LuxMixTextureData>  LuxMixTextureDataH;
+typedef AutoRef<LuxMixTextureData>  LuxMixTextureDataH;
 
 
 
@@ -170,7 +170,7 @@ class LuxConstantTextureData : public LuxTextureData
                            const LuxString& name);
 };
 
-typedef Handle<LuxConstantTextureData>  LuxConstantTextureDataH;
+typedef AutoRef<LuxConstantTextureData>  LuxConstantTextureDataH;
 
 
 
@@ -194,7 +194,7 @@ class LuxImageMapData : public LuxTextureData
                            const LuxString& name);
 };
 
-typedef Handle<LuxImageMapData>  LuxImageMapDataH;
+typedef AutoRef<LuxImageMapData>  LuxImageMapDataH;
 
 
 

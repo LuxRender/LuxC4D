@@ -33,8 +33,10 @@
 #include "fixarray1d.h"
 #include "luxapi.h"
 #include "luxc4dsettings.h"
+#include "luxmaterialdata.h"
 #include "luxtexturedata.h"
 #include "rbtreeset.h"
+#include "rbtreemap.h"
 
 
 
@@ -112,10 +114,10 @@ private:
 
   /// Structure that stores all parameters of an area light.
   struct AreaLightData {
-    LuxColor      mColor;
-    LuxFloat      mGain;
-    LuxBool       mFlippedNormals;
-    LuxInteger    mSamples; 
+    LuxColor       mColor;
+    LuxFloat       mGain;
+    LuxBool        mFlippedNormals;
+    LuxInteger     mSamples; 
     Matrix         mLightMatrix;
     LONG           mShape;
     Vector         mSize;
@@ -137,7 +139,7 @@ private:
     LuxInteger mSamples; 
     LuxVector  mSunDir;
     LuxFloat   mTurbidity;
-    Bool        mAdvanced;
+    Bool       mAdvanced;
     LuxFloat   mAConst;
     LuxFloat   mBConst;
     LuxFloat   mCConst;
@@ -199,13 +201,15 @@ private:
   typedef FixArray1D<LuxFloat>    UVsSerialisedT;
 
   /// The container type for storing C4D polygons.
-  typedef FixArray1D<CPolygon>    C4DPolygonsT;
+  typedef FixArray1D<CPolygon>                      C4DPolygonsT;
   /// The container type for storing C4D normal vectors.
-  typedef FixArray1D<Vector>      C4DNormalsT;
+  typedef FixArray1D<Vector>                        C4DNormalsT;
   /// The container type for storing a set of objects.
-  typedef RBTreeSet<BaseList2D*>  ObjectsT;
-  ///
-  typedef FixArray1D<ULONG>       PointMapT;
+  typedef RBTreeSet<BaseList2D*>                    ObjectsT;
+  /// The exported materials and their name, that can be reused.
+  typedef RBTreeMap<const BaseMaterial*, LuxString> ReusableMaterialsT;
+  /// Helper array, which is used during the geometry conversion.
+  typedef FixArray1D<ULONG>                         PointMapT;
 
 
   // references used by the whole conversion process and stored for convenience
@@ -217,10 +221,13 @@ private:
 
   // temporary data stored during the conversion and shared between
   // several functions
-  LuxParamSet     mTempParamSet;
-  CameraObject*   mCamera;
-  ULONG           mLightCount;
-  ObjectsT        mAreaLightObjects;
+  LuxParamSet        mTempParamSet;
+  CameraObject*      mCamera;
+  ULONG              mLightCount;
+  ObjectsT           mAreaLightObjects;
+  ReusableMaterialsT mReusableMaterials;
+
+  // the currently cached object
   BaseObject*     mCachedObject;
   // stores all C4D polygons of the current object, matching mPointCache
   C4DPolygonsT    mPolygonCache;
@@ -278,20 +285,40 @@ private:
   Bool exportMaterial(TextureTag&   textureTag,
                       BaseMaterial& material,
                       LuxString&    materialName);
-  Bool exportMatteMaterial(TextureTag&   textureTag,
-                           BaseMaterial& material,
+  Bool exportDummyMaterial(BaseMaterial& material,
                            LuxString&    materialName);
-  LuxTextureDataH convertFloatChannel(TextureTag&   textureTag,
-                                      BaseMaterial& material,
-                                      LONG          shaderId,
-                                      LONG          strengthId,
-                                      Real          strengthScale = 1.0f);
-  LuxTextureDataH convertColorChannel(TextureTag&   textureTag,
-                                      BaseMaterial& material,
-                                      LONG          shaderId,
-                                      LONG          colorId,
-                                      LONG          brightnessId,
-                                      LONG          mixerId);
+  Bool exportDiffuseMaterial(TextureTag& textureTag,
+                             Material&   material,
+                             LuxString&  materialName);
+  Bool exportGlossyMaterial(TextureTag& textureTag,
+                            Material&   material,
+                            LuxString&  materialName);
+  Bool exportReflectiveMaterial(TextureTag& textureTag,
+                                Material&   material,
+                                LuxString&  materialName);
+  Bool exportTransparentMaterial(TextureTag& textureTag,
+                                 Material&   material,
+                                 LuxString&  materialName);
+  Bool exportTranslucentMaterial(TextureTag& textureTag,
+                                 Material&   material,
+                                 LuxString&  materialName);
+
+  Bool addBumpChannel(TextureTag&      textureTag,
+                      Material&        material,
+                      LuxMaterialData& materialData,
+                      ULONG            channelId);
+
+  LuxTextureDataH convertFloatChannel(TextureTag& textureTag,
+                                      Material&   material,
+                                      LONG        shaderId,
+                                      LONG        strengthId,
+                                      Real        strengthScale = 1.0f);
+  LuxTextureDataH convertColorChannel(TextureTag& textureTag,
+                                      Material&   material,
+                                      LONG        shaderId,
+                                      LONG        colorId,
+                                      LONG        brightnessId,
+                                      LONG        mixerId);
 
   Bool exportPolygonObject(PolygonObject& object,
                            const Matrix&  globalMatrix);

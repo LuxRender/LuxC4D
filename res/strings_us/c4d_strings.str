@@ -40,13 +40,15 @@ STRINGTABLE
   IDS_LUXC4D_MATERIAL_MATTE   "Matte";
   IDS_LUXC4D_MATERIAL_GLOSSY  "Glossy";
   
-  IDS_LUXC4D_PREFERENCES              "LuxC4D";
+  IDS_LUXC4D_PREFERENCES              "LuxC4D Preferences ...";
+  IDS_LUXC4D_PREFERENCES_DESCR        "Opens a dialog where you can set global LuxC4D options";
   IDS_LUXC4D_PREFS_LUX_PATH_FS_TITLE  "Please select the Lux Render executable";
   
   IDS_ERROR_INITIALISE_LUXAPIWRITER "Could not initialise export to file '#'!";
   IDS_ERROR_IO                      "Writing to file failed!";
   IDS_ERROR_CONVERSION              "Converting the scene failed!";
   IDS_ERROR_INTERNAL                "An internal error occured!";
-  IDS_ERROR_LUX_PATH_INVALID        "Path to Lux Render in preferences is invalid!";
+  IDS_ERROR_LUX_PATH_EMPTY          "No path to LuxRender specified in preferences!";
+  IDS_ERROR_LUX_PATH_DOESNT_EXIST   "Path '#' doesn't exist / is invalid!";
   IDS_ERROR_LUX_PATH_EXECUTE        "Could not execute '#'!";
 }

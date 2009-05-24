@@ -1031,6 +1031,10 @@
 			</Filter>
 		</Filter>
 		<File
+			RelativePath="..\..\src\autoref.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\dynarray1d.h"
 			>
 		</File>
@@ -1044,10 +1048,6 @@
 		</File>
 		<File
 			RelativePath="..\..\src\fixarray1d_impl.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\src\handle.h"
 			>
 		</File>
 		<File
@@ -1140,6 +1140,14 @@
 		</File>
 		<File
 			RelativePath="..\..\src\luxtypes.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rbtreemap.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\rbtreemap_impl.h"
 			>
 		</File>
 		<File

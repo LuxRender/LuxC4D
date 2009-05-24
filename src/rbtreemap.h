@@ -23,42 +23,48 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
-#ifndef __RBTREESET_H__
-#define __RBTREESET_H__ 1
+#ifndef __RBTREEMAP_H__
+#define __RBTREEMAP_H__ 1
 
 
 
 /***************************************************************************//*!
- This class implments a set, based on the very cool "simplified"
+ This class implments a map, based on the very cool "simplified"
  left-leaning red-black tree of Robert Sedgewick:
    http://www.cs.princeton.edu/~rs/
+
+ The template key type K has to support the following functions:
+  - Less operator     bool K::operator<(const K&)
 
  The template type has to support the following functions:
   - Copy constructor  T::T(const T&)
   - Copy operator     T::operator=(const T&)
-  - Less operator     bool T::operator<(const T&)
 *//****************************************************************************/
 
-template <class T>
-class RBTreeSet
+template <class K, class T>
+class RBTreeMap
 {
 public:
 
+  /// The key type.
+  typedef K       KeyT;
   /// The value type.
   typedef T       ValueT;
   /// The size type.
   typedef VULONG  SizeT;
 
 
-  RBTreeSet(void);
-  ~RBTreeSet(void);
+  RBTreeMap(void);
+  ~RBTreeMap(void);
 
   void erase(void);
 
   inline SizeT size(void) const;
 
-  const ValueT* add(const ValueT& value);
-  const ValueT* get(const ValueT& value) const;
+  ValueT* add(const KeyT& key, const ValueT& value);
+
+  const ValueT* get(const KeyT& key) const;
+  ValueT*       get(const KeyT& key);
 
 
 private:
@@ -70,16 +76,18 @@ private:
     Node*  mLeft;
     Node*  mRight;
     Bool   mIsRed;
+    KeyT   mKey;
     ValueT mValue;
 
 
     /// Constructs a new node and sets its value.
     /// @param[in]  value
     ///   The value of which we store a copy in the new node.
-    inline Node(const ValueT& value)
+    inline Node(const KeyT& key, const ValueT& value)
     : mLeft(0),
       mRight(0),
       mIsRed(TRUE),
+      mKey(key),
       mValue(value)
     {}
 
@@ -110,22 +118,24 @@ private:
   Node* mNewNode;
 
 
-  RBTreeSet(const RBTreeSet& other) {}
-  RBTreeSet& operator==(const RBTreeSet& other)  {}
+  // At the moment, we don't allow copying of RBTreeMaps.
+  RBTreeMap(const RBTreeMap& other) {}
+  RBTreeMap& operator==(const RBTreeMap& other)  {}
 
   inline static Node* rotateLeft(Node* node);
   inline static Node* rotateRight(Node* node);
   inline static void  colorFlip(Node* node);
   
   Node* insert(Node* node,
+               const KeyT&   key,
                const ValueT& value);
 
   static void deleteRecursive(Node* node);
 };
 
 
-#include "rbtreeset_impl.h"
+#include "rbtreemap_impl.h"
 
 
 
-#endif  // #ifndef __RBTREESET_H__
+#endif  // #ifndef __RBTREEMAP_H__

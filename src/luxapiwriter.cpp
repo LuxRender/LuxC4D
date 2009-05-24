@@ -748,19 +748,27 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
           const LuxString* values = (const LuxString*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = (VLONG)values[0].size();
+            success &= file.WriteChar('"');
             if (valueStringLen) {
-              success &= file.WriteChar('"');
-              success &= file.WriteBytes((void*)values[0].c_str(), valueStringLen);
-              success &= file.WriteChar('"');
+              LuxString mangled = values[0];
+              for (VLONG c=0; c<valueStringLen; ++c) {
+                if (mangled[c] == '"')  mangled[c] = '_';
+              }
+              success &= file.WriteBytes((void*)mangled.c_str(), valueStringLen);
             }
+            success &= file.WriteChar('"');
           } else {
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = (VLONG)values[i].size();
+              success &= file.WriteChar('"');
               if (valueStringLen) {
-                success &= file.WriteChar('"');
+                LuxString mangled = values[0];
+                for (VLONG c=0; c<valueStringLen; ++c) {
+                  if (mangled[c] == '"')  mangled[c] = '_';
+                }
                 success &= file.WriteBytes((void*)values[i].c_str(), valueStringLen);
-                success &= file.WriteBytes((void*)"\"\n", 2);
               }
+              success &= file.WriteBytes((void*)"\"\n", 2);
             }
           }
           break;

@@ -113,6 +113,114 @@ class LuxMaterialData
 
 
 /*****************************************************************************
+ * DESCRIPTION OF THE LUX GLASS MATERIAL
+ *****************************************************************************/
+
+enum LuxGlassChannelId {
+    LUX_GLASS_REFLECTION = 0,
+    LUX_GLASS_TRANSMISSION,
+    LUX_GLASS_IOR,
+    LUX_GLASS_BUMP,
+    LUX_GLASS_CHANNEL_COUNT
+  };
+
+static const LuxChannelInfo gLuxGlassChannelInfos[LUX_GLASS_CHANNEL_COUNT] = 
+  {
+    // LUX_GLASS_REFLECTION
+    { LUX_COLOR_TEXTURE, "Kr",      "refl"  },
+    // LUX_GLASS_TRANSMISSION
+    { LUX_COLOR_TEXTURE, "Kt",      "trans" },
+    // LUX_GLASS_IOR
+    { LUX_FLOAT_TEXTURE, "index",   "ior"   },
+    // LUX_GLASS_BUMP
+    { LUX_FLOAT_TEXTURE, "bumpmap", "bump"  }
+  };
+
+static const LuxMaterialInfo gLuxGlassInfo =
+  {
+    "glass",
+    LUX_GLASS_CHANNEL_COUNT,
+    gLuxGlassChannelInfos
+  };
+
+
+
+/*****************************************************************************
+ * DESCRIPTION OF THE LUX ROUGH GLASS MATERIAL
+ *****************************************************************************/
+
+enum LuxRoughGlassChannelId {
+    LUX_ROUGH_GLASS_REFLECTION = 0,
+    LUX_ROUGH_GLASS_TRANSMISSION,
+    LUX_ROUGH_GLASS_IOR,
+    LUX_ROUGH_GLASS_UROUGHNESS,
+    LUX_ROUGH_GLASS_VROUGHNESS,
+    LUX_ROUGH_GLASS_BUMP,
+    LUX_ROUGH_GLASS_CHANNEL_COUNT
+  };
+
+static const LuxChannelInfo gLuxRoughGlassChannelInfos[LUX_ROUGH_GLASS_CHANNEL_COUNT] = 
+  {
+    // LUX_ROUGH_GLASS_REFLECTION
+    { LUX_COLOR_TEXTURE, "Kr",         "refl"  },
+    // LUX_ROUGH_GLASS_TRANSMISSION
+    { LUX_COLOR_TEXTURE, "Kt",         "trans" },
+    // LUX_ROUGH_GLASS_IOR
+    { LUX_FLOAT_TEXTURE, "index",      "ior"   },
+    // LUX_ROUGH_GLASS_UROUGHNESS
+    { LUX_FLOAT_TEXTURE, "uroughness", "urough" },
+    // LUX_ROUGH_GLASS_VROUGHNESS
+    { LUX_FLOAT_TEXTURE, "vroughness", "vrough" },
+    // LUX_ROUGH_GLASS_BUMP
+    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump"  }
+  };
+
+static const LuxMaterialInfo gLuxRoughGlassInfo =
+  {
+    "roughglass",
+    LUX_ROUGH_GLASS_CHANNEL_COUNT,
+    gLuxRoughGlassChannelInfos
+  };
+
+
+
+/*****************************************************************************
+ * DESCRIPTION OF THE LUX GLOSSY MATERIAL
+ *****************************************************************************/
+
+enum LuxGlossyChannelId {
+    LUX_GLOSSY_DIFFUSE = 0,
+    LUX_GLOSSY_SPECULAR,
+    LUX_GLOSSY_UROUGHNESS,
+    LUX_GLOSSY_VROUGHNESS,
+    LUX_GLOSSY_BUMP,
+    LUX_GLOSSY_CHANNEL_COUNT
+  };
+
+static const LuxChannelInfo gLuxGlossyChannelInfos[LUX_GLOSSY_CHANNEL_COUNT] = 
+  {
+    // LUX_GLOSSY_DIFFUSE
+    { LUX_COLOR_TEXTURE, "Kd",         "diff"   },
+    // LUX_GLOSSY_SPECULAR
+    { LUX_COLOR_TEXTURE, "Ks",         "spec"   },
+    // LUX_GLOSSY_UROUGHNESS
+    { LUX_FLOAT_TEXTURE, "uroughness", "urough" },
+    // LUX_GLOSSY_UROUGHNESS
+    { LUX_FLOAT_TEXTURE, "vroughness", "vrough" },
+    // LUX_GLOSSY_BUMP
+    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump"   }
+  };
+
+static const LuxMaterialInfo gLuxGlossyInfo =
+  {
+    "glossy",
+    LUX_GLOSSY_CHANNEL_COUNT,
+    gLuxGlossyChannelInfos
+  };
+
+
+
+/*****************************************************************************
  * DESCRIPTION OF THE LUX MATTE MATERIAL
  *****************************************************************************/
 
@@ -123,10 +231,10 @@ enum LuxMatteChannelId {
     LUX_MATTE_CHANNEL_COUNT
   };
 
-static const LuxChannelInfo gLuxMatteChannelInfos[] = 
+static const LuxChannelInfo gLuxMatteChannelInfos[LUX_MATTE_CHANNEL_COUNT] = 
   {
     // LUX_MATTE_DIFFUSE
-    { LUX_COLOR_TEXTURE, "Kd",      "Kd"    },
+    { LUX_COLOR_TEXTURE, "Kd",      "diff"  },
     // LUX_MATTE_SIGMA
     { LUX_FLOAT_TEXTURE, "sigma",   "sigma" },
     // LUX_MATTE_BUMP
@@ -138,6 +246,102 @@ static const LuxMaterialInfo gLuxMatteInfo =
     "matte",
     LUX_MATTE_CHANNEL_COUNT,
     gLuxMatteChannelInfos
+  };
+
+
+
+/*****************************************************************************
+ * DESCRIPTION OF THE LUX MATTE TRANSLUCENT MATERIAL
+ *****************************************************************************/
+
+enum LuxMatteTranslucentChannelId {
+    LUX_MATTE_TRANSLUCENT_DIFFUSE = 0,
+    LUX_MATTE_TRANSLUCENT_TRANSMISSION,
+    LUX_MATTE_TRANSLUCENT_SIGMA,
+    LUX_MATTE_TRANSLUCENT_BUMP,
+    LUX_MATTE_TRANSLUCENT_CHANNEL_COUNT
+  };
+
+static const LuxChannelInfo gLuxMatteTranslucentChannelInfos[LUX_MATTE_TRANSLUCENT_CHANNEL_COUNT] = 
+  {
+    // LUX_MATTE_TRANSLUCENT_DIFFUSE
+    { LUX_COLOR_TEXTURE, "Kr",      "diff"  },
+    // LUX_MATTE_TRANSLUCENT_TRANSMISSION
+    { LUX_COLOR_TEXTURE, "Kt",      "trans" },
+    // LUX_MATTE_TRANSLUCENT_SIGMA
+    { LUX_FLOAT_TEXTURE, "sigma",   "sigma" },
+    // LUX_MATTE_TRANSLUCENT_BUMP
+    { LUX_FLOAT_TEXTURE, "bumpmap", "bump"  }
+  };
+
+static const LuxMaterialInfo gLuxMatteTranslucentInfo =
+  {
+    "mattetranslucent",
+    LUX_MATTE_TRANSLUCENT_CHANNEL_COUNT,
+    gLuxMatteTranslucentChannelInfos
+  };
+
+
+
+/*****************************************************************************
+ * DESCRIPTION OF THE LUX MIRROR MATERIAL
+ *****************************************************************************/
+
+enum LuxMirrorChannelId {
+    LUX_MIRROR_REFLECTION = 0,
+    LUX_MIRROR_BUMP,
+    LUX_MIRROR_CHANNEL_COUNT
+  };
+
+static const LuxChannelInfo gLuxMirrorChannelInfos[LUX_MIRROR_CHANNEL_COUNT] = 
+  {
+    // LUX_MIRROR_REFLECTION
+    { LUX_COLOR_TEXTURE, "Kr",      "refl"  },
+    // LUX_MIRROR_BUMP
+    { LUX_FLOAT_TEXTURE, "bumpmap", "bump"  }
+  };
+
+static const LuxMaterialInfo gLuxMirrorInfo =
+  {
+    "mirror",
+    LUX_MIRROR_CHANNEL_COUNT,
+    gLuxMirrorChannelInfos
+  };
+
+
+
+/*****************************************************************************
+ * DESCRIPTION OF THE LUX SHINY METAL MATERIAL
+ *****************************************************************************/
+
+enum LuxShinyMetalChannelId {
+    LUX_SHINY_METAL_REFLECTION = 0,
+    LUX_SHINY_METAL_SPECULAR,
+    LUX_SHINY_METAL_UROUGHNESS,
+    LUX_SHINY_METAL_VROUGHNESS,
+    LUX_SHINY_METAL_BUMP,
+    LUX_SHINY_METAL_CHANNEL_COUNT
+  };
+
+static const LuxChannelInfo gLuxShinyMetalChannelInfos[LUX_SHINY_METAL_CHANNEL_COUNT] = 
+  {
+    // LUX_SHINY_METAL_REFLECTION
+    { LUX_COLOR_TEXTURE, "Kr",      "refl"  },
+    // LUX_SHINY_METAL_SPECULAR
+    { LUX_COLOR_TEXTURE, "Ks",      "spec"  },
+    // LUX_SHINY_METAL_UROUGHNESS
+    { LUX_FLOAT_TEXTURE, "uroughness", "urough" },
+    // LUX_SHINY_METAL_VROUGHNESS
+    { LUX_FLOAT_TEXTURE, "vroughness", "vrough" },
+    // LUX_MATTE_BUMP
+    { LUX_FLOAT_TEXTURE, "bumpmap", "bump"  }
+  };
+
+static const LuxMaterialInfo gLuxShinyMetalInfo =
+  {
+    "shinymetal",
+    LUX_SHINY_METAL_CHANNEL_COUNT,
+    gLuxShinyMetalChannelInfos
   };
 
 

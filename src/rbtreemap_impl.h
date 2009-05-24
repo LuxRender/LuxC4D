@@ -23,25 +23,25 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
-#ifndef __RBTREESET_IMPL_H__
-#define __RBTREESET_IMPL_H__ 1
+#ifndef __RBTREEMAP_IMPL_H__
+#define __RBTREEMAP_IMPL_H__ 1
 
 
 
 /*******************************************************************************
- * Implementation of public member functions of template class RBTreeSet.
+ * Implementation of public member functions of template class RBTreeMap.
  *******************************************************************************/
 
 /// Constructs a new (empty) red-black tree.
-template <class T>
-RBTreeSet<T>::RBTreeSet(void)
+template <class K, class T>
+RBTreeMap<K,T>::RBTreeMap(void)
 : mRoot(0), mSize(0)
 {}
 
 
 /// Destroys a red-black tree and deallocates its resources.
-template <class T>
-RBTreeSet<T>::~RBTreeSet(void)
+template <class K, class T>
+RBTreeMap<K,T>::~RBTreeMap(void)
 {
   erase();
 }
@@ -49,55 +49,57 @@ RBTreeSet<T>::~RBTreeSet(void)
 
 /// Deallocates all resources of a red-black tree. The tree will be empty
 /// afterwards.
-template <class T>
-void RBTreeSet<T>::erase(void)
+template <class K, class T>
+void RBTreeMap<K,T>::erase(void)
 {
-  RBTreeSet<T>::deleteRecursive(mRoot);
+  RBTreeMap<K,T>::deleteRecursive(mRoot);
   mRoot = 0;
   mSize = 0;
 }
 
 
 /// Returns the number of entries of red-black tree.
-template <class T>
-inline typename RBTreeSet<T>::SizeT RBTreeSet<T>::size(void) const
+template <class K, class T>
+inline typename RBTreeMap<K,T>::SizeT RBTreeMap<K,T>::size(void) const
 {
   return mSize;
 }
 
 
-/// Adds a new entry to the LLRB set. If there was already one with the same
-/// rang (/key), we overwrite it.
+/// Adds a new key/entry pair to the LLRB set. If there was already one with
+/// the same key, we overwrite it.
 ///
+/// @param[in]  key
+///   The key of the value to add to the rb-tree.
 /// @param[in]  value
-///   The value to add to the red-black tree.
+///   The value to add.
 /// @return
-///   NULL if we ran out of memory, otherwise the pointer to the stored entry.
-template <class T>
-const typename RBTreeSet<T>::ValueT* RBTreeSet<T>::add(const ValueT& value)
+///   NULL if we ran out of memory, otherwise the pointer to the stored value.
+template <class K, class T>
+typename RBTreeMap<K,T>::ValueT* RBTreeMap<K,T>::add(const KeyT& key,
+                                                     const ValueT& value)
 {
   mNewNode = 0;
-  mRoot = insert(mRoot, value);
+  mRoot = insert(mRoot, key, value);
   ++mSize;
   return mNewNode ? &mNewNode->mValue : 0;
 }
 
 
-/// Returns the (const) value from the set with the same order as the passed in
-/// value.
+/// Returns the (const) value for a specified key from the map.
 ///
-/// @param[in]  value
-///   The value that defines the rang of the value to retrieve.
+/// @param[in]  key
+///   The key for which the value will be looked up.
 /// @return
 ///   Pointer to the found value, or NULL if there is no matching value.
-template <class T>
-const typename RBTreeSet<T>::ValueT* RBTreeSet<T>::get(const ValueT& value) const
+template <class K, class T>
+const typename RBTreeMap<K,T>::ValueT* RBTreeMap<K,T>::get(const KeyT& key) const
 {
   const Node* node = mRoot;
   while (node) {
-    if (value < node->mValue) {
+    if (key < node->mKey) {
       node = node->mLeft;
-    } else if (node->mValue < value) {
+    } else if (node->mKey < key) {
       node = node->mRight;
     } else {
       return &node->mValue;
@@ -106,6 +108,28 @@ const typename RBTreeSet<T>::ValueT* RBTreeSet<T>::get(const ValueT& value) cons
   return 0;
 }
 
+
+/// Returns the (non-const) value for a specified key from the map.
+///
+/// @param[in]  key
+///   The key for which the value will be looked up.
+/// @return
+///   Pointer to the found value, or NULL if there is no matching value.
+template <class K, class T>
+typename RBTreeMap<K,T>::ValueT* RBTreeMap<K,T>::get(const KeyT& key)
+{
+  Node* node = mRoot;
+  while (node) {
+    if (key < node->mKey) {
+      node = node->mLeft;
+    } else if (node->mKey < key) {
+      node = node->mRight;
+    } else {
+      return &node->mValue;
+    }
+  }
+  return 0;
+}
 
 
 /*******************************************************************************
@@ -118,8 +142,8 @@ const typename RBTreeSet<T>::ValueT* RBTreeSet<T>::get(const ValueT& value) cons
 ///   Pointer to the root node of the sub-tree (must not be NULL).
 /// @return
 ///   Pointer to the new root node of the rotated sub-tree.
-template <class T>
-inline typename RBTreeSet<T>::Node* RBTreeSet<T>::rotateLeft(Node* node)
+template <class K, class T>
+inline typename RBTreeMap<K,T>::Node* RBTreeMap<K,T>::rotateLeft(Node* node)
 {
   Node* child   = node->mRight;
   node->mRight  = child->mLeft;
@@ -136,8 +160,8 @@ inline typename RBTreeSet<T>::Node* RBTreeSet<T>::rotateLeft(Node* node)
 ///   Pointer to the root node of the sub-tree (must not be NULL).
 /// @return
 ///   Pointer to the new root node of the rotated sub-tree.
-template <class T>
-inline typename RBTreeSet<T>::Node* RBTreeSet<T>::rotateRight(Node* node)
+template <class K, class T>
+inline typename RBTreeMap<K,T>::Node* RBTreeMap<K,T>::rotateRight(Node* node)
 {
   Node* child   = node->mLeft;
   node->mLeft   = child->mRight;
@@ -156,8 +180,8 @@ inline typename RBTreeSet<T>::Node* RBTreeSet<T>::rotateRight(Node* node)
 ///
 /// @param[in]  node
 ///   Pointer to the parent node (must nit be NULL).
-template <class T>
-inline void RBTreeSet<T>::colorFlip(Node* node)
+template <class K, class T>
+inline void RBTreeMap<K,T>::colorFlip(Node* node)
 {
   node->mIsRed         ^= 1;
   node->mLeft->mIsRed  ^= 1;
@@ -165,37 +189,42 @@ inline void RBTreeSet<T>::colorFlip(Node* node)
 }
 
 
-/// Recursive function that inserts a node into a LLRB sub-tree. If a value
-/// with the same rang already exists, it gets overwritten.
+/// Recursive function that inserts a node into a LLRB sub-tree. If a node with
+/// the same key already exists, it gets overwritten.
 /// The properties of a LLRB tree will be preserved.
 ///
 /// TODO: Make this function iterative using a stack.
 ///
 /// @param[in]  node
-///   Pointer to the root node of the sub-tree into which the new value should
-///   be inserted (must not be NULL initially).
+///   Pointer to the root node of the sub-tree into which the new key/value pair
+///   should be inserted (must not be NULL initially).
+/// @param[in]  key
+///   The key for which the value will be inserted.
 /// @param[in]  value
 ///   The new value to insert (gets copied).
 /// @return
 ///   Pointer to the new root node of the sub-tree or NULL, if the allocation
 ///   of a new tree node failed.
-template <class T>
-typename RBTreeSet<T>::Node* RBTreeSet<T>::insert(Node*         node,
-                                                  const ValueT& value)
+template <class K, class T>
+typename RBTreeMap<K,T>::Node* RBTreeMap<K,T>::insert(Node*         node,
+                                                      const KeyT&   key,
+                                                      const ValueT& value)
 {
   // if we have found a leave, add new node to it and return
   if (!node) {
-    mNewNode = gNewNC Node(value);
+    mNewNode = gNewNC Node(key, value);
     return mNewNode;
   }
 
-  // traverse down the left sub-tree, if value is smaller than current node
-  if (value < node->mValue) {
-    node->mLeft = insert(node->mLeft, value);
-  // traverse down the right sub-tree, if value is larger than current node
-  } else if (node->mValue < value) {
-    node->mRight = insert(node->mRight, value);
-  // if we have found an already existing node with the same order, overwrite it
+  // traverse down the left sub-tree, if key is smaller than the key of the
+  // current node
+  if (key < node->mKey) {
+    node->mLeft = insert(node->mLeft, key, value);
+  // traverse down the right sub-tree, if key is larger than the key of the
+  // current node
+  } else if (node->mKey < key) {
+    node->mRight = insert(node->mRight, key, value);
+  // if we have found an already existing node with the same key, overwrite it
   } else {
     node->mValue = value;
   }
@@ -222,8 +251,8 @@ typename RBTreeSet<T>::Node* RBTreeSet<T>::insert(Node*         node,
 ///
 /// @param[in]  node
 ///   Pointer to the root node of the sub-tree (can be NULL).
-template <class T>
-void RBTreeSet<T>::deleteRecursive(Node* node)
+template <class K, class T>
+void RBTreeMap<K,T>::deleteRecursive(Node* node)
 {
   if (!node)  return;
   deleteRecursive(node->mLeft);
@@ -233,4 +262,4 @@ void RBTreeSet<T>::deleteRecursive(Node* node)
 
 
 
-#endif  // #ifndef __RBTREESET_IMPL_H__
+#endif  // #ifndef __RBTREEMAP_IMPL_H__

@@ -29,4 +29,6 @@ DIALOGSTRINGS DLG_LUXC4D_PREFERENCES
   
   IDS_LUXC4D_PREFS_LUX_PATH     "Lux Render Executable";
   IDB_LUXC4D_PREFS_LUX_PATH     "...";
+  
+  IDB_LUXC4D_PREFS_OK           "     OK     ";
 }
