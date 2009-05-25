@@ -67,7 +67,7 @@ FixArray1D<T>::FixArray1D(const FixArray1D& other)
 
 
 /// Deallocates current content and creates a bitwise copy of the content
-/// of another instance.
+/// of the other instance.
 ///
 /// @param[in]  other
 ///   The other array to copy the content from.
@@ -107,7 +107,7 @@ Bool FixArray1D<T>::init(SizeT size)
 }
 
 
-/// Copies a value into all members of array.
+/// Copies a value to all entries of array.
 ///
 /// @param[in]  value
 ///   The value to copy.
@@ -145,12 +145,12 @@ inline SizeT FixArray1D<T>::size(void) const
 }
 
 
-/// Random access operator.
+/// Constant random access operator.
 ///
 /// @param[in]  pos
 ///   The position of the value to retrieve. Must be >=0 and <size()!
 /// @return
-///   A const reference to the value.
+///   A constant reference to the value.
 template <class T>
 inline const T& FixArray1D<T>::operator[](SizeT pos) const
 {
@@ -159,7 +159,7 @@ inline const T& FixArray1D<T>::operator[](SizeT pos) const
 }
 
 
-/// Random access operator.
+/// Non-constant random access operator.
 ///
 /// @param[in]  pos
 ///   The position of the value to retrieve. Must be >=0 and <size()!
@@ -173,7 +173,7 @@ inline T& FixArray1D<T>::operator[](SizeT pos)
 }
 
 
-/// Returns a const reference to the first entry of the array.
+/// Returns a constant reference to the first entry of the array.
 /// (size() must be !=0)
 template <class T>
 inline const T& FixArray1D<T>::front(void) const
@@ -183,7 +183,7 @@ inline const T& FixArray1D<T>::front(void) const
 }
 
 
-/// Returns a reference to the first entry of the array.
+/// Returns a non-constant reference to the first entry of the array.
 /// (size() must be !=0)
 template <class T>
 inline T& FixArray1D<T>::front(void)
@@ -193,7 +193,7 @@ inline T& FixArray1D<T>::front(void)
 }
 
 
-/// Returns a const reference to the last entry of the array.
+/// Returns a constant reference to the last entry of the array.
 /// (size() must be !=0)
 template <class T>
 inline const T& FixArray1D<T>::back(void) const
@@ -203,7 +203,7 @@ inline const T& FixArray1D<T>::back(void) const
 }
 
 
-/// Returns a const reference to the last entry of the array.
+/// Returns a non-constant reference to the last entry of the array.
 /// (size() must be !=0)
 template <class T>
 inline T& FixArray1D<T>::back(void)
@@ -213,7 +213,7 @@ inline T& FixArray1D<T>::back(void)
 }
 
 
-/// Returns a const pointer to the internal data.
+/// Returns a constant pointer to the internal data.
 template <class T>
 inline const T* FixArray1D<T>::arrayAddress(void) const  
 { 

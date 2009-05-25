@@ -36,6 +36,16 @@
  * Implementation of template class DynArray1D
  *****************************************************************************/
 
+/// Constructs a new instance and allocates a memory block of size CAPACITY.
+/// The accessible size will be of SIZE.
+/// NOTE: Allocated memory won't get cleared (except T initialises itself in
+///       the default constructor).
+///
+/// @param[in]  size
+///   The size of the accessible range after construction.
+/// @param[in]  capacity
+///   The actual size of the allocated memory. If CAPACITY < SIZE, CAPACITY
+///   will be set to SIZE.
 template <class T>
 DynArray1D<T>::DynArray1D(SizeT size, SizeT capacity)
 : mSize(0), mCapacity(0), mData(0)
@@ -44,13 +54,19 @@ DynArray1D<T>::DynArray1D(SizeT size, SizeT capacity)
 }
 
 
+/// Destroys a DynArray1D instance and frees all allocated resources.
 template <class T>
-DynArray1D<T>::~DynArray1D()
+DynArray1D<T>::~DynArray1D(void)
 {
   erase();
 }
 
 
+/// Constructs a new instance with a bitwise copy of the content of
+/// another instance.
+///
+/// @param[in]  other
+///   The other array to copy the content from.
 template <class T>
 DynArray1D<T>::DynArray1D(const DynArray1D& other)
 : mSize(0), mCapacity(0), mData(0)
@@ -59,6 +75,13 @@ DynArray1D<T>::DynArray1D(const DynArray1D& other)
 }
 
 
+/// Deallocates current content and creates a bitwise copy of the content
+/// of the other instance.
+///
+/// @param[in]  other
+///   The other array to copy the content from.
+/// @return
+///   A reference to this instance.
 template <class T>
 DynArray1D<T>& DynArray1D<T>::operator=(const DynArray1D& other)
 {
@@ -69,12 +92,28 @@ DynArray1D<T>& DynArray1D<T>::operator=(const DynArray1D& other)
 }
 
 
+/// Deallocates current content and allocates a new dynamic array. The
+/// behaviour is the same as described for the constructor.
+///
+/// @param[in]  size
+///   The size of the accessible range after initialisation.
+/// @param[in]  capacity
+///   The actual size of the allocated memory. If CAPACITY < SIZE, CAPACITY
+///   will be set to SIZE.
+/// @return
+///   FALSE if allocation failed, otherwise TRUE. If this operation fails
+///   the array will have size and capacity of 0.
 template <class T>
 Bool DynArray1D<T>::init(SizeT size, SizeT capacity)
 {
+  // first free old content
   erase();
 
+  // make sure that capacity >= size
   if (capacity < size)  capacity = size;
+
+  // if the array shoulf not be empty, allocate new memory block and update
+  // members
   if (capacity > 0) {
     if ((mData = bNewNC T[capacity]) == 0) {
       ERRLOG("DynArray1D::Init(): could not allocate array of size " + LLongToString(capacity));
@@ -87,37 +126,62 @@ Bool DynArray1D<T>::init(SizeT size, SizeT capacity)
 }
 
 
+/// Makes sure that the array has a capacity of at least SIZE. If the capacity
+/// is smaller a larger memory block will be allocated. Otherwise nothing
+/// changes.
+///
+/// @param[in]  size
+///   The minimum capacity the array should have.
+/// @return
+///   FALSE if the capacity is not large enough, but no larger memory block
+///   could be allocated - TRUE otherwise. If this function fails, the old
+///   content is still available.
 template <class T>
-Bool DynArray1D<T>::reserve(SizeT size)
+Bool DynArray1D<T>::reserve(SizeT capacity)
 {
-  if (mCapacity >= size)  return TRUE;
+  // if we have enough memory allocated, return happily
+  if (mCapacity >= capacity)  return TRUE;
 
-  T* newData = bNewNC T[size];
+  // allocate new memory block
+  T* newData = bNewNC T[capacity];
   if (!newData) {
     ERRLOG("DynArray1D::reserve(): could not allocate new arrayof size " + LLongToString(size));
     return FALSE;
   }
 
+  // copy data into new memory block and deallocate the old one
   memcpy(mData, newData, mSize*sizeof(T));
   bDelete(mData);
   mData = newData;
-  mCapacity = size;
+
+  // update capacity and return
+  mCapacity = capacity;
   return TRUE;
 }
 
 
+/// Reduces the capacity of the array to the used size.
+///
+/// @return
+///   TRUE if successful, FALSE if not. If this function fails, the old content
+///   is still available.
 template <class T>
-Bool DynArray1D<T>::adaptCapacity()
+Bool DynArray1D<T>::adaptCapacity(void)
 {
+  // if array empty, deallocate memory block
   if (mSize <= 0) {
     erase();
+  // if the array is not empty, but its size doesn't match it's capacity:
   } else if (mSize != mCapacity) {
+    // allocate new memory block of correct size
     T* newData = bNewNC T[mSize];
     if (!newData) {
       ERRLOG("DynArray1D::adaptCapacity(): could not allocate new array of size " + LLongToString(mSize));
       return FALSE;
     }
+    // copy content from old to new arrat
     memcpy(newData, mData, mSize*sizeof(T));
+    // deallocate old memory and update members
     bDelete(mData);
     mData = newData;
     mCapacity = mSize;
@@ -126,6 +190,10 @@ Bool DynArray1D<T>::adaptCapacity()
 }
 
 
+/// Sets all entries of the array to a specified value.
+///
+/// @param[in]  value
+///   The value the entries will be set to.
 template <class T>
 void DynArray1D<T>::fill(const T& value)
 {
@@ -133,15 +201,17 @@ void DynArray1D<T>::fill(const T& value)
 }
 
 
+/// Sets the array size to 0, but doesn't change its capacity.
 template <class T>
-void DynArray1D<T>::clear()
+void DynArray1D<T>::clear(void)
 {
   mSize = 0;
 }
 
 
+/// Deallocates the internal memory. Size and(!) capacity will be 0 afterwards.
 template <class T>
-void DynArray1D<T>::erase()
+void DynArray1D<T>::erase(void)
 {
   mSize = 0;
   mCapacity = 0;
@@ -150,20 +220,28 @@ void DynArray1D<T>::erase()
 }
 
 
+/// Returns the size of the array.
 template <class T>
-inline SizeT DynArray1D<T>::size() const  
+inline SizeT DynArray1D<T>::size(void) const  
 { 
   return mSize; 
 }
 
 
+/// Returns the capacity of the array.
 template <class T>
-inline SizeT DynArray1D<T>::capacity() const  
+inline SizeT DynArray1D<T>::capacity(void) const  
 { 
   return mCapacity; 
 }
 
 
+/// Constant random access operator.
+///
+/// @param[in]  pos
+///   The position of the value to retrieve. Must be >=0 and <size()!
+/// @return
+///   A const reference to the value.
 template <class T>
 inline const T& DynArray1D<T>::operator[](SizeT pos) const
 {
@@ -172,6 +250,12 @@ inline const T& DynArray1D<T>::operator[](SizeT pos) const
 }
 
 
+/// Non-constant random access operator.
+///
+/// @param[in]  pos
+///   The position of the value to retrieve. Must be >=0 and <size()!
+/// @return
+///   A reference to the value.
 template <class T>
 inline T& DynArray1D<T>::operator[](SizeT pos)
 {
@@ -180,40 +264,52 @@ inline T& DynArray1D<T>::operator[](SizeT pos)
 }
 
 
+/// Returns a constant reference to the first entry of the array.
+/// (size() must be !=0)
 template <class T>
-inline const T& DynArray1D<T>::front() const
+inline const T& DynArray1D<T>::front(void) const
 {
   GeAssert(mSize > 0);
   return mData[0];
 }
 
 
+/// Returns a non-constant reference to the first entry of the array.
+/// (size() must be !=0)
 template <class T>
-inline T& DynArray1D<T>::front()
+inline T& DynArray1D<T>::front(void)
 {
   GeAssert(mSize > 0);
   return mData[0];
 }
 
 
+/// Returns a constant reference to the last entry of the array.
+/// (size() must be !=0)
 template <class T>
-inline const T& DynArray1D<T>::back() const
+inline const T& DynArray1D<T>::back(void) const
 {
   GeAssert(mSize > 0);
   return mData[mSize-1];
 }
 
 
+/// Returns a non-constant reference to the last entry of the array.
+/// (size() must be !=0)
 template <class T>
-inline T& DynArray1D<T>::back()
+inline T& DynArray1D<T>::back(void)
 {
   GeAssert(mSize > 0);
   return mData[mSize-1];
 }
 
 
+/// Increases the size of the array by 1.
+///
+/// @return
+///   TRUE if successful, FALSE otherwise.
 template <class T>
-inline Bool DynArray1D<T>::append()
+inline Bool DynArray1D<T>::append(void)
 {
   if (mSize == mCapacity) {
     if (!increaseCapacity())  return FALSE;
@@ -223,6 +319,13 @@ inline Bool DynArray1D<T>::append()
 }
 
 
+/// Copies a value to the end of the array. The array size will be increased
+/// by 1.
+///
+/// @param[in]  value
+///   The value to copy.
+/// @return
+///   TRUE if successful, FALSE if not.
 template <class T>
 inline Bool DynArray1D<T>::push(const T& value)
 {
@@ -235,8 +338,9 @@ inline Bool DynArray1D<T>::push(const T& value)
 }
 
 
+/// Removes the last entry from the array and returns it's value.
 template <class T>
-inline T DynArray1D<T>::pop()
+inline T DynArray1D<T>::pop(void)
 {
   T value = back();
   if (mSize > 0)  --mSize;
@@ -244,20 +348,23 @@ inline T DynArray1D<T>::pop()
 }
 
 
+/// Returns a constant pointer to the internal data.
 template <class T>
-inline const T* DynArray1D<T>::arrayAddress() const  
+inline const T* DynArray1D<T>::arrayAddress(void) const  
 { 
   return mData; 
 }
 
 
+/// Returns a pointer to the internal data.
 template <class T>
-inline T* DynArray1D<T>::arrayAddress()  
+inline T* DynArray1D<T>::arrayAddress(void)  
 { 
   return mData; 
 }
 
 
+/// Removes the entry at position POS. Size() will be one less afterwards.
 template <class T>
 void DynArray1D<T>::remove(SizeT pos)
 {
@@ -272,21 +379,32 @@ void DynArray1D<T>::remove(SizeT pos)
  * Private Functions of DynArray1D
  *****************************************************************************/
 
+/// Helper function that increases the capacity. It's is called, when the
+/// current capacity is exhausted.
+///
+/// @return
+///   TRUE if successful, FALSE if not.
 template <class T>
-Bool DynArray1D<T>::increaseCapacity()
+Bool DynArray1D<T>::increaseCapacity(void)
 {
+  // calculate and check new capacity
   SizeT newCapacity = (mCapacity < 1) ? 16 : mCapacity<<1;
   if (newCapacity <= mCapacity) {
     ERRLOG("DynArray1D::increaseCapacity(): could not increase capacity variable - end of value range reached");
     return FALSE;
   }
 
+  // allocate new (larger) memory block
   T* newData = bNewNC T[newCapacity];
   if (!newData) {
     ERRLOG("DynArray1D<T>::increaseCapacity(): could not allocate new array of size " + LLongToString(newCapacity));
     return FALSE;
   }
+
+  // copy from to new memory
   memcpy(newData, mData, mSize*sizeof(T));
+
+  // deallocate old memory, update members and return
   bDelete(mData);
   mData = newData;
   mCapacity = newCapacity;

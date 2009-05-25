@@ -154,7 +154,7 @@ private:
     LuxVector  mSunDir;
     LuxFloat   mTurbidity;
     LuxFloat   mRelSize;
-    Bool        mAdvanced;
+    Bool       mAdvanced;
     LuxFloat   mAConst;
     LuxFloat   mBConst;
     LuxFloat   mCConst;

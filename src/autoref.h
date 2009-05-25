@@ -34,10 +34,10 @@
 
 /***************************************************************************//*!
   This class is to be used for reference counting and automatic deallocation.
-  Such a handle object behaves like a normal pointer without pointer arithmetic.
-  Each copy operation from one handle to another one increases the internal
-  counter and each handle destruction decreases the internal counter. If the
-  counter reaches zero the memory pointed by the stored pointer is deallocated.
+  Such a handle object behaves like a normal reference plus assignment operator.
+  Each copy operation from one AutoRef to another one increases the internal
+  counter and each AutoRef destruction decreases the internal counter. If the
+  counter reaches zero the memory pointed by the internal pointer is deallocated.
 
   The array template parameter is needed to differ between object (de)allocation
   and array (de)allocation.
@@ -94,24 +94,24 @@ class AutoRef
 
 
 
-/*******************************************************************************
-  Inlined Functions of AutoRef
-*******************************************************************************/
+/*****************************************************************************
+ * Inlined Functions of AutoRef
+ *****************************************************************************/
 
-/// Constructs an empty handle object. Bad() returns false afterwards.
+/// Constructs an empty AutoRef object. Bad() returns TRUE afterwards.
 template<class T, Bool array>
 inline AutoRef<T,array>::AutoRef(void)
-  : mData(0), mRefCount(0)
+: mData(0), mRefCount(0)
 {}
 
 
-/// Constructs a new handle object and initializes it with a pointer.
+/// Constructs a new AutoRef object and initialises it with a pointer.
 ///
 /// @param[in]  data
-///   Pointer to the data the handle should be the reference of.
+///   Pointer to the data the AutoRef should be the reference of.
 template<class T, Bool array>
 inline AutoRef<T,array>::AutoRef(T* data)
-  : mData(data), mRefCount(gNewNC ULONG(1))
+: mData(data), mRefCount(gNewNC ULONG(1))
 {
   if (!mRefCount) {
     ERRLOG_RETURN("AutoRef::AutoRef(): Could not allocate reference counter.");
@@ -122,15 +122,15 @@ inline AutoRef<T,array>::AutoRef(T* data)
 }
 
 
-/// Copy constructor. Can be used for copying from one handle to another
-/// one. The reference counter is increased, if the source handle referenced
+/// Copy constructor. Can be used for copying from one AutoRef to another
+/// one. The reference counter is increased, if the source AutoRef referenced
 /// some data.
 ///
 /// @param[in]  src
 ///   Reference of the other instance to copy from.
 template<class T, Bool array>
 inline AutoRef<T,array>::AutoRef(const AutoRef& other)
-  : mData(other.mData), mRefCount(other.mRefCount)
+: mData(other.mData), mRefCount(other.mRefCount)
 {
   if (mRefCount) {
     ++(*mRefCount);
@@ -152,7 +152,7 @@ inline AutoRef<T,array>::~AutoRef()
 ///
 /// @param[in]  nmb
 ///   The number of objects to create. If the template parameter ARRAY is FALSE,
-///   we ignore the parameter NMB.
+///   the parameter NMB will be ignored.
 template<class T, Bool array>
 void AutoRef<T,array>::Allocate(SizeT nmb)
 {
@@ -177,9 +177,9 @@ void AutoRef<T,array>::Allocate(SizeT nmb)
 }
 
 
-/// Releases this handle from the referenced object and decreases the
-/// reference counter. If it reaches zero the internal referenced data is
-/// deallocated. The internal data pointer is always NULL afterwards.
+/// Decreases the reference counter and then releases this AutoRef from the
+/// referenced object. If the reference counter reaches zero the referenced
+/// data is deallocated. The internal data pointer is always NULL afterwards.
 template<class T, Bool array>
 void AutoRef<T,array>::Clear(void)
 {
@@ -205,7 +205,7 @@ inline Bool AutoRef<T,array>::Bad(void) const
 }
 
 
-/// Returns the internal reference counter.
+/// Returns the internal reference count.
 template<class T, Bool array>
 inline ULONG AutoRef<T,array>::Count(void) const
 {
@@ -231,7 +231,7 @@ inline const T& AutoRef<T,array>::operator*(void) const
 }
 
 
-/// De-reference operator.
+/// Non-constant de-reference operator.
 template<class T, Bool array>
 inline T& AutoRef<T,array>::operator*(void)
 {
@@ -249,7 +249,7 @@ inline const T* AutoRef<T,array>::operator->(void) const
 }
 
 
-/// "Pointer-to-structure-memeber" operator.
+/// Non-constant "pointer-to-structure-memeber" operator.
 template<class T, Bool array>
 inline T* AutoRef<T,array>::operator->(void)
 {
@@ -274,7 +274,7 @@ inline T* AutoRef<T,array>::Ptr(void)
 }
 
 
-/// Copy operator. Behaves like copy constructor.
+/// Copy operator. Behaves like the copy constructor.
 template<class T, Bool array>
 AutoRef<T,array>& AutoRef<T,array>::operator=(const AutoRef& src)
 {
@@ -290,14 +290,16 @@ AutoRef<T,array>& AutoRef<T,array>::operator=(const AutoRef& src)
 }
 
 
-/// Initializes the handle object with a new reference. If the operation fails,
-/// the handle is not referencing the data. I.e. the data has to be deallocated
+/// Initialises the AutoRef object with a new reference. If the operation fails,
+/// the AutoRef is not referencing the data. I.e. the data has to be deallocated
 /// by the caller.
 ///
 /// @param[in]  data
 ///   The pointer the handle shoud be assigned to.
 /// @return
-///   A reference of the AutoRef.
+///   A reference of this AutoRef. If DATA is NULL or the assignment operation
+///   failed (because the a new reference counter could not be allocated), the
+///   AutoRef will be empty afterwards and Bad() will return TRUE.
 template<class T, Bool array>
 AutoRef<T,array>& AutoRef<T,array>::operator=(T* data)
 {
@@ -340,7 +342,7 @@ inline AutoRef<T,array>::operator AutoRef<trgT,array>(void) const
 /// parameters.
 template<class T, Bool array>
 inline AutoRef<T,array>::AutoRef(T* data, ULONG* count)
-  : mData(data), mRefCount(count)
+: mData(data), mRefCount(count)
 {
   if (mRefCount) { ++(*mRefCount); }
 }

@@ -35,9 +35,16 @@
 
 
 /***************************************************************************//*!
- This class implements a really simple array class. It doesn't offer much more
- functionality than POD arrays, except safety checks and automatic
- deallocation.
+ This class implements a dynamic array container, that can grow if it's internal
+ capacity is exhausted. Shrinking is not done autmatically but can be done
+ manually, if needed.
+
+ WARNING: During a grow operation the array data will be copied into a new
+          (larger array). This copy is done bitwise, i.e. not using the copy
+          operator. As a consequence you should not keep any pointers to the
+          entries after a append(), push(), reserve() or adaptCapacity(). The
+          same applies to linking entries against each other using memory
+          addresses (i.e. pointers).
 
  The template type has to support the following functions:
  - default constructor ( T::T() )
@@ -50,38 +57,38 @@ class DynArray1D
   public:
 
     DynArray1D(SizeT size=0, SizeT capacity=0);
-    ~DynArray1D();
+    ~DynArray1D(void);
 
     DynArray1D(const DynArray1D& other);
     DynArray1D& operator=(const DynArray1D& other);
 
     Bool init(SizeT size=0, SizeT capacity=0);
     Bool reserve(SizeT capacity);
-    Bool adaptCapacity();
+    Bool adaptCapacity(void);
 
     void fill(const T& value);
-    void clear();
-    void erase();
+    void clear(void);
+    void erase(void);
 
-    inline SizeT size() const;
-    inline SizeT capacity() const;
+    inline SizeT size(void) const;
+    inline SizeT capacity(void) const;
 
     inline const T& operator[](SizeT pos) const;
     inline T&       operator[](SizeT pos);
 
-    inline const T& front() const;
-    inline T&       front();
-    inline const T& back() const;
-    inline T&       back();
+    inline const T& front(void) const;
+    inline T&       front(void);
+    inline const T& back(void) const;
+    inline T&       back(void);
 
-    inline Bool append();
+    inline Bool append(void);
     inline Bool push(const T& value);
-    inline T    pop();
+    inline T    pop(void);
 
     void remove(SizeT pos);
 
-    inline const T* arrayAddress() const;
-    inline T*       arrayAddress();
+    inline const T* arrayAddress(void) const;
+    inline T*       arrayAddress(void);
 
 
   private:
@@ -90,7 +97,7 @@ class DynArray1D
     SizeT mCapacity;
     T*    mData;
 
-    Bool increaseCapacity();
+    Bool increaseCapacity(void);
     Bool newCapacity(SizeT size);
 };
 
