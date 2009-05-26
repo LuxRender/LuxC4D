@@ -47,13 +47,6 @@ public:
   typedef const char*  IdentifierName;
 
 
-  ///
-  virtual Bool comment(const char* text) =0;
-
-  ///
-  virtual Bool comment(const String& text) =0;
-
-
   /// Should be called before any other LuxAPI functions are called. It allows
   /// the implementations to do some initial work.
   ///
@@ -72,15 +65,41 @@ public:
   virtual Bool endScene(void) =0;
 
 
-  /// Sets the film buffer.
+  /// Specifies the comment for the next Lux API command. This should be used
+  /// by an exporter implementation that writes Lux scene files and should be
+  /// ignored by an integration of Lux into C4D.
   ///
-  /// @param[in]  name
-  ///   The name of the film buffer(e.g. "fleximage").
-  /// @param[in]  paramSet
-  ///   The parameters
+  /// The general convention is that you specify a comment and call the API
+  /// command and after the command call the comment buffer is empty again. If
+  /// the API implementation is writing to several files, the comment and the
+  /// the command should go into the same files.
+  ///
+  /// @param[in]  text
+  ///   The string that should be used as comment.
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool film(IdentifierName     name,
+  virtual Bool setComment(const char* text) =0;
+
+  /// The same as LuxAPI::setComment(const char*), except that you specify the
+  /// comment via a String.
+  ///
+  ///
+  /// @param[in]  text
+  ///   The string that should be used as comment.
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
+  virtual Bool setComment(const String& text) =0;
+
+
+  /// Sets the film buffer.
+  ///
+  /// @param[in]  type
+  ///   The type name of the film buffer (at the moment only "fleximage").
+  /// @param[in]  paramSet
+  ///   The parameters of the film buffer (e.g. "xresolution").
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
+  virtual Bool film(IdentifierName     type,
                     const LuxParamSet& paramSet) =0;
 
   /// Defines a position and orientation in space, e.g. used by the camera.
@@ -107,51 +126,51 @@ public:
   ///   The additional camera parameters (e.g. "fov").
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool camera(IdentifierName     name,
+  virtual Bool camera(IdentifierName     type,
                       const LuxParamSet& paramSet) =0;
 
   /// Specifies the pixel filter.
   ///
-  /// @param[in]  name
+  /// @param[in]  type
   ///   The type name of the pixel filter (e.g. "mitchell").
   /// @param[in]  paramSet
   ///   The additional pixel filter parameters (e.g. "xwidth").
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool pixelFilter(IdentifierName     name,
+  virtual Bool pixelFilter(IdentifierName     type,
                            const LuxParamSet& paramSet) =0;
 
   /// Specifies the sampler.
   ///
-  /// @param[in]  name
+  /// @param[in]  type
   ///   The type name of the sampler (e.g. "metropolis").
   /// @param[in]  paramSet
   ///   The additional sampler parameters (e.g. "largemutationprob").
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool sampler(IdentifierName     name,
+  virtual Bool sampler(IdentifierName     type,
                        const LuxParamSet& paramSet) =0;
 
   /// Specifies the surface integrator.
   ///
-  /// @param[in]  name
+  /// @param[in]  type
   ///   The type name of the surface integrator (e.g. "path").
   /// @param[in]  paramSet
   ///   The additional surface integrator parameters (e.g. "maxdepth").
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool surfaceIntegrator(IdentifierName     name,
+  virtual Bool surfaceIntegrator(IdentifierName     type,
                                  const LuxParamSet& paramSet) =0;
 
   /// Specifies the ray accelerator structure.
   ///
-  /// @param[in]  name
+  /// @param[in]  type
   ///   The type name of the accelerator structure (e.g. "kdtree").
   /// @param[in]  paramSet
   ///   The additional accelerator parameters (e.g. "intersectcost").
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool accelerator(IdentifierName     name,
+  virtual Bool accelerator(IdentifierName     type,
                            const LuxParamSet& paramSet) =0;
 
 
@@ -199,39 +218,110 @@ public:
   virtual Bool objectEnd(void) =0;
 
 
+  /// Adds a light source object to the current scope.
   ///
-  virtual Bool lightSource(IdentifierName     name,
+  /// @param[in]  type
+  ///   The type name of the light object (e.g. "sunsky").
+  /// @param[in]  paramSet
+  ///   The additional light parameters (e.g. "gain").
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
+  virtual Bool lightSource(IdentifierName     type,
                            const LuxParamSet& paramSet) =0;
 
+  /// Adds an area light source object to the current scope. The shape that is
+  /// defined in the same scope will then be used as area light geometry.
   ///
-  virtual Bool areaLightSource(IdentifierName     name,
+  /// @param[in]  type
+  ///   The type name of the area light object (at the moment only "area").
+  /// @param[in]  paramSet
+  ///   The additional area light parameters (e.g. "nsamples").
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
+  virtual Bool areaLightSource(IdentifierName     type,
                                const LuxParamSet& paramSet) =0;
 
+  /// Adds a named texture to the current scope. Materials can then refer (/use)
+  /// it via its name.
   ///
+  /// @param[in]  name
+  ///   A user-defined name of the texture, which will be used for referencing
+  ///   in materials.
+  /// @param[in]  colorType
+  ///   The color type which basically defines the data type of the texture
+  ///   (at the moment only "float" or "color").
+  /// @param[in]  type
+  ///   The type name of the texture (e.g. "constant").
+  /// @param[in]  paramSet
+  ///   The additional texture parameters (e.g. "value").
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool texture(IdentifierName     name,
                        IdentifierName     colorType,
                        IdentifierName     type,
                        const LuxParamSet& paramSet) =0;
 
+  /// Adds a named material, which can then be refered to by objects.
   ///
+  /// NOTE: The material type has to be defined in the parameter set using
+  ///       the string parameter "type".
+  ///
+  /// @param[in]  name
+  ///   The name of the new material. It should be unique to make the material
+  ///   reference anambiguous.
+  /// @param[in]  paramSet
+  ///   The additional parameters of the material.
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool makeNamedMaterial(IdentifierName     name,
                                  const LuxParamSet& paramSet) =0;
 
+  /// Sets the material referenced by its name as the current material for the
+  /// current scope.
   ///
+  /// @param[in]  name
+  ///   The name of the material to use (must be the name of a material that
+  ///   was created by LuxAPI::makeNamedMaterial(IdentifierName,
+  ///   const LuxParamSet&) ).
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool namedMaterial(IdentifierName name) =0;
 
+  /// Defines the current material for the current scope.
   ///
-  virtual Bool material(IdentifierName     name,
+  /// @param[in]  type
+  ///   The type name of the material (e.g. "glossy").
+  /// @param[in]  paramSet
+  ///   The additional material parameters (e.g. "Ks").
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
+  virtual Bool material(IdentifierName     type,
                         const LuxParamSet& paramSet) =0;
 
+  /// Transforms the coordinate space of the current scope.
   ///
+  /// @param[in]  matrix
+  ///   The matrix that should be used for the transformation.
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool transform(const LuxMatrix& matrix) =0;
 
+  /// Reverses the orientation of the normals of all following objects, of the
+  /// current scope.
   ///
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool reverseOrientation(void) =0;
 
+  /// Adds a geometry object to the current scope.
   ///
-  virtual Bool shape(IdentifierName     name,
+  /// @param[in]  type
+  ///   The type name of the object (e.g. "mesh").
+  /// @param[in]  paramSet
+  ///   The additional parameters of the object (e.g. "triindices").
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
+  virtual Bool shape(IdentifierName     type,
                      const LuxParamSet& paramSet) =0;
 };
 

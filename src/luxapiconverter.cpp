@@ -204,7 +204,7 @@ void LuxAPIConverter::Free(void* data)
 {
   HierarchyData* hierarchyData = (HierarchyData*)data;
   if (hierarchyData->mStartedNewScope) {
-    mReceiver->comment("end of object '" + hierarchyData->mObjectName + "'");
+    mReceiver->setComment("end of object '" + hierarchyData->mObjectName + "'");
     mReceiver->attributeEnd();
   }
   gDelete(hierarchyData);
@@ -1019,7 +1019,7 @@ Bool LuxAPIConverter::exportGeometry(void)
   GeAssert(mReceiver);
 
   // open global attribute scope where the default material is defined
-  if (!mReceiver->comment("start of world scope with default material") ||
+  if (!mReceiver->setComment("start of world scope with default material") ||
       !mReceiver->attributeBegin() ||
       !mReceiver->namedMaterial("_default"))
   {
@@ -1034,7 +1034,7 @@ Bool LuxAPIConverter::exportGeometry(void)
   }
 
   // close global attribute scope
-  if (!mReceiver->comment("end of world scope") || !mReceiver->attributeEnd()) {
+  if (!mReceiver->setComment("end of world scope") || !mReceiver->attributeEnd()) {
     return FALSE;
   }
 
@@ -1072,7 +1072,7 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData* data,
     if (!exportMaterial(*textureTag, *material, materialName))  return FALSE;
     data->mStartedNewScope = TRUE;
     data->mObjectName = object->GetName();
-    if (!mReceiver->comment("start of object '" + data->mObjectName + "'"))  return FALSE;
+    if (!mReceiver->setComment("start of object '" + data->mObjectName + "'"))  return FALSE;
     if (!mReceiver->attributeBegin())  return FALSE;
     if (!mReceiver->namedMaterial(materialName.c_str()))  return FALSE;
   }
@@ -1097,7 +1097,7 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData* data,
   if (!data->mStartedNewScope) {
     data->mStartedNewScope = TRUE;
     data->mObjectName = object->GetName();
-    if (!mReceiver->comment("start of object '" + data->mObjectName + "'"))  return FALSE;
+    if (!mReceiver->setComment("start of object '" + data->mObjectName + "'"))  return FALSE;
     if (!mReceiver->attributeBegin())  return FALSE;
   }
 

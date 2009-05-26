@@ -48,32 +48,32 @@ public:
   Bool init(const Filename& sceneFile);
   inline LONG errorStringID(void) const;
 
-  virtual Bool comment(const char* text);
-  virtual Bool comment(const String& text);
-
   virtual Bool startScene(const char* head);
   virtual Bool endScene(void);
 
-  virtual Bool film(IdentifierName     name,
+  virtual Bool setComment(const char* text);
+  virtual Bool setComment(const String& text);
+
+  virtual Bool film(IdentifierName     type,
                     const LuxParamSet& paramSet);
 
   virtual Bool lookAt(const LuxVector& camPos,
                       const LuxVector& trgPos,
                       const LuxVector& upVec);
 
-  virtual Bool camera(IdentifierName     name,
+  virtual Bool camera(IdentifierName     type,
                       const LuxParamSet& paramSet);
 
-  virtual Bool pixelFilter(IdentifierName     name,
+  virtual Bool pixelFilter(IdentifierName     type,
                            const LuxParamSet& paramSet);
 
-  virtual Bool sampler(IdentifierName     name,
+  virtual Bool sampler(IdentifierName     type,
                        const LuxParamSet& paramSet);
 
-  virtual Bool surfaceIntegrator(IdentifierName     name,
+  virtual Bool surfaceIntegrator(IdentifierName     type,
                                  const LuxParamSet& paramSet);
 
-  virtual Bool accelerator(IdentifierName     name,
+  virtual Bool accelerator(IdentifierName     type,
                            const LuxParamSet& paramSet);
 
   virtual Bool worldBegin(void);
@@ -83,9 +83,9 @@ public:
   virtual Bool objectBegin(IdentifierName name);
   virtual Bool objectEnd(void);
 
-  virtual Bool lightSource(IdentifierName     name,
+  virtual Bool lightSource(IdentifierName     type,
                            const LuxParamSet& paramSet);
-  virtual Bool areaLightSource(IdentifierName     name,
+  virtual Bool areaLightSource(IdentifierName     type,
                                const LuxParamSet& paramSet);
 
   virtual Bool texture(IdentifierName     name,
@@ -96,14 +96,13 @@ public:
   virtual Bool makeNamedMaterial(IdentifierName     name,
                                  const LuxParamSet& paramSet);
   virtual Bool namedMaterial(IdentifierName name);
-  virtual Bool material(IdentifierName     name,
+  virtual Bool material(IdentifierName     type,
                         const LuxParamSet& paramSet);
 
   virtual Bool transform(const LuxMatrix& matrix);
   virtual Bool reverseOrientation(void);
 
-
-  virtual Bool shape(IdentifierName     name,
+  virtual Bool shape(IdentifierName     type,
                      const LuxParamSet& paramSet);
 
 
@@ -129,14 +128,13 @@ private:
   Bool writeSetting(BaseFile&            file,
                     SettingNameT         setting,
                     const IdentifierName identifier);
-  Bool writeSetting(
-    BaseFile&          file,
-    SettingNameT       setting,
-    IdentifierName     identifier1,
-    IdentifierName     identifier2,
-    IdentifierName     identifier3,
-    const LuxParamSet& paramSet,
-    Bool                newLine);
+  Bool writeSetting(BaseFile&          file,
+                    SettingNameT       setting,
+                    IdentifierName     identifier1,
+                    IdentifierName     identifier2,
+                    IdentifierName     identifier3,
+                    const LuxParamSet& paramSet,
+                    Bool                newLine);
 };
 
 

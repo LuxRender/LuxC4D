@@ -169,7 +169,7 @@ Bool LuxAPIWriter::endScene(void)
 }
 
 
-Bool LuxAPIWriter::comment(const char* text)
+Bool LuxAPIWriter::setComment(const char* text)
 {
   for (mCommentLen=0; mCommentLen<sizeof(mComment); ++mCommentLen) {
     if ((mComment[mCommentLen] = text[mCommentLen]) == 0) {
@@ -181,7 +181,7 @@ Bool LuxAPIWriter::comment(const char* text)
 }
 
 
-Bool LuxAPIWriter::comment(const String& text)
+Bool LuxAPIWriter::setComment(const String& text)
 {
   mCommentLen = text.GetCString(mComment, sizeof(mComment), StUTF8);
   mComment[sizeof(mComment)-1] = '\0';
@@ -215,56 +215,56 @@ Bool LuxAPIWriter::lookAt(const LuxVector& camPos,
 }
 
 
-Bool LuxAPIWriter::film(const IdentifierName name,
+Bool LuxAPIWriter::film(const IdentifierName type,
                         const LuxParamSet&   paramSet)
 {
   writeComment(mSceneFile);
-  return writeSetting(*mSceneFile, "Film", name, 0, 0, paramSet, TRUE) &&
+  return writeSetting(*mSceneFile, "Film", type, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
 
 
-Bool LuxAPIWriter::camera(IdentifierName     name,
+Bool LuxAPIWriter::camera(IdentifierName     type,
                           const LuxParamSet& paramSet)
 {
   writeComment(mSceneFile);
-  return writeSetting(*mSceneFile, "Camera", name, 0, 0, paramSet, TRUE) &&
+  return writeSetting(*mSceneFile, "Camera", type, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
 
 
-Bool LuxAPIWriter::pixelFilter(IdentifierName     name,
+Bool LuxAPIWriter::pixelFilter(IdentifierName     type,
                                const LuxParamSet& paramSet)
 {
   writeComment(mSceneFile);
-  return writeSetting(*mSceneFile, "PixelFilter", name, 0, 0, paramSet, TRUE) &&
+  return writeSetting(*mSceneFile, "PixelFilter", type, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
 
 
-Bool LuxAPIWriter::sampler(IdentifierName     name,
+Bool LuxAPIWriter::sampler(IdentifierName     type,
                            const LuxParamSet& paramSet)
 {
   writeComment(mSceneFile);
-  return writeSetting(*mSceneFile, "Sampler", name, 0, 0, paramSet, TRUE) &&
+  return writeSetting(*mSceneFile, "Sampler", type, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
 
 
-Bool LuxAPIWriter::surfaceIntegrator(IdentifierName     name,
+Bool LuxAPIWriter::surfaceIntegrator(IdentifierName     type,
                                      const LuxParamSet& paramSet)
 {
   writeComment(mSceneFile);
-  return writeSetting(*mSceneFile, "SurfaceIntegrator", name, 0, 0, paramSet, TRUE) &&
+  return writeSetting(*mSceneFile, "SurfaceIntegrator", type, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
 
 
-Bool LuxAPIWriter::accelerator(IdentifierName     name,
+Bool LuxAPIWriter::accelerator(IdentifierName     type,
                                const LuxParamSet& paramSet)
 {
   writeComment(mSceneFile);
-  return writeSetting(*mSceneFile, "Accelerator", name, 0, 0, paramSet, TRUE) &&
+  return writeSetting(*mSceneFile, "Accelerator", type, 0, 0, paramSet, TRUE) &&
          writeLine(*mSceneFile, 0);
 }
 
@@ -313,20 +313,20 @@ Bool LuxAPIWriter::objectEnd(void)
 }
 
 
-Bool LuxAPIWriter::lightSource(IdentifierName     name,
+Bool LuxAPIWriter::lightSource(IdentifierName     type,
                                const LuxParamSet& paramSet)
 {
   mObjectsFile->WriteChar('\n');
   writeComment(mObjectsFile);
-  return writeSetting(*mObjectsFile, "LightSource", name, 0, 0, paramSet, TRUE);
+  return writeSetting(*mObjectsFile, "LightSource", type, 0, 0, paramSet, TRUE);
 }
 
 
-Bool LuxAPIWriter::areaLightSource(IdentifierName     name,
+Bool LuxAPIWriter::areaLightSource(IdentifierName     type,
                                    const LuxParamSet& paramSet)
 {
   writeComment(mObjectsFile);
-  return writeSetting(*mObjectsFile, "AreaLightSource", name, 0, 0, paramSet, TRUE);
+  return writeSetting(*mObjectsFile, "AreaLightSource", type, 0, 0, paramSet, TRUE);
 }
 
 
@@ -358,11 +358,11 @@ Bool LuxAPIWriter::namedMaterial(IdentifierName name)
 }
 
 
-Bool LuxAPIWriter::material(IdentifierName     name,
+Bool LuxAPIWriter::material(IdentifierName     type,
                             const LuxParamSet& paramSet)
 {
   writeComment(mObjectsFile);
-  return writeSetting(*mObjectsFile, "Material", name, 0, 0, paramSet, TRUE);
+  return writeSetting(*mObjectsFile, "Material", type, 0, 0, paramSet, TRUE);
 }
 
 
@@ -400,11 +400,11 @@ Bool LuxAPIWriter::reverseOrientation(void)
 }
 
 
-Bool LuxAPIWriter::shape(IdentifierName     name,
+Bool LuxAPIWriter::shape(IdentifierName     type,
                          const LuxParamSet& paramSet)
 {
   writeComment(mObjectsFile);
-  return writeSetting(*mObjectsFile, "Shape", name, 0, 0, paramSet, TRUE);
+  return writeSetting(*mObjectsFile, "Shape", type, 0, 0, paramSet, TRUE);
 }
 
 
