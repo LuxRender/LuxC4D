@@ -31,7 +31,6 @@ CONTAINER Tluxc4dlighttag
   GROUP ID_TAGPROPERTIES {
   
     LONG IDD_LIGHT_TYPE {
-      ANIM OFF;
       CYCLE {
         IDD_LIGHT_TYPE_AS_OBJECT;
         IDD_LIGHT_TYPE_POINT;
@@ -43,6 +42,7 @@ CONTAINER Tluxc4dlighttag
         IDD_LIGHT_TYPE_SUNSKY;
       }
     }
+    BOOL IDD_LIGHT_IGNORE_FALLOFF_RADIUS  { }
     
     GROUP IDG_POINT_LIGHT {
       DEFAULT 1;

@@ -23,97 +23,77 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
-#ifndef __LUXC4DLIGHTTAG_H__
-#define __LUXC4DLIGHTTAG_H__ 1
+#ifndef __LUXC4DCAMERATAG_H__
+#define __LUXC4DCAMERATAG_H__ 1
 
 
 
 #include <c4d.h>
 
+#include "luxapi.h"
+#include "luxparamset.h"
+#include "luxtypes.h"
 
 
-#define PID_LUXC4D_LIGHT_TAG  1023210
+
+#define PID_LUXC4D_CAMERA_TAG  1024019
 
 
 
 /***************************************************************************//*!
- This class implements a tag that can be applied to light objects, to allow
- the user to influence the exported light parameters without having to change
- the C4D lights. It also gives the user more control about Lux specific settings
- and adds Lux specific light types (e.g. sun and sky).
+ This class implements a tag that can be applied to camera objects, to allow
+ the user to set additional camera parameters, that are not available in standard
+ C4D cameras.
 *//****************************************************************************/
-class LuxC4DLightTag : public TagData
+class LuxC4DCameraTag : public TagData
 {
-  INSTANCEOF(LuxC4DLightTag,TagData)
+  INSTANCEOF(LuxC4DCameraTag,TagData)
 
 
 public:
 
-  /// Container structure in which we return the light settings for all light
-  /// types. Only the parameters that are relevant for the specific light
-  /// type will be used, the rest will be 0.
-  struct LightParameters {
+  enum CameraType {
+    CAMERA_TYPE_PERSPECTIVE = 0,
+    CAMERA_TYPE_ORTHOGRAPHIC,
+    CAMERA_TYPE_NUMBER
+  };
 
-    // used by all light types
-    LONG           mType;
-    Real           mBrightness;
-
-    // used by point, spot, distant and area lights
-    Vector         mColor;
-
-    // used by spot lights
-    Real           mInnerAngle;
-    Real           mOuterAngle;
-
-    // used by area lights
-    Bool           mFlippedNormals;
-    LONG           mShapeType;
-    PolygonObject* mShapeObject;
-    Vector         mShapeSize;
-
-    // used by area, sun, sky and sun-sky lights
-    LONG           mSamples;
-
-    // used by sun light
-    Real           mRelSize;
-
-    // used by sun sky and sun-sky lights
-    Real           mTurbidity;
-
-    // used by sky and sun-sky lights
-    Bool           mAdvanced;
-    Real           mA, mB, mC, mD, mE;
+  struct CameraParameters {
+    CameraType mType;
+    LuxFloat   mFov;
+    LuxBool    mScreenWindowSet;
+    LuxFloat   mScreenWindow[4];
+    LuxBool    mNearClippingSet;
+    LuxFloat   mNearClipping;
+    LuxBool    mDofEnabled;
+    LuxFloat   mLensRadius;
+    LuxBool    mAutofocus;
+    LuxFloat   mFocalDistance;
+    LuxInteger mBladeNumber;
+    LuxInteger mLensSamplingType;
+    LuxInteger mExponentialPower;
   };
 
 
   static NodeData* alloc(void);
   static Bool registerPlugin(void);
 
-  static Bool getLightParameters(BaseObject&      lightObject,
-                                 LReal            c4d2LuxScale,
-                                 LightParameters& parameters);
+  static Bool getCameraParameters(CameraObject&     camera,
+                                  LReal             c4d2LuxScale,
+                                  BaseContainer&    c4dRenderSettings,
+                                  CameraParameters& parameters);
 
   virtual Bool Init(GeListNode* node);
   virtual Bool GetDDescription(GeListNode*  node,
                                Description* description,
                                LONG&        flags);
-  virtual Bool Message(GeListNode *node,
-                       LONG       type,
-                       void       *data);
 
 
 private:
 
   BaseContainer* getData(void);
-
-  static LONG getLightType(BaseObject& lightObject);
-  LONG getLightType(void);
-
-  static LONG c4dShape2LuxShape(LONG c4dShapeType);
-
-  Bool copyFromObject(Bool allTypes);
 };
 
 
 
-#endif  // #ifndef __LUXC4DLIGHTTAG_H__
+#endif // #ifndef __LUXC4DCAMERATAG_H__

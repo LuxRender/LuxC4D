@@ -87,6 +87,7 @@ Bool LuxAPIWriter::init(const Filename &sceneFile)
 }
 
 
+/// Starts a new scene - see LuxAPI::startScene(const char*).
 Bool LuxAPIWriter::startScene(const char* head)
 {
   // if there is already an active session, close it
@@ -132,6 +133,7 @@ Bool LuxAPIWriter::startScene(const char* head)
 }
 
 
+/// End the current scene - see LuxAPI::endScene(void).
 Bool LuxAPIWriter::endScene(void)
 {
   // don't do anything if nothing was opened
@@ -169,6 +171,8 @@ Bool LuxAPIWriter::endScene(void)
 }
 
 
+/// Specifies the comment for the next command - see
+/// LuxAPI::setComment(const char*).
 Bool LuxAPIWriter::setComment(const char* text)
 {
   for (mCommentLen=0; mCommentLen<sizeof(mComment); ++mCommentLen) {
@@ -181,6 +185,8 @@ Bool LuxAPIWriter::setComment(const char* text)
 }
 
 
+/// Specifies the comment for the next command - see
+/// LuxAPI::setComment(const String&).
 Bool LuxAPIWriter::setComment(const String& text)
 {
   mCommentLen = text.GetCString(mComment, sizeof(mComment), StUTF8);
@@ -189,6 +195,9 @@ Bool LuxAPIWriter::setComment(const String& text)
 }
 
 
+/// Sets up a coordinate transformation for the current scope based on a
+/// viewing direction - see
+/// LuxAPI::lookAt(const LuxVector&, const LuxVector&, const LuxVector&).
 Bool LuxAPIWriter::lookAt(const LuxVector& camPos,
                           const LuxVector& trgPos,
                           const LuxVector& upVec)

@@ -30,6 +30,6 @@
 	/>
 	<UserMacro
 		Name="C4D_ROOT"
-		Value="..\..\..\..\..\C4D_R10.5"
+		Value="..\..\..\..\C4D_R10.5"
 	/>
 </VisualStudioPropertySheet>

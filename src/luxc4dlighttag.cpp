@@ -55,7 +55,7 @@ Bool LuxC4DLightTag::registerPlugin(void)
                            TAG_VISIBLE,
                            alloc,
                            "Tluxc4dlighttag",
-                           "icon_lighttag.tif",
+                           "icon_light_tag.tif",
                            0);
 }
 
@@ -67,6 +67,9 @@ Bool LuxC4DLightTag::registerPlugin(void)
 ///
 /// @param[in]  lightObject
 ///   Reference of the light object we want to fetch the parameters from.
+/// @param[in]  c4d2LuxScale
+///   The length conversion scale from C4D to Lux space. It's used for the
+///   brightness correction for different falloff radii.
 /// @param[out]  parameters
 ///   Reference of the container structure where the light parameters will
 ///   be written to.
@@ -74,10 +77,27 @@ Bool LuxC4DLightTag::registerPlugin(void)
 ///   TRUE if the parameters were read successfully or FALSE, if an error
 ///   occured.
 Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
+                                        LReal            c4d2LuxScale,
                                         LightParameters& parameters)
 {
   // check if object is of the right type
   if (lightObject.GetType() != Olight)  ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): passed object is no light object");
+
+  // calculate brightness correction factor which we only apply, if the falloff
+  // of the C4D light is "inverse" or "inverse square"
+  Real falloffCorrection = 1.0f;
+  LONG falloffType = getParameterLong(lightObject, LIGHT_DETAILS_FALLOFF);
+  if ((falloffType == LIGHT_DETAILS_FALLOFF_INVERSE) ||
+      (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE))
+  {
+    falloffCorrection = getParameterReal(lightObject,
+                                         LIGHT_DETAILS_OUTERDISTANCE,
+                                         1.0 / c4d2LuxScale)
+                        * c4d2LuxScale;
+    if (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE) {
+      falloffCorrection *= falloffCorrection;
+    }
+  }
 
   // reset parameters
   memset(&parameters, 0, sizeof(parameters));
@@ -86,7 +106,8 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
   BaseTag* tag = lightObject.GetTag(PID_LUXC4D_LIGHT_TAG);
   if (!tag) {
     parameters.mType       = getLightType(lightObject);
-    parameters.mBrightness = getParameterReal  (lightObject, LIGHT_BRIGHTNESS);
+    parameters.mBrightness = getParameterReal(lightObject, LIGHT_BRIGHTNESS)
+                             * falloffCorrection;
     parameters.mColor      = getParameterVector(lightObject, LIGHT_COLOR);
     switch (parameters.mType) {
       case IDD_LIGHT_TYPE_POINT:
@@ -185,6 +206,11 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
       ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): invalid light type determined from light tag");
   }
 
+  // if we should not ignore the C4D falloff, apply it to brightness
+  if (!data->GetBool(IDD_LIGHT_IGNORE_FALLOFF_RADIUS)) {
+    parameters.mBrightness *= falloffCorrection;
+  }
+
   return TRUE;
 }
 
@@ -204,8 +230,9 @@ Bool LuxC4DLightTag::Init(GeListNode* node)
   BaseContainer* data = getData();
   if (!data)  return FALSE;
 
-  // set light type
-  data->SetLong(IDD_LIGHT_TYPE, IDD_LIGHT_TYPE_AS_OBJECT);
+  // set light type and falloff flag
+  data->SetLong(IDD_LIGHT_TYPE,                  IDD_LIGHT_TYPE_AS_OBJECT);
+  data->SetBool(IDD_LIGHT_IGNORE_FALLOFF_RADIUS, FALSE);
 
   // set point light defaults
   data->SetVector(IDD_POINT_LIGHT_COLOR,      Vector(1.0));
@@ -315,6 +342,12 @@ Bool LuxC4DLightTag::GetDDescription(GeListNode*  node,
   showParameter(description, IDG_SUN_LIGHT,       params, lightType == IDD_LIGHT_TYPE_SUN);
   showParameter(description, IDG_SKY_LIGHT,       params, lightType == IDD_LIGHT_TYPE_SKY);
   showParameter(description, IDG_SUNSKY_LIGHT,    params, lightType == IDD_LIGHT_TYPE_SUNSKY);
+
+  // show falloff toggle depending on the falloff type
+  LONG falloffType = getParameterLong(*object, LIGHT_DETAILS_FALLOFF);
+  showParameter(description, IDD_LIGHT_IGNORE_FALLOFF_RADIUS, params,
+                (falloffType == LIGHT_DETAILS_FALLOFF_INVERSE) ||
+                (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE));
 
   // show/hide advanced settings for sky light
   if (lightType == IDD_LIGHT_TYPE_SKY) {

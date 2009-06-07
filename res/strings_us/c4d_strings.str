@@ -37,6 +37,8 @@ STRINGTABLE
   
   IDS_LUXC4D_LIGHT_TAG        "LuxC4D Light Tag";
   
+  IDS_LUXC4D_CAMERA_TAG       "LuxC4D Camera Tag";
+  
   IDS_LUXC4D_MATERIAL_MATTE   "Matte";
   IDS_LUXC4D_MATERIAL_GLOSSY  "Glossy";
   

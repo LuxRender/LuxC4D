@@ -162,7 +162,7 @@ private:
     LuxFloat   mEConst;
   };
   
-  
+
   // Union which is used during conversion of vertices with normals.
   union Point2PolyN {
     const Vector* normalRef;
@@ -208,6 +208,8 @@ private:
   typedef RBTreeSet<BaseList2D*>                    ObjectsT;
   /// The exported materials and their name, that can be reused.
   typedef RBTreeMap<const BaseMaterial*, LuxString> ReusableMaterialsT;
+  /// The map from material name to number of materials that use this name.
+  typedef RBTreeMap<String, LONG>                   MaterialUsageMapT;
   /// Helper array, which is used during the geometry conversion.
   typedef FixArray1D<ULONG>                         PointMapT;
 
@@ -226,6 +228,7 @@ private:
   ULONG              mLightCount;
   ObjectsT           mAreaLightObjects;
   ReusableMaterialsT mReusableMaterials;
+  MaterialUsageMapT  mMaterialUsage;
 
   // the currently cached object
   BaseObject*     mCachedObject;

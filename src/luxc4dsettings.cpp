@@ -83,28 +83,25 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   if (!data)  return FALSE;
 
   // set sampler defaults
-  data->SetLong(IDD_SAMPLER,                        IDD_SAMPLER_LOWDISCREPANCY);
-  data->SetLong(IDD_RANDOM_PIXELSAMPLER,            IDD_PIXELSAMPLER_RANDOM);
-  data->SetLong(IDD_RANDOM_SAMPLES_X,               2);
-  data->SetLong(IDD_RANDOM_SAMPLES_Y,               2);
+  data->SetLong(IDD_SAMPLER,                        IDD_SAMPLER_METROPOLIS);
+  data->SetLong(IDD_RANDOM_PIXELSAMPLER,            IDD_PIXELSAMPLER_VEGAS);
+  data->SetLong(IDD_RANDOM_PIXELSAMPLES,            4);
   data->SetLong(IDD_LOWDISCREPANCY_PIXELSAMPLER,    IDD_PIXELSAMPLER_LOWDISCREPANCY);
-  data->SetLong(IDD_LOWDISCREPANCY_SAMPLES,         4);
+  data->SetLong(IDD_LOWDISCREPANCY_PIXELSAMPLES,    4);
   data->SetLong(IDD_METROPOLIS_INIT_SAMPLES,        100000);
-  data->SetLong(IDD_METROPOLIS_MAX_CONSEC_REJECTS,  256);
-  data->SetReal(IDD_METROPOLIS_LARGE_MUTATION_PROB, 0.25);
+  data->SetLong(IDD_METROPOLIS_MAX_CONSEC_REJECTS,  512);
+  data->SetReal(IDD_METROPOLIS_LARGE_MUTATION_PROB, 0.4);
   data->SetReal(IDD_METROPOLIS_MICRO_MUTATION_PROB, 0.0);
-  data->SetReal(IDD_METROPOLIS_MUTATION_RANGE,      56.0);
-  data->SetLong(IDD_METROPOLIS_STRATA_WIDTH,        256);
   data->SetBool(IDD_METROPOLIS_USE_VARIANCE,        FALSE);
-  data->SetBool(IDD_METROPOLIS_USE_QR,              FALSE);
+  data->SetReal(IDD_METROPOLIS_STRENGTH,            0.6);
   data->SetLong(IDD_ERPT_INIT_SAMPLES,              100000);
   data->SetLong(IDD_ERPT_CHAINLENGTH,               512);
   data->SetReal(IDD_ERPT_MICRO_MUTATION_PROB,       0.5);
-  data->SetReal(IDD_ERPT_MUTATION_RANGE,            36.0);
 
   // set integrator defaults
-  data->SetLong(IDD_INTEGRATOR,                                     IDD_INTEGRATOR_PATH);
-  data->SetLong(IDD_PATH_MAX_DEPTH,                                 12);
+  data->SetLong(IDD_INTEGRATOR,                                     IDD_INTEGRATOR_BIDIRECTIONAL);
+  data->SetLong(IDD_PATH_MAX_DEPTH,                                 10);
+  data->SetBool(IDD_PATH_INCLUDE_ENVIRONMENT,                       TRUE);
   data->SetLong(IDD_PATH_DIRECT_LIGHT_STRATEGY,                     IDD_DIRECT_LIGHT_STRATEGY_AUTO);
   data->SetLong(IDD_PATH_RR_STRATEGY,                               IDD_PATH_RR_STRATEGY_EFFICIENCY);
   data->SetReal(IDD_PATH_RR_CONTINUE_PROB,                          0.65);
@@ -121,16 +118,21 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetLong(IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_SAMPLES,        1);
   data->SetLong(IDD_DISTRIBUTED_PATH_SPECULAR_REFLECT_DEPTH,        2);
   data->SetLong(IDD_DISTRIBUTED_PATH_SPECULAR_REFRACT_DEPTH,        5);
-  data->SetLong(IDD_BIDIRECTIONAL_EYE_DEPTH,                        8);
-  data->SetLong(IDD_BIDIRECTIONAL_LIGHT_DEPTH,                      8);
+  data->SetLong(IDD_BIDIRECTIONAL_MAX_DEPTH,                        16);
+  data->SetLong(IDD_BIDIRECTIONAL_EYE_DEPTH,                        16);
+  data->SetLong(IDD_BIDIRECTIONAL_LIGHT_DEPTH,                      16);
   data->SetLong(IDD_BIDIRECTIONAL_DIRECT_LIGHT_STRATEGY,            IDD_DIRECT_LIGHT_STRATEGY_AUTO);
+  data->SetReal(IDD_BIDIRECTIONAL_EYE_RR_THRESHOLD,                 0.0);
+  data->SetReal(IDD_BIDIRECTIONAL_LIGHT_RR_THRESHOLD,               0.0);
+  data->SetLong(IDD_DIRECT_LIGHTING_MAX_DEPTH,                      8);
+  data->SetLong(IDD_DIRECT_LIGHTING_STRATEGY,                       IDD_DIRECT_LIGHT_STRATEGY_AUTO);
 
   // set pixel filter defaults
-  data->SetLong(IDD_PIXEL_FILTER,           IDD_PIXEL_FILTER_MITCHELL);
+  data->SetLong(IDD_PIXEL_FILTER,           IDD_PIXEL_FILTER_GAUSSIAN);
   data->SetReal(IDD_BOX_FILTER_WIDTH,       0.5);
   data->SetReal(IDD_BOX_FILTER_HEIGHT,      0.5);
-  data->SetReal(IDD_GAUSSIAN_FILTER_WIDTH,  2.0);
-  data->SetReal(IDD_GAUSSIAN_FILTER_HEIGHT, 2.0);
+  data->SetReal(IDD_GAUSSIAN_FILTER_WIDTH,  1.3);
+  data->SetReal(IDD_GAUSSIAN_FILTER_HEIGHT, 1.3);
   data->SetReal(IDD_GAUSSIAN_FILTER_ALPHA,  2.0);
   data->SetReal(IDD_MITCHELL_FILTER_WIDTH,  2.0);
   data->SetReal(IDD_MITCHELL_FILTER_HEIGHT, 2.0);
@@ -154,18 +156,35 @@ Bool LuxC4DSettings::Init(GeListNode* node)
     data->SetReal(IDD_FLEXIMAGE_GAMMA,                  2.2);
 #endif
   }
-  data->SetBool(IDD_FLEXIMAGE_TONEMAP_SETTINGS,       FALSE);
-  data->SetReal(IDD_FLEXIMAGE_REINHARD_PRESCALE,      1.0);
-  data->SetReal(IDD_FLEXIMAGE_REINHARD_POSTSCALE,     1.2);
-  data->SetReal(IDD_FLEXIMAGE_REINHARD_BURN,          6.0);
-  data->SetBool(IDD_FLEXIMAGE_PREMULTIPLY,            TRUE);
+  data->SetBool(IDD_FLEXIMAGE_PREMULTIPLY,            FALSE);
   data->SetReal(IDD_FLEXIMAGE_DISPLAY_INTERVAL,       12);
   data->SetReal(IDD_FLEXIMAGE_WRITE_INTERVAL,         120);
-  data->SetBool(IDD_FLEXIMAGE_WRITE_TONEMAPPED_TGA,   TRUE);
-  data->SetBool(IDD_FLEXIMAGE_WRITE_TONEMAPPED_EXR,   FALSE);
-  data->SetBool(IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_EXR, FALSE);
-  data->SetBool(IDD_FLEXIMAGE_WRITE_TONEMAPPED_IGI,   FALSE);
-  data->SetBool(IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_IGI, FALSE);
+  data->SetLong(IDD_FLEXIMAGE_CLAMP_METHOD,           IDD_CLAMP_METHOD_LUM);
+  data->SetLong(IDD_FLEXIMAGE_REJECT_WARMUP,          128);
+  data->SetLong(IDD_FLEXIMAGE_TONEMAP_KERNEL,         IDD_TONEMAP_KERNEL_REINHARD);
+  data->SetReal(IDD_FLEXIMAGE_REINHARD_PRESCALE,      1.0);
+  data->SetReal(IDD_FLEXIMAGE_REINHARD_POSTSCALE,     1.0);
+  data->SetReal(IDD_FLEXIMAGE_REINHARD_BURN,          6.0);
+  data->SetReal(IDD_FLEXIMAGE_LINEAR_SENSITIVITY,     50.0);
+  data->SetReal(IDD_FLEXIMAGE_LINEAR_EXPOSURE,        1.0);
+  data->SetReal(IDD_FLEXIMAGE_LINEAR_FSTOP,           2.8);
+  data->SetReal(IDD_FLEXIMAGE_LINEAR_GAMMA,           1.0);
+  data->SetReal(IDD_FLEXIMAGE_CONTRAST_YWA,           1.0);
+  data->SetBool(IDD_FLEXIMAGE_WRITE_EXR,              FALSE);
+  data->SetBool(IDD_FLEXIMAGE_WRITE_PNG,              TRUE);
+  data->SetBool(IDD_FLEXIMAGE_WRITE_TGA,              FALSE);
+  data->SetLong(IDD_FLEXIMAGE_EXR_CHANNELS,           IDD_WRITE_CHANNELS_RGBA);
+  data->SetBool(IDD_FLEXIMAGE_EXR_HALFTYPE,           TRUE);
+  data->SetLong(IDD_FLEXIMAGE_EXR_COMPRESSION,        IDD_EXR_COMPRESSION_PIZ);
+  data->SetBool(IDD_FLEXIMAGE_EXR_APPLY_IMAGING,      TRUE);
+  data->SetBool(IDD_FLEXIMAGE_EXR_GAMUT_CLAMP,        TRUE);
+  data->SetBool(IDD_FLEXIMAGE_EXR_WRITE_ZBUF,         TRUE);
+  data->SetLong(IDD_FLEXIMAGE_EXR_ZBUF_NORM_TYPE,     IDD_ZBUF_NORM_TYPE_NONE);
+  data->SetLong(IDD_FLEXIMAGE_PNG_CHANNELS,           IDD_WRITE_CHANNELS_RGB);
+  data->SetBool(IDD_FLEXIMAGE_PNG_16BIT,              FALSE);
+  data->SetBool(IDD_FLEXIMAGE_PNG_GAMUT_CLAMP,        TRUE);
+  data->SetLong(IDD_FLEXIMAGE_TGA_CHANNELS,           IDD_WRITE_CHANNELS_RGB);
+  data->SetBool(IDD_FLEXIMAGE_TGA_GAMUT_CLAMP,        TRUE);
 
   // set export defaults
   data->SetLong(IDD_WHICH_EXPORT_FILENAME, IDD_ASK_FOR_EXPORT_FILENAME);
@@ -209,33 +228,47 @@ Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
 
   // show/hide sampler parameters
   LONG sampler = data->GetLong(IDD_SAMPLER);
-  Bool dumbSampler = (sampler == IDD_SAMPLER_RANDOM) ||
-                     (sampler == IDD_SAMPLER_LOWDISCREPANCY);
-  showParameter(description, IDD_ADVANCED_SAMPLER, params, !dumbSampler);
+  Bool hasAdvanced = (sampler == IDD_SAMPLER_METROPOLIS);
+  showParameter(description, IDD_ADVANCED_SAMPLER, params, hasAdvanced);
   showParameter(description, IDG_RANDOM,           params, sampler == IDD_SAMPLER_RANDOM);
   showParameter(description, IDG_LOWDISCREPANCY,   params, sampler == IDD_SAMPLER_LOWDISCREPANCY);
   showParameter(description, IDG_METROPOLIS,       params, sampler == IDD_SAMPLER_METROPOLIS);
   showParameter(description, IDG_ERPT,             params, sampler == IDD_SAMPLER_ERPT);
   Bool advanced = data->GetBool(IDD_ADVANCED_SAMPLER);
   if (sampler == IDD_SAMPLER_METROPOLIS) {
+    showParameter(description, IDD_METROPOLIS_STRENGTH,            params, !advanced);
+    showParameter(description, IDD_METROPOLIS_LARGE_MUTATION_PROB, params, advanced);
+    showParameter(description, IDD_METROPOLIS_MAX_CONSEC_REJECTS,  params, advanced);
     showParameter(description, IDD_METROPOLIS_MICRO_MUTATION_PROB, params, advanced);
-    showParameter(description, IDD_METROPOLIS_MUTATION_RANGE,      params, advanced);
     showParameter(description, IDD_METROPOLIS_INIT_SAMPLES,        params, advanced);
-    showParameter(description, IDD_METROPOLIS_STRATA_WIDTH,        params, advanced);
     showParameter(description, IDD_METROPOLIS_USE_VARIANCE,        params, advanced);
-    showParameter(description, IDD_METROPOLIS_USE_QR,              params, advanced);
-  } else if (sampler == IDD_SAMPLER_ERPT) {
-    showParameter(description, IDD_ERPT_MUTATION_RANGE,            params, advanced);
   }
 
   // show/hide integrator parameters
   LONG integrator = data->GetLong(IDD_INTEGRATOR);
-  showParameter(description, IDG_PATH,             params, integrator == IDD_INTEGRATOR_PATH);
-  showParameter(description, IDG_DISTRIBUTED_PATH, params, integrator == IDD_INTEGRATOR_DISTRIBUTED_PATH);
-  showParameter(description, IDG_BIDIRECTIONAL,    params, integrator == IDD_INTEGRATOR_BIDIRECTIONAL);
+  hasAdvanced = (integrator == IDD_INTEGRATOR_PATH) ||
+                (integrator == IDD_INTEGRATOR_BIDIRECTIONAL) ||
+                (integrator == IDD_INTEGRATOR_DIRECT_LIGHTING);
+  showParameter(description, IDD_ADVANCED_INTEGRATOR, params, hasAdvanced);
+  showParameter(description, IDG_PATH,                params, integrator == IDD_INTEGRATOR_PATH);
+  showParameter(description, IDG_DISTRIBUTED_PATH,    params, integrator == IDD_INTEGRATOR_DISTRIBUTED_PATH);
+  showParameter(description, IDG_BIDIRECTIONAL,       params, integrator == IDD_INTEGRATOR_BIDIRECTIONAL);
+  showParameter(description, IDG_DIRECT_LIGHTING,     params, integrator == IDD_INTEGRATOR_DIRECT_LIGHTING);
+  advanced = data->GetBool(IDD_ADVANCED_INTEGRATOR);
   if (integrator == IDD_INTEGRATOR_PATH) {
-    LONG rrStrategy = data->GetLong(IDD_PATH_RR_STRATEGY);
-    showParameter(description, IDD_PATH_RR_CONTINUE_PROB, params, rrStrategy == IDD_PATH_RR_STRATEGY_PROBABILITY);
+    Bool rrStrategyProb = (data->GetLong(IDD_PATH_RR_STRATEGY) == IDD_PATH_RR_STRATEGY_PROBABILITY);
+    showParameter(description, IDD_PATH_DIRECT_LIGHT_STRATEGY, params, advanced);
+    showParameter(description, IDD_PATH_RR_STRATEGY,           params, advanced);
+    showParameter(description, IDD_PATH_RR_CONTINUE_PROB,      params, advanced && rrStrategyProb);
+  } else if (integrator == IDD_INTEGRATOR_BIDIRECTIONAL) {
+    showParameter(description, IDD_BIDIRECTIONAL_EYE_DEPTH,             params, advanced);
+    showParameter(description, IDD_BIDIRECTIONAL_LIGHT_DEPTH,           params, advanced);
+    showParameter(description, IDD_BIDIRECTIONAL_DIRECT_LIGHT_STRATEGY, params, advanced);
+    showParameter(description, IDD_BIDIRECTIONAL_EYE_RR_THRESHOLD,      params, advanced);
+    showParameter(description, IDD_BIDIRECTIONAL_LIGHT_RR_THRESHOLD,    params, advanced);
+    showParameter(description, IDD_BIDIRECTIONAL_MAX_DEPTH,             params, !advanced);
+  } else if (integrator == IDD_INTEGRATOR_DIRECT_LIGHTING) {
+    showParameter(description, IDD_DIRECT_LIGHTING_STRATEGY, params, advanced);
   }
 
   // show/hide pixel filter parameters
@@ -246,12 +279,15 @@ Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
   showParameter(description, IDG_SINC_FILTER,     params, pixelFilter == IDD_PIXEL_FILTER_SINC);
   showParameter(description, IDG_TRIANGLE_FILTER, params, pixelFilter == IDD_PIXEL_FILTER_TRIANGLE);
 
-  // show/hide film parameters
-  Bool tonemapSettings = data->GetBool(IDD_FLEXIMAGE_TONEMAP_SETTINGS);
-  showParameter(description, IDD_FLEXIMAGE_REINHARD_PRESCALE,  params, tonemapSettings);
-  showParameter(description, IDD_FLEXIMAGE_REINHARD_POSTSCALE, params, tonemapSettings);
-  showParameter(description, IDD_FLEXIMAGE_REINHARD_BURN,      params, tonemapSettings);
-  showParameter(description, IDD_FLEXIMAGE_REINHARD_DUMMY,     params, tonemapSettings);
+  // show hide film parameters
+  LONG tonemapKernel = data->GetLong(IDD_FLEXIMAGE_TONEMAP_KERNEL);
+  showParameter(description, IDG_FLEXIMAGE_REINHARD, params, tonemapKernel == IDD_TONEMAP_KERNEL_REINHARD);
+  showParameter(description, IDG_FLEXIMAGE_LINEAR,   params, tonemapKernel == IDD_TONEMAP_KERNEL_LINEAR);
+  showParameter(description, IDG_FLEXIMAGE_CONTRAST, params, tonemapKernel == IDD_TONEMAP_KERNEL_CONTRAST);
+  showParameter(description, IDG_FLEXIMAGE_EXR,                params, data->GetBool(IDD_FLEXIMAGE_WRITE_EXR));
+  showParameter(description, IDD_FLEXIMAGE_EXR_ZBUF_NORM_TYPE, params, data->GetBool(IDD_FLEXIMAGE_EXR_WRITE_ZBUF));
+  showParameter(description, IDG_FLEXIMAGE_PNG, params, data->GetBool(IDD_FLEXIMAGE_WRITE_PNG));
+  showParameter(description, IDG_FLEXIMAGE_TGA, params, data->GetBool(IDD_FLEXIMAGE_WRITE_TGA));
 
   // show/hide conversion parameters
   LONG exportFilenameMethod = data->GetLong(IDD_WHICH_EXPORT_FILENAME);
@@ -260,7 +296,53 @@ Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
 
   // set flag and return
   flags |= DESCFLAGS_DESC_LOADED;
-  return TRUE;
+  return SUPER::GetDDescription(node, description, flags);
+}
+
+
+///
+Bool LuxC4DSettings::SetDParameter(GeListNode*   node,
+                                   const DescID& id,
+                                   const GeData& value,
+                                   LONG&         flags)
+{
+  // obtain container from node
+  BaseContainer* data = getData();
+  if (!data)  return FALSE;
+
+  // Metropolis + not advanced:
+  if ((id == DescID(IDD_METROPOLIS_STRENGTH)) &&
+      !data->GetBool(IDD_ADVANCED_SAMPLER))
+  {
+    // convert the strength to a large mutation probability
+    data->SetReal(IDD_METROPOLIS_LARGE_MUTATION_PROB, 1.0f - value.GetReal());
+  // Metropolis + advanced:
+  } else if ((id == DescID(IDD_METROPOLIS_LARGE_MUTATION_PROB)) &&
+             data->GetBool(IDD_ADVANCED_SAMPLER))
+  {
+    // convert the large mutation probability to strength
+    data->SetReal(IDD_METROPOLIS_STRENGTH, 1.0f - value.GetReal());
+  }
+
+  // Bidirectional + not advanced:
+  if ((id == DescID(IDD_BIDIRECTIONAL_MAX_DEPTH)) &&
+      !data->GetBool(IDD_ADVANCED_INTEGRATOR))
+  {
+    // apply max. depth to eye and light depth
+    data->SetLong(IDD_BIDIRECTIONAL_EYE_DEPTH,   value.GetLong());
+    data->SetLong(IDD_BIDIRECTIONAL_LIGHT_DEPTH, value.GetLong());
+  // Bidirectional + not advanced:
+  } else if (((id == DescID(IDD_BIDIRECTIONAL_EYE_DEPTH)) ||
+              (id == DescID(IDD_BIDIRECTIONAL_LIGHT_DEPTH))) &&
+             data->GetBool(IDD_ADVANCED_INTEGRATOR))
+  {
+    // set average eye and light depth to max. depth
+    LONG average = (data->GetLong(IDD_BIDIRECTIONAL_EYE_DEPTH) +
+                    data->GetLong(IDD_BIDIRECTIONAL_LIGHT_DEPTH)) >> 1;
+    data->SetLong(IDD_BIDIRECTIONAL_MAX_DEPTH, average);
+  }
+
+  return SUPER::SetDParameter(node, id, value, flags);
 }
 
 
@@ -278,20 +360,77 @@ void LuxC4DSettings::getFilm(const char*& name,
       "fleximage"
     };
 
+  // the different clamp methods
+  static const char* sClampMethods[IDD_CLAMP_METHOD_NUMBER] = {
+      "lum",
+      "hue",
+      "cut"
+    };
+
+  // the different tonemap kernels
+  static const char* sTonemapKernels[IDD_TONEMAP_KERNEL_NUMBER] = {
+      "reinhard",
+      "linear",
+      "contrast",
+      "maxwhite"
+    };
+
+  // the different image channels
+  static const char* sImageChannels[IDD_WRITE_CHANNELS_NUMBER] = {
+      "Y",
+      "YA",
+      "RGB",
+      "RGBA"
+    };
+
+  // the different Z-buffer normalisation methods
+  static const char* sZBufNormTypes[IDD_ZBUF_NORM_TYPE_NUMBER] = {
+      "None",
+      "Camera Start/End clip",
+      "Min/Max"
+    };
+
+  // the different compression methods
+  static const char* sCompressionTypes[IDD_EXR_COMPRESSION_NUMBER] = {
+      "RLE (lossless)",
+      "PIZ (lossless)",
+      "ZIP (lossless)",
+      "Pxr24 (lossy)",
+      "None"
+    };
+
   // parameters for fleximage
-  static Descr2Param<LuxInteger> sFleximageHaltSPP        (IDD_FLEXIMAGE_HALT_SPP,               "haltspp");
-  static Descr2Param<LuxFloat>   sFleximageGamma          (IDD_FLEXIMAGE_GAMMA,                  "gamma");
-  static Descr2Param<LuxFloat>   sFleximagePrescale       (IDD_FLEXIMAGE_REINHARD_PRESCALE,      "reinhard_prescale");
-  static Descr2Param<LuxFloat>   sFleximagePostscale      (IDD_FLEXIMAGE_REINHARD_POSTSCALE,     "reinhard_postscale");
-  static Descr2Param<LuxFloat>   sFleximageBurn           (IDD_FLEXIMAGE_REINHARD_BURN,          "reinhard_burn");
-  static Descr2Param<LuxBool>    sFleximagePremultiply    (IDD_FLEXIMAGE_PREMULTIPLY,            "premultiplyalpha");
-  static Descr2Param<LuxInteger> sFleximageDisplayInterval(IDD_FLEXIMAGE_DISPLAY_INTERVAL,       "displayinterval");
-  static Descr2Param<LuxInteger> sFleximageWriteInterval  (IDD_FLEXIMAGE_WRITE_INTERVAL,         "writeinterval");
-  static Descr2Param<LuxBool>    sFleximageTonemappedTGA  (IDD_FLEXIMAGE_WRITE_TONEMAPPED_TGA,   "write_tonemapped_tga");
-  static Descr2Param<LuxBool>    sFleximageTonemappedEXR  (IDD_FLEXIMAGE_WRITE_TONEMAPPED_EXR,   "write_tonemapped_exr");
-  static Descr2Param<LuxBool>    sFleximageUnTonemappedEXR(IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_EXR, "write_untonemapped_exr");
-  static Descr2Param<LuxBool>    sFleximageTonemappedIGI  (IDD_FLEXIMAGE_WRITE_TONEMAPPED_IGI,   "write_tonemapped_igi");
-  static Descr2Param<LuxBool>    sFleximageUnTonemappedIGI(IDD_FLEXIMAGE_WRITE_UNTONEMAPPED_IGI, "write_untonemapped_igi");
+  static Descr2Param<LuxInteger> sFleximageHaltSPP          (IDD_FLEXIMAGE_HALT_SPP,           "haltspp");
+  static Descr2Param<LuxFloat>   sFleximageGamma            (IDD_FLEXIMAGE_GAMMA,              "gamma");
+  static Descr2Param<LuxBool>    sFleximagePremultiply      (IDD_FLEXIMAGE_PREMULTIPLY,        "premultiplyalpha");
+  static Descr2Param<LuxInteger> sFleximageDisplayInterval  (IDD_FLEXIMAGE_DISPLAY_INTERVAL,   "displayinterval");
+  static Descr2Param<LuxInteger> sFleximageWriteInterval    (IDD_FLEXIMAGE_WRITE_INTERVAL,     "writeinterval");
+  static Descr2Param<LuxString>  sFleximageClampMethod      (IDD_FLEXIMAGE_CLAMP_METHOD,       "ldr_clamp_method");
+  static Descr2Param<LuxInteger> sFleximageRejectWarmup     (IDD_FLEXIMAGE_REJECT_WARMUP,      "reject_warmup");
+  static Descr2Param<LuxString>  sFleximageTonemapKernel    (IDD_FLEXIMAGE_TONEMAP_KERNEL,     "tonemapkernel");
+  static Descr2Param<LuxFloat>   sFleximageReinhardPrescale (IDD_FLEXIMAGE_REINHARD_PRESCALE,  "reinhard_prescale");
+  static Descr2Param<LuxFloat>   sFleximageReinhardPostscale(IDD_FLEXIMAGE_REINHARD_POSTSCALE, "reinhard_postscale");
+  static Descr2Param<LuxFloat>   sFleximageReinhardBurn     (IDD_FLEXIMAGE_REINHARD_BURN,      "reinhard_burn");
+  static Descr2Param<LuxFloat>   sFleximageLinearSensitivity(IDD_FLEXIMAGE_LINEAR_SENSITIVITY, "linear_sensitivity");
+  static Descr2Param<LuxFloat>   sFleximageLinearExposure   (IDD_FLEXIMAGE_LINEAR_EXPOSURE,    "linear_exposure");
+  static Descr2Param<LuxFloat>   sFleximageLinearFStop      (IDD_FLEXIMAGE_LINEAR_FSTOP,       "linear_fstop");
+  static Descr2Param<LuxFloat>   sFleximageLinearGamma      (IDD_FLEXIMAGE_LINEAR_GAMMA,       "linear_gamma");
+  static Descr2Param<LuxFloat>   sFleximageContrastYwa      (IDD_FLEXIMAGE_CONTRAST_YWA,       "contrast_ywa");
+  static Descr2Param<LuxBool>    sFleximageWriteEXR         (IDD_FLEXIMAGE_WRITE_EXR,          "write_exr");
+  static Descr2Param<LuxBool>    sFleximageWritePNG         (IDD_FLEXIMAGE_WRITE_PNG,          "write_png");
+  static Descr2Param<LuxBool>    sFleximageWriteTGA         (IDD_FLEXIMAGE_WRITE_TGA,          "write_tga");
+  static Descr2Param<LuxString>  sFleximageEXRChannels      (IDD_FLEXIMAGE_EXR_CHANNELS,       "write_exr_channels");
+  static Descr2Param<LuxBool>    sFleximageEXRHalftype      (IDD_FLEXIMAGE_EXR_HALFTYPE,       "write_exr_halftype");
+  static Descr2Param<LuxString>  sFleximageEXRCompression   (IDD_FLEXIMAGE_EXR_COMPRESSION,    "write_exr_compressiontype");
+  static Descr2Param<LuxBool>    sFleximageEXRApplyImaging  (IDD_FLEXIMAGE_EXR_APPLY_IMAGING,  "write_exr_applyimaging");
+  static Descr2Param<LuxBool>    sFleximageEXRGamutClamp    (IDD_FLEXIMAGE_EXR_GAMUT_CLAMP,    "write_exr_gamutclamp");
+  static Descr2Param<LuxBool>    sFleximageEXRWriteZBuf     (IDD_FLEXIMAGE_EXR_WRITE_ZBUF,     "write_exr_ZBuf");
+  static Descr2Param<LuxString>  sFleximageEXRZBufNormType  (IDD_FLEXIMAGE_EXR_ZBUF_NORM_TYPE, "write_exr_zbuf_normalizationtype");
+  static Descr2Param<LuxString>  sFleximagePNGChannels      (IDD_FLEXIMAGE_PNG_CHANNELS,       "write_png_channels");
+  static Descr2Param<LuxBool>    sFleximagePNG16Bit         (IDD_FLEXIMAGE_PNG_16BIT,          "write_png_16bit");
+  static Descr2Param<LuxBool>    sFleximagePNGGamutClamp    (IDD_FLEXIMAGE_PNG_GAMUT_CLAMP,    "write_png_gamutclamp");
+  static Descr2Param<LuxString>  sFleximageTGAChannels      (IDD_FLEXIMAGE_TGA_CHANNELS,       "write_tga_channels");
+  static Descr2Param<LuxBool>    sFleximageTGAGamutClamp    (IDD_FLEXIMAGE_TGA_GAMUT_CLAMP,    "write_tga_gamutclamp");
   
 
   // set default sampler
@@ -308,21 +447,51 @@ void LuxC4DSettings::getFilm(const char*& name,
   switch (film) {
     // film fleximage
     case IDD_FILM_FLEXIMAGE:
-      copyParam(sFleximageHaltSPP,         paramSet);
-      copyParam(sFleximageGamma,           paramSet);
-      if (data->GetBool(IDD_FLEXIMAGE_TONEMAP_SETTINGS)) {
-        copyParam(sFleximagePrescale,  paramSet);
-        copyParam(sFleximagePostscale, paramSet);
-        copyParam(sFleximageBurn,      paramSet);
+      copyParam(sFleximageHaltSPP,           paramSet);
+      copyParam(sFleximageGamma,             paramSet);
+      copyParam(sFleximagePremultiply,       paramSet);
+      copyParam(sFleximageDisplayInterval,   paramSet);
+      copyParam(sFleximageWriteInterval,     paramSet);
+      copyParam(sFleximageClampMethod,       paramSet, sClampMethods,   IDD_CLAMP_METHOD_NUMBER);
+      copyParam(sFleximageRejectWarmup,      paramSet);
+      copyParam(sFleximageTonemapKernel,     paramSet, sTonemapKernels, IDD_TONEMAP_KERNEL_NUMBER);
+      switch (data->GetLong(IDD_FLEXIMAGE_TONEMAP_KERNEL)) {
+        case IDD_TONEMAP_KERNEL_REINHARD:
+          copyParam(sFleximageReinhardPrescale,  paramSet);
+          copyParam(sFleximageReinhardPostscale, paramSet);
+          copyParam(sFleximageReinhardBurn,      paramSet);
+          break;
+        case IDD_TONEMAP_KERNEL_LINEAR:
+          copyParam(sFleximageLinearSensitivity, paramSet);
+          copyParam(sFleximageLinearExposure,    paramSet);
+          copyParam(sFleximageLinearFStop,       paramSet);
+          copyParam(sFleximageLinearGamma,       paramSet);
+          break;
+        case IDD_TONEMAP_KERNEL_CONTRAST:
+          copyParam(sFleximageContrastYwa,       paramSet);
+          break;
       }
-      copyParam(sFleximagePremultiply,     paramSet);
-      copyParam(sFleximageDisplayInterval, paramSet);
-      copyParam(sFleximageWriteInterval,   paramSet);
-      copyParam(sFleximageTonemappedTGA,   paramSet);
-      copyParam(sFleximageTonemappedEXR,   paramSet);
-      copyParam(sFleximageUnTonemappedEXR, paramSet);
-      copyParam(sFleximageTonemappedIGI,   paramSet);
-      copyParam(sFleximageUnTonemappedIGI, paramSet);
+      copyParam(sFleximageWriteEXR,          paramSet);
+      copyParam(sFleximageWritePNG,          paramSet);
+      copyParam(sFleximageWriteTGA,          paramSet);
+      if (data->GetBool(IDD_FLEXIMAGE_WRITE_EXR)) {
+        copyParam(sFleximageEXRChannels,       paramSet, sImageChannels,    IDD_WRITE_CHANNELS_NUMBER);
+        copyParam(sFleximageEXRHalftype,       paramSet);
+        copyParam(sFleximageEXRCompression,    paramSet, sCompressionTypes, IDD_EXR_COMPRESSION_NUMBER);
+        copyParam(sFleximageEXRApplyImaging,   paramSet);
+        copyParam(sFleximageEXRGamutClamp,     paramSet);
+        copyParam(sFleximageEXRWriteZBuf,      paramSet);
+        copyParam(sFleximageEXRZBufNormType,   paramSet, sZBufNormTypes,    IDD_ZBUF_NORM_TYPE_NUMBER);
+      }
+      if (data->GetBool(IDD_FLEXIMAGE_WRITE_PNG)) {
+        copyParam(sFleximagePNGChannels,       paramSet, sImageChannels,    IDD_WRITE_CHANNELS_NUMBER);
+        copyParam(sFleximagePNG16Bit,          paramSet);
+        copyParam(sFleximagePNGGamutClamp,     paramSet);
+      }
+      if (data->GetBool(IDD_FLEXIMAGE_WRITE_TGA)) {
+        copyParam(sFleximageTGAChannels,       paramSet, sImageChannels,    IDD_WRITE_CHANNELS_NUMBER);
+        copyParam(sFleximageTGAGamutClamp,     paramSet);
+      }
       break;
     // invalid film -> error and return
     default:
@@ -457,28 +626,23 @@ void LuxC4DSettings::getSampler(const char*& name,
 
   // parameters for lowdiscrepancy sampler
   static Descr2Param<LuxString>  sLowdiscrepancyPixelSampler(IDD_LOWDISCREPANCY_PIXELSAMPLER, "pixelsampler");
-  static Descr2Param<LuxInteger> sLowdiscrepancyPixelSamples(IDD_LOWDISCREPANCY_SAMPLES,      "pixelsamples");
+  static Descr2Param<LuxInteger> sLowdiscrepancyPixelSamples(IDD_LOWDISCREPANCY_PIXELSAMPLES, "pixelsamples");
 
   // parameters for random sampler
   static Descr2Param<LuxString>  sRandomPixelSampler(IDD_RANDOM_PIXELSAMPLER, "pixelsampler");
-  static Descr2Param<LuxInteger> sRandomXSamples    (IDD_RANDOM_SAMPLES_X,    "xsamples");
-  static Descr2Param<LuxInteger> sRandomYSamples    (IDD_RANDOM_SAMPLES_Y,    "ysamples");
+  static Descr2Param<LuxInteger> sRandomPixelSamples(IDD_RANDOM_PIXELSAMPLES, "pixelsamples");
 
   // parameters for metropolis sampler
   static Descr2Param<LuxFloat>   sMetroLargeMutationProb(IDD_METROPOLIS_LARGE_MUTATION_PROB, "largemutationprob");
   static Descr2Param<LuxInteger> sMetroMaxConsecRejects (IDD_METROPOLIS_MAX_CONSEC_REJECTS,  "maxconsecrejects");
   static Descr2Param<LuxFloat>   sMetroMicroMutationProb(IDD_METROPOLIS_MICRO_MUTATION_PROB, "micromutationprob");
-  static Descr2Param<LuxFloat>   sMetroMutationRange    (IDD_METROPOLIS_MUTATION_RANGE,      "mutationrange");
   static Descr2Param<LuxInteger> sMetroInitSamples      (IDD_METROPOLIS_INIT_SAMPLES,        "initsamples");
-  static Descr2Param<LuxFloat>   sMetroStrataWidth      (IDD_METROPOLIS_STRATA_WIDTH,        "stratawidth");
   static Descr2Param<LuxBool>    sMetroUseVariance      (IDD_METROPOLIS_USE_VARIANCE,        "usevariance");
-  static Descr2Param<LuxBool>    sMetroUseQR            (IDD_METROPOLIS_USE_QR,              "useqr");
 
   // parameters for ERPT sampler
   static Descr2Param<LuxInteger> sERPTInitSamples      (IDD_ERPT_INIT_SAMPLES,        "initsamples");
   static Descr2Param<LuxInteger> sERPTChainLength      (IDD_ERPT_CHAINLENGTH,         "chainlength");
   static Descr2Param<LuxFloat>   sERPTMicroMutationProb(IDD_ERPT_MICRO_MUTATION_PROB, "micromutationprob");
-  static Descr2Param<LuxFloat>   sERPTMutationRange    (IDD_ERPT_MUTATION_RANGE,      "mutationrange");
 
 
   // set default sampler
@@ -503,20 +667,16 @@ void LuxC4DSettings::getSampler(const char*& name,
     case IDD_SAMPLER_RANDOM:
       copyParam(sRandomPixelSampler, paramSet,
                 sPixelSamplerNames, IDD_PIXELSAMPLER_NUMBER);
-      copyParam(sRandomXSamples, paramSet);
-      copyParam(sRandomYSamples, paramSet);
+      copyParam(sRandomPixelSamples, paramSet);
       break;
     // metropolis sampler
     case IDD_SAMPLER_METROPOLIS:
       copyParam(sMetroLargeMutationProb, paramSet);
-      copyParam(sMetroMaxConsecRejects,  paramSet);
       if (data->GetBool(IDD_ADVANCED_SAMPLER)) {
+        copyParam(sMetroMaxConsecRejects,  paramSet);
         copyParam(sMetroMicroMutationProb, paramSet);
-        copyParam(sMetroMutationRange,     paramSet);
         copyParam(sMetroInitSamples,       paramSet);
-        copyParam(sMetroStrataWidth,       paramSet);
         copyParam(sMetroUseVariance,       paramSet);
-        copyParam(sMetroUseQR,             paramSet);
       }
       break;
     // ERPT sampler
@@ -524,9 +684,6 @@ void LuxC4DSettings::getSampler(const char*& name,
       copyParam(sERPTInitSamples,       paramSet);
       copyParam(sERPTChainLength,       paramSet);
       copyParam(sERPTMicroMutationProb, paramSet);
-      if (data->GetBool(IDD_ADVANCED_SAMPLER)) {
-        copyParam(sERPTMutationRange, paramSet);
-      }
       break;
     // invalid sampler -> error and return
     default:
@@ -551,7 +708,8 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
   static const char* sIntegratorNames[IDD_INTEGRATOR_NUMBER] = {
       "path",
       "distributedpath",
-      "bidirectional"
+      "bidirectional",
+      "directlighting"
     };
 
   // direct light strategies
@@ -573,6 +731,7 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
   static Descr2Param<LuxString>  sPathDirectLightStrategy(IDD_PATH_DIRECT_LIGHT_STRATEGY, "strategy");
   static Descr2Param<LuxString>  sPathRRStrategy         (IDD_PATH_RR_STRATEGY,           "rrstrategy");
   static Descr2Param<LuxFloat>   sPathRRContinueProb     (IDD_PATH_RR_CONTINUE_PROB,      "rrcontinueprob");
+  static Descr2Param<LuxBool>    sPathIncludeEnvironment (IDD_PATH_INCLUDE_ENVIRONMENT,   "includeenvironment");
 
   // parameters for distributed path integrator
   static Descr2Param<LuxString>  sDistriPathDirectLightStrategy       (IDD_DISTRIBUTED_PATH_DIRECT_LIGHT_STRATEGY,         "strategy");
@@ -593,6 +752,12 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
   static Descr2Param<LuxInteger> sBidirectionalEyeDepth           (IDD_BIDIRECTIONAL_EYE_DEPTH,             "eyedepth");
   static Descr2Param<LuxInteger> sBidirectionalLightDepth         (IDD_BIDIRECTIONAL_LIGHT_DEPTH,           "lightdepth");
   static Descr2Param<LuxString>  sBidirectionalDirectLightStrategy(IDD_BIDIRECTIONAL_DIRECT_LIGHT_STRATEGY, "strategy");
+  static Descr2Param<LuxFloat>   sBidirectionalEyeRRThreshold     (IDD_BIDIRECTIONAL_EYE_RR_THRESHOLD,      "eyerrthreshold");
+  static Descr2Param<LuxFloat>   sBidirectionalLightRRThreshold   (IDD_BIDIRECTIONAL_LIGHT_RR_THRESHOLD,    "lightrrthreshold");
+
+  // parameters for direct lighting integrator
+  static Descr2Param<LuxInteger> sDirectLightingMaxDepth(IDD_DIRECT_LIGHTING_MAX_DEPTH, "maxdepth");
+  static Descr2Param<LuxString>  sDirectLightingStrategy(IDD_DIRECT_LIGHTING_STRATEGY,  "strategy");
 
 
   // set default sampler
@@ -609,13 +774,16 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
   switch (integrator) {
     // path integrator
     case IDD_INTEGRATOR_PATH:
-      copyParam(sPathMaxDepth, paramSet);
-      copyParam(sPathDirectLightStrategy, paramSet,
-                sDirectLightStrategies, IDD_DIRECT_LIGHT_STRATEGY_NUMBER);
-      copyParam(sPathRRStrategy, paramSet,
-                sRRStrategies, IDD_PATH_RR_STRATEGY_NUMBER);
-      if (data->GetLong(IDD_PATH_RR_STRATEGY) == IDD_PATH_RR_STRATEGY_PROBABILITY) {
-        copyParam(sPathRRContinueProb, paramSet);
+      copyParam(sPathMaxDepth,            paramSet);
+      copyParam(sPathIncludeEnvironment,  paramSet);
+      if (data->GetBool(IDD_ADVANCED_INTEGRATOR)) {
+        copyParam(sPathDirectLightStrategy, paramSet,
+                  sDirectLightStrategies, IDD_DIRECT_LIGHT_STRATEGY_NUMBER);
+        copyParam(sPathRRStrategy, paramSet,
+                  sRRStrategies, IDD_PATH_RR_STRATEGY_NUMBER);
+        if (data->GetLong(IDD_PATH_RR_STRATEGY) == IDD_PATH_RR_STRATEGY_PROBABILITY) {
+          copyParam(sPathRRContinueProb,    paramSet);
+        }
       }
       break;
     // distributed path integrator
@@ -637,10 +805,22 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
       break;
     // bidirectional integrator
     case IDD_INTEGRATOR_BIDIRECTIONAL:
-      copyParam(sBidirectionalEyeDepth,   paramSet);
-      copyParam(sBidirectionalLightDepth, paramSet);
-      copyParam(sBidirectionalDirectLightStrategy, paramSet,
-                sDirectLightStrategies, IDD_DIRECT_LIGHT_STRATEGY_NUMBER);
+      copyParam(sBidirectionalEyeDepth,            paramSet);
+      copyParam(sBidirectionalLightDepth,          paramSet);
+      if (data->GetBool(IDD_ADVANCED_INTEGRATOR)) {
+        copyParam(sBidirectionalDirectLightStrategy, paramSet,
+                  sDirectLightStrategies, IDD_DIRECT_LIGHT_STRATEGY_NUMBER);
+        copyParam(sBidirectionalEyeRRThreshold,      paramSet);
+        copyParam(sBidirectionalLightRRThreshold,    paramSet);
+      }
+      break;
+    // direct lighting integrator
+    case IDD_INTEGRATOR_DIRECT_LIGHTING:
+      copyParam(sDirectLightingMaxDepth, paramSet);
+      if (data->GetBool(IDD_ADVANCED_INTEGRATOR)) {
+        copyParam(sDirectLightingStrategy, paramSet,
+                  sDirectLightStrategies, IDD_DIRECT_LIGHT_STRATEGY_NUMBER);
+      }
       break;
     // invalid integrator -> error and return
     default:

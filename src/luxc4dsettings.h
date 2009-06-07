@@ -59,6 +59,10 @@ public:
   virtual Bool GetDDescription(GeListNode*  node,
                                Description* description,
                                LONG&        flags);
+  virtual Bool SetDParameter(GeListNode*   node,
+                             const DescID& id,
+                             const GeData& value,
+                             LONG&         flags);
 
   void getFilm(const char*& name,
                LuxParamSet& paramSet);
@@ -81,8 +85,8 @@ private:
   /// and also provides the buffer where the parameter gets stored.
   template<class T>
   struct Descr2Param {
-    LONG          mID;
-    T             mParam;
+    LONG         mID;
+    T            mParam;
     LuxParamName mParamName;
 
     Descr2Param(LONG id, LuxParamName paramName)

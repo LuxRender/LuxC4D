@@ -41,7 +41,7 @@ Bool LuxC4DExporterRender::registerPlugin(void)
 {
   return RegisterCommandPlugin(PID_LUXC4D_EXPORTERRENDER,
                                GeLoadString(IDS_LUXC4D_EXPORTERRENDER),
-                               0, 0,
+                               0, "icon_export_render.tif",
                                GeLoadString(IDS_LUXC4D_EXPORTER_DESCR),
                                this);
 }

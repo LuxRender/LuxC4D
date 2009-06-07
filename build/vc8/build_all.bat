@@ -2,7 +2,7 @@
 
 rem  Here you can configure the compression tool and the version number that will
 rem  be used in the archive filename.
-set VERSION=0.04
+set VERSION=0.05
 set PACKER_DIR=c:\program files\7-zip
 set PACKER="%PACKER_DIR%\7za.exe"
 set ARCHIVE_OPT=a -tzip -mx9
@@ -32,8 +32,8 @@ rem  Recreate distribution directory  and set it up with all the resource files
 rem  of LuxC4D
 rmdir /s /q %DISTRI_DIR%
 mkdir %DISTRI_DIR%
-xcopy /q /s /i /exclude:copyexcl.txt ..\..\res %DISTRI_DIR%\LuxC4D\res
-xcopy /q /s /i /exclude:copyexcl.txt ..\..\license %DISTRI_DIR%\LuxC4D\license
+xcopy /q /s /i ..\..\res %DISTRI_DIR%\LuxC4D\res
+xcopy /q /s /i ..\..\license %DISTRI_DIR%\LuxC4D\license
 
 rem  Bulild all the different configurations
 set CONFIG=R9.6_Debug

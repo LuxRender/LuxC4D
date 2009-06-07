@@ -152,7 +152,7 @@ Bool LuxC4DPreferences::registerPlugin(void)
 {
   return RegisterCommandPlugin(PID_LUXC4D_PREFERENCES,
                                GeLoadString(IDS_LUXC4D_PREFERENCES),
-                               0, 0,
+                               0, "icon_preferences.tif",
                                GeLoadString(IDS_LUXC4D_PREFERENCES_DESCR),
                                this);
 }

@@ -35,6 +35,7 @@ enum
   // ----------------------------------
   IDD_LIGHT_TYPE = 10100,
   IDD_LIGHT_TAG_OBJECT_SETTINGS_COPIED,
+  IDD_LIGHT_IGNORE_FALLOFF_RADIUS,
 
     // light types
     IDD_LIGHT_TYPE_AS_OBJECT = 0,

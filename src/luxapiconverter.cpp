@@ -27,9 +27,11 @@
 #include <olight.h>
 
 #include "luxapiconverter.h"
+#include "luxc4dcameratag.h"
 #include "luxc4dlighttag.h"
 #include "luxc4dsettings.h"
 #include "luxmaterialdata.h"
+#include "tluxc4dcameratag.h"
 #include "tluxc4dlighttag.h"
 #include "utilities.h"
 
@@ -87,6 +89,7 @@ void LuxAPIConverter::clearTemporaryData(void)
   mLightCount   = 0;
   mAreaLightObjects.erase();
   mReusableMaterials.erase();
+  mMaterialUsage.erase();
   mCachedObject = 0;
   mPolygonCache.erase();
   mPointCache.erase();
@@ -314,15 +317,29 @@ Bool LuxAPIConverter::exportFilm(void)
 }
 
 
-/// NOT FINISHED ...
-/// Determines the current camera position and orientation converts it into a
-/// Lux "LookAt" statement. Then the camera settings are determined and
-/// converted into a "Camera" statement.
+/// Exports the currently active camera. At the moment only perspective and
+/// orthogonal cameras are supported.
+///
+/// TODO: Add environment and realistic camera.
+///       Check for camera in stage object.
 ///
 /// @return
 ///   TRUE, if successful, FALSE otherwise
 Bool LuxAPIConverter::exportCamera(void)
 {
+  static LuxAPI::IdentifierName cCameraTypeNames[LuxC4DCameraTag::CAMERA_TYPE_NUMBER] = {
+      "perspective",
+      "orthographic"
+    };
+
+  static const char* cLensSamplingTypes[IDD_LENS_SAMPLING_NUMBER] = {
+      "uniform",
+      "exponential",
+      "inverse exponential",
+      "gaussian",
+      "inverse gaussian"
+    };
+
   // safety checks
   GeAssert(mDocument);
   GeAssert(mReceiver);
@@ -336,56 +353,71 @@ Bool LuxAPIConverter::exportCamera(void)
   if (!cameraObj)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): could not obtain camera");
   if (cameraObj->GetType() != Ocamera)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): obtained camera object is no camera");
   mCamera = (CameraObject*)cameraObj;
-  BaseContainer* cameraData = mCamera->GetDataInstance();
-  if (!cameraData)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): couldn't obtain container from camera object");
 
-  // obtain camera position and orientation in Lux-style
-  Matrix camMat = mCamera->GetMgn();
-  Vector camPos = camMat.off;
-  Real largestDim = camPos.x;
-  if (camPos.y > largestDim)  largestDim = camPos.y;
-  if (camPos.z > largestDim)  largestDim = camPos.z;
-  Vector trgPos = camPos + camMat.v3*largestDim;
-  Vector upVec = camMat.v2;
+  // calculate world to camera transformation matrix and swap Z and Y axis, as
+  // in Lux the camera looks along the Y axis
+  Matrix c4dCamMat = mCamera->GetMgn();
+  Matrix world2CamMatrix;
+  world2CamMatrix.v1 = Vector(c4dCamMat.v1.x, c4dCamMat.v3.x, c4dCamMat.v2.x);
+  world2CamMatrix.v2 = Vector(c4dCamMat.v1.y, c4dCamMat.v3.y, c4dCamMat.v2.y);
+  world2CamMatrix.v3 = Vector(c4dCamMat.v1.z, c4dCamMat.v3.z, c4dCamMat.v2.z);
+  world2CamMatrix.off.x = -c4dCamMat.off * c4dCamMat.v1;
+  world2CamMatrix.off.y = -c4dCamMat.off * c4dCamMat.v3;
+  world2CamMatrix.off.z = -c4dCamMat.off * c4dCamMat.v2;
+  if (!mReceiver->transform(LuxMatrix(world2CamMatrix, mC4D2LuxScale))) {
+    return FALSE;
+  }
 
-  // send "LookAt" instruction to Lux API
-  if (!mReceiver->lookAt(LuxVector(camPos*mC4D2LuxScale),
-                         LuxVector(trgPos*mC4D2LuxScale),
-                         LuxVector(upVec*mC4D2LuxScale)))
+  // get camera Lux camera parameters
+  LuxC4DCameraTag::CameraParameters parameters;
+  if (!LuxC4DCameraTag::getCameraParameters(*mCamera,
+                                            mC4D2LuxScale,
+                                            *mC4DRenderSettings,
+                                            parameters))
   {
     return FALSE;
   }
 
-  // obtain camera parameters
-  LONG projection = cameraData->GetLong(CAMERA_PROJECTION);
-  LReal filmWidth = (LReal)cameraData->GetReal(CAMERAOBJECT_APERTURE);
-  LReal focalLength = (LReal)cameraData->GetReal(CAMERA_FOCUS);
-  LReal zoom = (LReal)cameraData->GetReal(CAMERA_ZOOM);
+  // setup parameter set
+  LuxString lensSamplingType;
+  mTempParamSet.clear();
 
-  // as Lux specifies FOV over the smallest dimension and C4D defines it always
-  // over the X axis of the camera, we have to calculate a FOv correction for
-  // landscape layout
-  LONG xResolution = mC4DRenderSettings->GetLong(RDATA_XRES);
-  LONG yResolution = mC4DRenderSettings->GetLong(RDATA_YRES);
-  LReal fovCorrection = (xResolution < yResolution) ? 1.0L : (LReal)yResolution / (LReal)xResolution;
-
-  // calculate field of view and determine camera type
-  LuxAPI::IdentifierName cameraType;
-  LuxFloat fov;
-  if (projection == Pperspective) {
-    fov = (LuxFloat)(2.0L * atan(0.5L*fovCorrection*filmWidth / focalLength) / pi * 180.0L);
-    cameraType = "perspective";
-  } else {
-    fov = (LuxFloat)(1024.0L * zoom * fovCorrection);
-    cameraType = "orthographic";
+  // store field of view only for perspective camera
+  if (parameters.mType == LuxC4DCameraTag::CAMERA_TYPE_PERSPECTIVE) {
+    mTempParamSet.addParam(LUX_FLOAT, "fov", &parameters.mFov);
   }
 
-  // fill parameter set
-  mTempParamSet.clear();
-  mTempParamSet.addParam(LUX_FLOAT, "fov", &fov);
+  // grab screen window, if set
+  if (parameters.mScreenWindowSet) {
+    mTempParamSet.addParam(LUX_FLOAT, "screenwindow", &parameters.mScreenWindow, 4);
+  }
+
+  // grab near clipping distance, if set
+  if (parameters.mNearClippingSet) {
+    mTempParamSet.addParam(LUX_FLOAT, "hither", &parameters.mNearClipping);
+  }
+
+  // grab DOF parameters, if set
+  if (parameters.mDofEnabled) {
+    mTempParamSet.addParam(LUX_FLOAT, "lensradius", &parameters.mLensRadius);
+    mTempParamSet.addParam(LUX_BOOL,  "autofocus",  &parameters.mAutofocus);
+    if (!parameters.mAutofocus) {
+      mTempParamSet.addParam(LUX_FLOAT, "focaldistance", &parameters.mFocalDistance);
+    }
+    mTempParamSet.addParam(LUX_INTEGER, "blades",        &parameters.mBladeNumber);
+    lensSamplingType = cLensSamplingTypes[parameters.mLensSamplingType];
+    mTempParamSet.addParam(LUX_STRING,  "distribution", &lensSamplingType);
+    if ((parameters.mLensSamplingType == IDD_LENS_SAMPLING_EXPONENTIAL) ||
+        (parameters.mLensSamplingType == IDD_LENS_SAMPLING_INVERSE_EXPONENTIAL))
+    {
+      mTempParamSet.addParam(LUX_INTEGER, "power", &parameters.mExponentialPower);
+    }
+  }
 
   // send "Camera" instruction to Lux API
-  return mReceiver->camera(cameraType, mTempParamSet);
+  GeAssert(parameters.mType >= 0);
+  GeAssert(parameters.mType < LuxC4DCameraTag::CAMERA_TYPE_NUMBER);
+  return mReceiver->camera(cCameraTypeNames[parameters.mType], mTempParamSet);
 }
 
 
@@ -451,7 +483,7 @@ Bool LuxAPIConverter::exportSurfaceIntegrator(void)
   // if no settings object found, use defaults
   mTempParamSet.clear();
   if (!mLuxC4DSettings) {
-    LuxInteger maxDepth = 2;
+    LuxInteger maxDepth = 10;
     mTempParamSet.addParam(LUX_INTEGER, "maxdepth", &maxDepth);
     return mReceiver->surfaceIntegrator("path", mTempParamSet);
   }
@@ -537,19 +569,18 @@ Bool LuxAPIConverter::doLightExport(HierarchyData* data,
 Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
                                   const Matrix& globalMatrix)
 {
+  //static const LuxFloat
+
   // get parameters from light object and/or from its associated light tag
   LuxC4DLightTag::LightParameters parameters;
-  if (!LuxC4DLightTag::getLightParameters(lightObject, parameters))  return FALSE;
+  if (!LuxC4DLightTag::getLightParameters(lightObject, mC4D2LuxScale, parameters)) {
+    return FALSE;
+  }
 
   // get some general light parameters
-  Real   falloffRadius   = getParameterReal(lightObject,
-                                            LIGHT_DETAILS_OUTERDISTANCE,
-                                            1.0 / mC4D2LuxScale)
-                           * mC4D2LuxScale;
-  Vector scaledPosition  = globalMatrix.off * mC4D2LuxScale;
-  Vector scaledDirection = globalMatrix.v3;
-  normalize(scaledDirection);
-  scaledDirection *= VectorMax(scaledPosition);
+  Vector scaledPosition = globalMatrix.off * mC4D2LuxScale;
+  Vector direction      = globalMatrix.v3;
+  normalize(direction);
 
   // don't export (almost) black lights
   if ((parameters.mType != IDD_LIGHT_TYPE_SUN) &&
@@ -562,9 +593,6 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     return TRUE;
   }
 
-  // scale brightness relative to squared scaled falloff radius
-  Real scaledBrightness = falloffRadius * falloffRadius * parameters.mBrightness;
-
   // now determine the data depending on the light type and export the data
   // needed for this type
   debugLog("exporting light object '" + lightObject.GetName() + "' ...");
@@ -573,8 +601,8 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_POINT:
       {
         PointLightData data;
-        data.mColor = parameters.mColor;
-        data.mGain  = scaledBrightness;
+        data.mColor = parameters.mColor * 0.1f;
+        data.mGain  = parameters.mBrightness;
         data.mFrom  = scaledPosition;
         ++mLightCount;
         return exportPointLight(data);
@@ -584,11 +612,11 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         SpotLightData data;
         data.mColor          = parameters.mColor;
-        data.mGain           = scaledBrightness;
+        data.mGain           = parameters.mBrightness * 0.1f;
         data.mFrom           = scaledPosition;
-        data.mTo             = scaledPosition + scaledDirection;
+        data.mTo             = scaledPosition + direction;
         data.mConeAngle      = Deg(parameters.mOuterAngle) * 0.5;
-        data.mConeDeltaAngle = data.mConeAngle - Deg(parameters.mInnerAngle) * 0.5;
+        data.mConeDeltaAngle = data.mConeAngle - Deg(parameters.mInnerAngle) * 0.5f;
         ++mLightCount;
         return exportSpotLight(data);
       }
@@ -597,9 +625,9 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         DistantLightData data;
         data.mColor = parameters.mColor;
-        data.mGain  = parameters.mBrightness * 0.25;
+        data.mGain  = parameters.mBrightness * 0.1f;
         data.mFrom  = scaledPosition;
-        data.mTo    = scaledPosition + scaledDirection;
+        data.mTo    = scaledPosition + direction;
         ++mLightCount;
         return exportDistantLight(data);
       }
@@ -608,7 +636,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         AreaLightData data;
         data.mColor          = parameters.mColor;
-        data.mGain           = 0.001 * scaledBrightness;
+        data.mGain           = parameters.mBrightness * 50.0f;
         data.mFlippedNormals = (parameters.mFlippedNormals != 0);
         data.mSamples        = parameters.mSamples;
         data.mLightMatrix    = lightObject.GetMg();
@@ -630,9 +658,9 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_SUN:
       {
         SunLightData data;
-        data.mGain      = parameters.mBrightness * 0.0001;
+        data.mGain      = parameters.mBrightness * 0.1f;
         data.mSamples   = parameters.mSamples;
-        data.mSunDir    = -scaledDirection;
+        data.mSunDir    = -direction;
         data.mTurbidity = parameters.mTurbidity;
         data.mRelSize   = parameters.mRelSize;
         ++mLightCount;
@@ -642,9 +670,9 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_SKY:
       {
         SkyLightData data;
-        data.mGain      = parameters.mBrightness * 0.0001;
+        data.mGain      = parameters.mBrightness * 0.1f;
         data.mSamples   = parameters.mSamples;
-        data.mSunDir    = -scaledDirection;
+        data.mSunDir    = -direction;
         data.mTurbidity = parameters.mTurbidity;
         data.mAdvanced  = parameters.mAdvanced;
         data.mAConst    = parameters.mA;
@@ -659,9 +687,9 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_SUNSKY:
       {
         SunSkyLightData data;
-        data.mGain      = parameters.mBrightness * 0.0001;
+        data.mGain      = parameters.mBrightness * 0.1f;
         data.mSamples   = parameters.mSamples;
-        data.mSunDir    = -scaledDirection;
+        data.mSunDir    = -direction;
         data.mTurbidity = parameters.mTurbidity;
         data.mRelSize   = parameters.mRelSize;
         data.mAdvanced  = parameters.mAdvanced;
@@ -979,17 +1007,17 @@ Bool LuxAPIConverter::exportAutoLight(void)
   debugLog("exporting auto light ...");
 
   // calculate slightly rotated matrix based on camera matrix
-  Matrix lightMatrix     = mCamera->GetMgn() * MatrixRotY(Rad(-20.0));
-  Vector scaledPosition  = lightMatrix.off * mC4D2LuxScale;
-  Vector scaledDirection = lightMatrix.v3;
-  normalize(scaledDirection);
+  Matrix lightMatrix    = mCamera->GetMgn() * MatrixRotY(Rad(-20.0));
+  Vector scaledPosition = lightMatrix.off * mC4D2LuxScale;
+  Vector direction      = lightMatrix.v3;
+  normalize(direction);
 
   // setup distant (parallel) light and export it
   DistantLightData data;
   data.mColor = Vector(1.0);
-  data.mGain  = 0.001;
+  data.mGain  = 0.1;
   data.mFrom  = scaledPosition;
-  data.mTo    = scaledPosition + scaledDirection;
+  data.mTo    = scaledPosition + direction;
   return exportDistantLight(data);
 }
 
@@ -1134,6 +1162,17 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
   // get the material name
   c4dMaterialName += "::";
   c4dMaterialName += material.GetName();
+
+  // check if material name was already used
+  LONG* usageCount = mMaterialUsage.get(c4dMaterialName);
+  if (!usageCount) {
+    mMaterialUsage.add(c4dMaterialName, 1);
+  } else {
+    ++(*usageCount);
+    c4dMaterialName = c4dMaterialName + " " + LongToString(*usageCount);
+  }
+
+  // convert C4D string to LuxString
   convert2LuxString(c4dMaterialName, materialName);
 
   // convert standard C4D material to different Lux materials - depending on

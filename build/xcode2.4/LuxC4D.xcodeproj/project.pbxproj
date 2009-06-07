@@ -16,6 +16,9 @@
 		2C1C0E840FC951990049FF31 /* luxtexturedata.h in Headers */ = {isa = PBXBuildFile; fileRef = 2C1C0E7D0FC951990049FF31 /* luxtexturedata.h */; };
 		2C1C0E850FC951990049FF31 /* rbtreemap_impl.h in Headers */ = {isa = PBXBuildFile; fileRef = 2C1C0E7E0FC951990049FF31 /* rbtreemap_impl.h */; };
 		2C1C0E860FC951990049FF31 /* rbtreemap.h in Headers */ = {isa = PBXBuildFile; fileRef = 2C1C0E7F0FC951990049FF31 /* rbtreemap.h */; };
+		2C2884D40FDC4F1D00E93447 /* luxc4dcameratag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2C2884D20FDC4F1D00E93447 /* luxc4dcameratag.cpp */; };
+		2C2884D50FDC4F1D00E93447 /* luxc4dcameratag.h in Headers */ = {isa = PBXBuildFile; fileRef = 2C2884D30FDC4F1D00E93447 /* luxc4dcameratag.h */; };
+		2C2884D80FDC4F3F00E93447 /* tluxc4dcameratag.h in Headers */ = {isa = PBXBuildFile; fileRef = 2C2884D60FDC4F3F00E93447 /* tluxc4dcameratag.h */; };
 		2CCB77D40E6C174600D45D8E /* fixarray1d.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CCB77C60E6C174600D45D8E /* fixarray1d.h */; };
 		2CCB77D50E6C174600D45D8E /* fixarray1d_impl.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CCB77C70E6C174600D45D8E /* fixarray1d_impl.h */; };
 		2CCB77D60E6C174600D45D8E /* luxapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CCB77C80E6C174600D45D8E /* luxapi.h */; };
@@ -68,6 +71,11 @@
 		2C1C0E7D0FC951990049FF31 /* luxtexturedata.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = luxtexturedata.h; sourceTree = "<group>"; };
 		2C1C0E7E0FC951990049FF31 /* rbtreemap_impl.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = rbtreemap_impl.h; sourceTree = "<group>"; };
 		2C1C0E7F0FC951990049FF31 /* rbtreemap.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = rbtreemap.h; sourceTree = "<group>"; };
+		2C2884D20FDC4F1D00E93447 /* luxc4dcameratag.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = luxc4dcameratag.cpp; sourceTree = "<group>"; };
+		2C2884D30FDC4F1D00E93447 /* luxc4dcameratag.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = luxc4dcameratag.h; sourceTree = "<group>"; };
+		2C2884D60FDC4F3F00E93447 /* tluxc4dcameratag.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = tluxc4dcameratag.h; path = description/tluxc4dcameratag.h; sourceTree = "<group>"; };
+		2C2884D70FDC4F3F00E93447 /* tluxc4dcameratag.res */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = tluxc4dcameratag.res; path = description/tluxc4dcameratag.res; sourceTree = "<group>"; };
+		2C2884D90FDC4F5A00E93447 /* tluxc4dcameratag.str */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = tluxc4dcameratag.str; path = description/tluxc4dcameratag.str; sourceTree = "<group>"; };
 		2CCB77C60E6C174600D45D8E /* fixarray1d.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = fixarray1d.h; sourceTree = "<group>"; };
 		2CCB77C70E6C174600D45D8E /* fixarray1d_impl.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = fixarray1d_impl.h; sourceTree = "<group>"; };
 		2CCB77C80E6C174600D45D8E /* luxapi.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = luxapi.h; sourceTree = "<group>"; };
@@ -121,6 +129,8 @@
 		2CCB77C50E6C174600D45D8E /* src */ = {
 			isa = PBXGroup;
 			children = (
+				2C2884D20FDC4F1D00E93447 /* luxc4dcameratag.cpp */,
+				2C2884D30FDC4F1D00E93447 /* luxc4dcameratag.h */,
 				2C171FB70FAEF50200D0D116 /* dynarray1d_impl.h */,
 				2C171FB80FAEF50200D0D116 /* dynarray1d.h */,
 				2CDE963C0ED43135006B1412 /* rbtreeset_impl.h */,
@@ -176,6 +186,7 @@
 		2CCB77E40E6C176700D45D8E /* strings_us */ = {
 			isa = PBXGroup;
 			children = (
+				2C2884D90FDC4F5A00E93447 /* tluxc4dcameratag.str */,
 				2CE79ACC0EBF802600995C2F /* dlg_luxc4d_preferences.str */,
 				2CE79ACB0EBF801100995C2F /* tluxc4dlighttag.str */,
 				2CE1C1E00EABB68C00AF4D13 /* vpluxc4dsettings.str */,
@@ -187,6 +198,8 @@
 		2CE1C1DC0EABB63200AF4D13 /* description */ = {
 			isa = PBXGroup;
 			children = (
+				2C2884D60FDC4F3F00E93447 /* tluxc4dcameratag.h */,
+				2C2884D70FDC4F3F00E93447 /* tluxc4dcameratag.res */,
 				2CE79AC60EBF7FCF00995C2F /* tluxc4dlighttag.h */,
 				2CE79AC70EBF7FCF00995C2F /* tluxc4dlighttag.res */,
 				2CE1C1DD0EABB67600AF4D13 /* vpluxc4dsettings.h */,
@@ -245,6 +258,8 @@
 				2C1C0E840FC951990049FF31 /* luxtexturedata.h in Headers */,
 				2C1C0E850FC951990049FF31 /* rbtreemap_impl.h in Headers */,
 				2C1C0E860FC951990049FF31 /* rbtreemap.h in Headers */,
+				2C2884D50FDC4F1D00E93447 /* luxc4dcameratag.h in Headers */,
+				2C2884D80FDC4F3F00E93447 /* tluxc4dcameratag.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -298,7 +313,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"${C4D_ROOT}\" != \"\" ]; then\n  INSTALL_DIR=\"${C4D_ROOT}/plugins/${PRODUCT_NAME}\"\n  mkdir ${INSTALL_DIR}\n  rm -R ${INSTALL_DIR}/*\n  cp -R ${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${EXECUTABLE_EXTENSION} ${INSTALL_DIR}/\n  cp -R ../../res ${INSTALL_DIR}/\n  cp -R ../../license ${INSTALL_DIR}/\n  find ${INSTALL_DIR} -path \\*/CVS/\\* -delete\n  find ${INSTALL_DIR} -path \\*/CVS -delete\nfi\n";
+			shellScript = "if [ \"${C4D_ROOT}\" != \"\" ]; then\n  INSTALL_DIR=\"${C4D_ROOT}/plugins/${PRODUCT_NAME}\"\n  mkdir ${INSTALL_DIR}\n  rm -R ${INSTALL_DIR}/*\n  cp -R ${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.${EXECUTABLE_EXTENSION} ${INSTALL_DIR}/\n  cp -R ../../res ${INSTALL_DIR}/\n  cp -R ../../license ${INSTALL_DIR}/\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -319,6 +334,7 @@
 				2CE79AC50EBF7F9600995C2F /* utilities.cpp in Sources */,
 				2C1C0E810FC951990049FF31 /* luxmaterialdata.cpp in Sources */,
 				2C1C0E830FC951990049FF31 /* luxtexturedata.cpp in Sources */,
+				2C2884D40FDC4F1D00E93447 /* luxc4dcameratag.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -559,6 +575,124 @@
 			};
 			name = R9.6_Release;
 		};
+		2C2884FA0FDC555500E93447 /* R11.0_Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				SKIP_INSTALL = NO;
+			};
+			name = R11.0_Debug;
+		};
+		2C2884FB0FDC555500E93447 /* R11.0_Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				SKIP_INSTALL = NO;
+			};
+			name = R11.0_Release;
+		};
+		2C2884FC0FDC555500E93447 /* R11.0_Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = i386;
+				C4D_ROOT = ../../../C4D_R11.0;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)";
+				CONFIGURATION_TEMP_DIR = "$(BUILD_DIR)";
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEPLOYMENT_LOCATION = NO;
+				DSTROOT = "";
+				EXPORTED_SYMBOLS_FILE = "$(C4D_ROOT)/resource/_api_lib/export.txt";
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREFIX_HEADER = "$(C4D_ROOT)/resource/_api/ge_mac_flags.h";
+				GCC_PREPROCESSOR_DEFINITIONS = "_C4D_VERSION=110";
+				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(C4D_ROOT)/resource/_api/**",
+					"$(C4D_ROOT)/resource/res/description",
+				);
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "$(C4D_ROOT)/resource/_api_lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				OBJROOT = "$(BUILD_DIR)";
+				ONLY_LINK_ESSENTIAL_SYMBOLS = YES;
+				OTHER_LDFLAGS = "$(C4D_ROOT)/resource/_api_lib/lib_api_debug.a";
+				PREBINDING = NO;
+				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
+				PRODUCT_NAME = LuxC4D;
+				SEPARATE_SYMBOL_EDIT = YES;
+				SYMROOT = "$(CONFIGURATION)";
+				UNEXPORTED_SYMBOLS_FILE = "$(C4D_ROOT)/resource/_api_lib/unexport.txt";
+			};
+			name = R11.0_Debug;
+		};
+		2C2884FD0FDC555500E93447 /* R11.0_Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+				);
+				C4D_ROOT = ../../../C4D_R11.0;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)";
+				CONFIGURATION_TEMP_DIR = "$(BUILD_DIR)";
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEPLOYMENT_LOCATION = NO;
+				DEPLOYMENT_POSTPROCESSING = NO;
+				DSTROOT = "";
+				EXPORTED_SYMBOLS_FILE = "$(C4D_ROOT)/resource/_api_lib/export.txt";
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_FAST_MATH = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREFIX_HEADER = "$(C4D_ROOT)/resource/_api/ge_mac_flags.h";
+				GCC_PREPROCESSOR_DEFINITIONS = "_C4D_VERSION=110";
+				GCC_UNROLL_LOOPS = YES;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(C4D_ROOT)/resource/_api/**",
+					"$(C4D_ROOT)/resource/res/description",
+				);
+				LIBRARY_SEARCH_PATHS = "$(C4D_ROOT)/resource/_api_lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				OBJROOT = "$(BUILD_DIR)";
+				ONLY_LINK_ESSENTIAL_SYMBOLS = YES;
+				OTHER_LDFLAGS = "$(C4D_ROOT)/resource/_api_lib/lib_api_release.a";
+				PREBINDING = NO;
+				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
+				PRODUCT_NAME = LuxC4D;
+				SEPARATE_STRIP = YES;
+				SEPARATE_SYMBOL_EDIT = YES;
+				STRIP_STYLE = debugging;
+				SYMROOT = "$(CONFIGURATION)";
+				UNEXPORTED_SYMBOLS_FILE = "$(C4D_ROOT)/resource/_api_lib/unexport.txt";
+			};
+			name = R11.0_Release;
+		};
 		65450B67085517D80099394F /* R10.5_Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -684,9 +818,11 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				65450B67085517D80099394F /* R10.5_Debug */,
+				2C2884FA0FDC555500E93447 /* R11.0_Debug */,
 				2C171FE50FAEFBE900D0D116 /* R10.1_Debug */,
 				2C171FFD0FAF04D000D0D116 /* R9.6_Debug */,
 				65450B68085517D80099394F /* R10.5_Release */,
+				2C2884FB0FDC555500E93447 /* R11.0_Release */,
 				2C171FE60FAEFBE900D0D116 /* R10.1_Release */,
 				2C171FFE0FAF04D000D0D116 /* R9.6_Release */,
 			);
@@ -697,9 +833,11 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				65450B6B085517D90099394F /* R10.5_Debug */,
+				2C2884FC0FDC555500E93447 /* R11.0_Debug */,
 				2C171FE70FAEFBE900D0D116 /* R10.1_Debug */,
 				2C171FFF0FAF04D000D0D116 /* R9.6_Debug */,
 				65450B6C085517D90099394F /* R10.5_Release */,
+				2C2884FD0FDC555500E93447 /* R11.0_Release */,
 				2C171FE80FAEFBE900D0D116 /* R10.1_Release */,
 				2C1720000FAF04D000D0D116 /* R9.6_Release */,
 			);
