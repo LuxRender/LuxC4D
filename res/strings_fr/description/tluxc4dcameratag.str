@@ -3,7 +3,7 @@
 //* (http://www.luxrender.net)                                           *
 //*                                                                      *
 //* Author:                                                              *
-//* Marcus Spranger (abstrax)                                            *
+//* Marcus Spranger (abstrax), Patrick Depoix (Spirou4D)                 *
 //*                                                                      *
 //************************************************************************
 //*                                                                      *
@@ -25,27 +25,27 @@
 
 STRINGTABLE Tluxc4dcameratag
 {
-  Tluxc4dcameratag "LuxC4D Camera Tag";
+  Tluxc4dcameratag "Caméra LuxC4D";
   
   
-  IDG_DOF                 "DOF";
-  IDD_ENABLE_DOF          "Enable Depth of Field";
-  IDD_USE_FSTOP           "Use F-Stop";
+  IDG_DOF                 "Profondeur de champs";
+  IDD_ENABLE_DOF          "Activer la Profondeur de champ";
+  IDD_USE_FSTOP           "Utiliser le F-Stop";
   IDD_FSTOP               "F-Stop";
-  IDD_LENS_RADIUS         "Lens Radius (mm)";
-  IDD_FOCUS_TYPE          "Focus Type";
-  IDD_FOCUS_OBJECT        "Reference Object";
-  IDD_BLADE_NUMBER        "Aperture Blade Number";
-  IDD_LENS_SAMPLING_TYPE  "Lens Sampling Type";
-  IDD_EXPONENTIAL_POWER   "Exponent";
+  IDD_LENS_RADIUS         "Rayon de la lentille (mm)";
+  IDD_FOCUS_TYPE          "Type de mise au point";
+  IDD_FOCUS_OBJECT        "Objet de Référence";
+  IDD_BLADE_NUMBER        "Nombre de lames de l'obturateur";
+  IDD_LENS_SAMPLING_TYPE  "Type d'échantillonnage de la Lentille";
+  IDD_EXPONENTIAL_POWER   "Exposant";
   
-    IDD_FOCUS_TYPE_CAMERA     "Focal Distance of Camera";
+    IDD_FOCUS_TYPE_CAMERA     "Distance Focale";
     IDD_FOCUS_TYPE_AUTOFOCUS  "Autofocus";
-    IDD_FOCUS_TYPE_OBJECT     "Use Reference Object";
+    IDD_FOCUS_TYPE_OBJECT     "Utiliser l'objet de Référence";
   
-    IDD_LENS_SAMPLING_UNIFORM             "Uniform";
-    IDD_LENS_SAMPLING_EXPONENTIAL         "Exponential";
-    IDD_LENS_SAMPLING_INVERSE_EXPONENTIAL "Inverse Exponential";
-    IDD_LENS_SAMPLING_GAUSSIAN            "Gaussian";
-    IDD_LENS_SAMPLING_INVERSE_GAUSSIAN    "Inverse Gaussian";
+    IDD_LENS_SAMPLING_UNIFORM             "Uniforme";
+    IDD_LENS_SAMPLING_EXPONENTIAL         "Exponentiel";
+    IDD_LENS_SAMPLING_INVERSE_EXPONENTIAL "Exponentiel Inverse";
+    IDD_LENS_SAMPLING_GAUSSIAN            "Gaussien";
+    IDD_LENS_SAMPLING_INVERSE_GAUSSIAN    "Gaussien Inverse";
 }

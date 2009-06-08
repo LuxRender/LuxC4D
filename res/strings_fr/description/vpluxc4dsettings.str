@@ -1,0 +1,222 @@
+//************************************************************************
+//* LuxC4D - CINEMA 4D plug-in for export to LuxRender                   *
+//* (http://www.luxrender.net)                                           *
+//*                                                                      *
+//* Author:                                                              *
+//* Marcus Spranger (abstrax), Patrick Depoix (Spirou4D)                 *
+//*                                                                      *
+//************************************************************************
+//*                                                                      *
+//* This file is part of LuxC4D.                                         *
+//*                                                                      *
+//* LuxC4D is free software: you can redistribute it and/or modify       *
+//* it under the terms of the GNU General Public License as published by *
+//* the Free Software Foundation, either version 3 of the License, or    *
+//* (at your option) any later version.                                  *
+//*                                                                      *
+//* LuxC4D is distributed in the hope that it will be useful,            *
+//* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+//* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+//* GNU General Public License for more details.                         *
+//*                                                                      *
+//* You should have received a copy of the GNU General Public License    *
+//* along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
+//************************************************************************
+
+STRINGTABLE VPluxc4dsettings
+{
+  VPluxc4dsettings "Réglages de scène LuxC4D";
+  
+  IDG_RENDER                          "Rendu";
+  
+    IDG_SAMPLING                        "Echantillonnage";
+    IDD_SAMPLER                         "Echantillonneur";
+    IDD_ADVANCED_SAMPLER                "Réglages avancés";
+    
+      IDD_SAMPLER_LOWDISCREPANCY          "Faible Ecart";
+      IDD_SAMPLER_METROPOLIS              "Metropolis";
+      IDD_SAMPLER_ERPT                    "ERPT";
+      IDD_SAMPLER_RANDOM                  "Aléatoire";
+
+    IDD_LOWDISCREPANCY_PIXELSAMPLER     "Echantillonneur de Pixel";
+    IDD_LOWDISCREPANCY_PIXELSAMPLES     "Pixels";
+
+    IDD_RANDOM_PIXELSAMPLER             "Echantillonneur de Pixel";
+    IDD_RANDOM_PIXELSAMPLES             "Pixels";
+
+      IDD_PIXELSAMPLER_LOWDISCREPANCY     "Faible Ecart";
+      IDD_PIXELSAMPLER_HILBERT            "Hilbert";
+      IDD_PIXELSAMPLER_VEGAS              "Vegas";
+      IDD_PIXELSAMPLER_LINEAR             "Linéaire";
+      IDD_PIXELSAMPLER_TILE               "Mosaïque";
+
+    IDD_METROPOLIS_INIT_SAMPLES         "Echantillons Initiaux";
+    IDD_METROPOLIS_MAX_CONSEC_REJECTS   "Rebonds Consécutifs Max.";
+    IDD_METROPOLIS_LARGE_MUTATION_PROB  "Probabilité de Large Mutation";
+    IDD_METROPOLIS_MICRO_MUTATION_PROB  "Probabilité de Petite Mutation";
+    IDD_METROPOLIS_USE_VARIANCE         "Utiliser la Variance";
+    IDD_METROPOLIS_STRENGTH             "Puissance";
+
+    IDD_ERPT_INIT_SAMPLES               "Echantillons Initiaux";
+    IDD_ERPT_CHAINLENGTH                "Longueur de Chaine";
+    IDD_ERPT_MICRO_MUTATION_PROB        "Probabilité de petite Mutation";
+
+
+    IDG_INTEGRATION                     "Intégration";
+    IDD_INTEGRATOR                      "Intégrateur";
+    IDD_ADVANCED_INTEGRATOR             "Réglages avancés";
+    
+      IDD_INTEGRATOR_PATH                 "Chemin";
+      IDD_INTEGRATOR_DISTRIBUTED_PATH     "Chemin distributé";
+      IDD_INTEGRATOR_BIDIRECTIONAL        "Bidirectionel";
+      IDD_INTEGRATOR_DIRECT_LIGHTING      "Eclairage Direct";
+    
+    IDD_PATH_MAX_DEPTH                  "Profondeur Max.";
+    IDD_PATH_DIRECT_LIGHT_STRATEGY      "Stratégie de Lumière Directe";
+    IDD_PATH_RR_STRATEGY                "Stratégie de la Roulette Russe";
+    IDD_PATH_RR_CONTINUE_PROB           "Probabilité de la Roulette R. continue";
+    IDD_PATH_INCLUDE_ENVIRONMENT        "Inclure l'Environnement";
+
+      IDD_DIRECT_LIGHT_STRATEGY_AUTO      "Automatique";
+      IDD_DIRECT_LIGHT_STRATEGY_ONE       "Une Lumière";
+      IDD_DIRECT_LIGHT_STRATEGY_ALL       "Toutes les Lumières";
+
+      IDD_PATH_RR_STRATEGY_EFFICIENCY     "Efficience";
+      IDD_PATH_RR_STRATEGY_PROBABILITY    "Probabilité";
+      IDD_PATH_RR_STRATEGY_NONE           "Aucune";
+
+    IDD_DISTRIBUTED_PATH_DIRECT_LIGHT_STRATEGY          "Stratégie de Lumière Directe";
+    IDD_DISTRIBUTED_PATH_DIRECT_DIRECT_LIGHT_SAMPLES    "Echantillons de Lumière au premier point";
+    IDD_DISTRIBUTED_PATH_INDIRECT_DIRECT_LIGHT_SAMPLES  "Echantillons de Lumière aux autres points";
+    IDD_DISTRIBUTED_PATH_DIFFUSE_REFLECT_DEPTH          "Profondeur de Réflexion Diffuse";
+    IDD_DISTRIBUTED_PATH_DIFFUSE_REFLECT_SAMPLES        "Echantillons";
+    IDD_DISTRIBUTED_PATH_DIFFUSE_REFRACT_DEPTH          "Profondeur de Réfraction Diffuse";
+    IDD_DISTRIBUTED_PATH_DIFFUSE_REFRACT_SAMPLES        "Echantillons";
+    IDD_DISTRIBUTED_PATH_GLOSSY_REFLECT_DEPTH           "Profondeur de Réflexion Luissante";
+    IDD_DISTRIBUTED_PATH_GLOSSY_REFLECT_SAMPLES         "Echantillons";
+    IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_DEPTH           "Profondeur de Réfraction Luissante";
+    IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_SAMPLES         "Echantillons";
+    IDD_DISTRIBUTED_PATH_SPECULAR_REFLECT_DEPTH         "Profondeur de Réflexion Spéculaire";
+    IDD_DISTRIBUTED_PATH_SPECULAR_REFRACT_DEPTH         "Profondeur de Réfraction Spéculaire";
+    
+    IDD_BIDIRECTIONAL_EYE_DEPTH             "Profondeur de l'oeil";
+    IDD_BIDIRECTIONAL_LIGHT_DEPTH           "Profondeur de la Lumière";
+    IDD_BIDIRECTIONAL_DIRECT_LIGHT_STRATEGY "Stratégie de Lumière Directe";
+    IDD_BIDIRECTIONAL_EYE_RR_THRESHOLD      "Seuil de la Roulette Russe de l'oeil";
+    IDD_BIDIRECTIONAL_LIGHT_RR_THRESHOLD    "Seuil de la Roulette Russe de la lumière";
+    IDD_BIDIRECTIONAL_MAX_DEPTH             "Profondeur Max.";
+
+    IDD_DIRECT_LIGHTING_MAX_DEPTH       "Profondeur Max.";
+    IDD_DIRECT_LIGHTING_STRATEGY        "Stratégie de Lumière Directe";
+
+
+    IDG_FILTERING                       "Filtrage";
+    IDD_PIXEL_FILTER                    "Filtrage des Pixels";
+    
+      IDD_PIXEL_FILTER_BOX                "Boite";
+      IDD_PIXEL_FILTER_GAUSSIAN           "Flou Gaussien";
+      IDD_PIXEL_FILTER_MITCHELL           "Mitchell";
+      IDD_PIXEL_FILTER_SINC               "Sinc";
+      IDD_PIXEL_FILTER_TRIANGLE           "Triangle";
+
+    IDD_BOX_FILTER_WIDTH                "Largeur";
+    IDD_BOX_FILTER_HEIGHT               "Hauteur";
+
+    IDD_GAUSSIAN_FILTER_WIDTH           "Largeur";
+    IDD_GAUSSIAN_FILTER_HEIGHT          "Hauteur";
+    IDD_GAUSSIAN_FILTER_ALPHA           "Alpha";
+
+    IDD_MITCHELL_FILTER_WIDTH           "Largeur";
+    IDD_MITCHELL_FILTER_HEIGHT          "Hauteur";
+    IDD_MITCHELL_FILTER_B               "B";
+    IDD_MITCHELL_FILTER_C               "C";
+
+    IDD_SINC_FILTER_WIDTH               "Largeur";
+    IDD_SINC_FILTER_HEIGHT              "Hauteur";
+    IDD_SINC_FILTER_TAU                 "Tau";
+
+    IDD_TRIANGLE_FILTER_WIDTH           "Largeur";
+    IDD_TRIANGLE_FILTER_HEIGHT          "Hauteur";
+
+
+  IDG_OUTPUT                          "Sortie";
+
+    IDG_FILM                            "Film";
+    IDD_FILM                            "Film";
+
+      IDD_FILM_FLEXIMAGE                  "FlexImage";
+
+    IDD_FLEXIMAGE_HALT_SPP              "Echantillons/Pixel Halt";
+    IDD_FLEXIMAGE_GAMMA                 "Gamma";
+    IDD_FLEXIMAGE_PREMULTIPLY           "Pré-Multiplier Alpha";
+    IDD_FLEXIMAGE_DISPLAY_INTERVAL      "Afficher l'Intervalle (s)";
+    IDD_FLEXIMAGE_WRITE_INTERVAL        "Ecrire l'Intervalle (s)";
+    IDD_FLEXIMAGE_CLAMP_METHOD          "Méthode de Clampage";
+    IDD_FLEXIMAGE_REJECT_WARMUP         "Réchauffement de Rebond (spp)";
+
+      IDG_FLEXIMAGE_TONEMAPPING           "Tone-mapping";
+      IDD_FLEXIMAGE_TONEMAP_KERNEL        "Noyau du Tone-mapping";
+      IDD_FLEXIMAGE_REINHARD_PRESCALE     "Pré-echelle";
+      IDD_FLEXIMAGE_REINHARD_POSTSCALE    "Post-echelle";
+      IDD_FLEXIMAGE_REINHARD_BURN         "Combustion";
+      IDD_FLEXIMAGE_LINEAR_SENSITIVITY    "Sensitivité (ISO)";
+      IDD_FLEXIMAGE_LINEAR_EXPOSURE       "Exposition (s)";
+      IDD_FLEXIMAGE_LINEAR_FSTOP          "F-Stop";
+      IDD_FLEXIMAGE_LINEAR_GAMMA          "Gamma";
+      IDD_FLEXIMAGE_CONTRAST_YWA          "Lumosité Adapt. de l'Affichage/Monde";
+      
+      IDG_FLEXIMAGE_FILE_FORMATS          "Format du Fichier de Sortie";
+      IDD_FLEXIMAGE_WRITE_EXR             "Ecrire une image EXR";
+      IDD_FLEXIMAGE_WRITE_PNG             "Ecrire une image PNG";
+      IDD_FLEXIMAGE_WRITE_TGA             "Ecrire une image TGA";
+      IDD_FLEXIMAGE_EXR_CHANNELS          "Canaux";
+      IDD_FLEXIMAGE_EXR_HALFTYPE          "Demi-Type";
+      IDD_FLEXIMAGE_EXR_COMPRESSION       "Compression";
+      IDD_FLEXIMAGE_EXR_APPLY_IMAGING     "Appliquer le Tonemapping";
+      IDD_FLEXIMAGE_EXR_GAMUT_CLAMP       "Clamper le Gamut";
+      IDD_FLEXIMAGE_EXR_WRITE_ZBUF        "Ecrire le Z-Buffer";
+      IDD_FLEXIMAGE_EXR_ZBUF_NORM_TYPE    "Normalisation du Z-Buffer";
+      IDD_FLEXIMAGE_PNG_CHANNELS          "Canaux";
+      IDD_FLEXIMAGE_PNG_16BIT             "16 Bit";
+      IDD_FLEXIMAGE_PNG_GAMUT_CLAMP       "Clamper le Gamut";
+      IDD_FLEXIMAGE_TGA_CHANNELS          "Canaux";
+      IDD_FLEXIMAGE_TGA_GAMUT_CLAMP       "Clamper le Gamut";
+    
+      IDD_CLAMP_METHOD_LUM                "Luminosité";
+      IDD_CLAMP_METHOD_HUE                "Teinte";
+      IDD_CLAMP_METHOD_CUT                "Compression";
+
+      IDD_TONEMAP_KERNEL_REINHARD         "Reinhard";
+      IDD_TONEMAP_KERNEL_LINEAR           "Linéaire";
+      IDD_TONEMAP_KERNEL_CONTRAST         "Contraste";
+      IDD_TONEMAP_KERNEL_MAXWHITE         "Blanc Max.";
+
+      IDD_WRITE_CHANNELS_Y                "J";
+      IDD_WRITE_CHANNELS_YA               "J + alpha";
+      IDD_WRITE_CHANNELS_RGB              "RVB";
+      IDD_WRITE_CHANNELS_RGBA             "RVB + alpha";
+
+      IDD_ZBUF_NORM_TYPE_NONE             "Aucun";
+      IDD_ZBUF_NORM_TYPE_CAMERA           "Début/Fin de la Caméra";
+      IDD_ZBUF_NORM_TYPE_SCENE            "Min/Max. de la Scène";
+
+      IDD_EXR_COMPRESSION_RLE             "Compression RLE (Le moins de perte)";
+      IDD_EXR_COMPRESSION_PIZ             "Compression PIZ (Le moins de perte)";
+      IDD_EXR_COMPRESSION_ZIP             "Compression ZIP (Le moins de perte)";
+      IDD_EXR_COMPRESSION_PXR24           "Compression Pxr24 (Perte)";
+      IDD_EXR_COMPRESSION_NONE            "Aucune";
+    
+    
+  IDG_EXPORT                          "Exportation";
+    
+    IDD_WHICH_EXPORT_FILENAME           "Nom du fichier à exporter";
+    IDD_EXPORT_FILENAME                 "";
+    IDD_ALLOW_OVERWRITING               "Autoriser l'écrasement";
+
+      IDD_ASK_FOR_EXPORT_FILENAME         "Poser la question à chaque exportation";
+      IDD_USE_C4D_EXPORT_FILENAME         "Même nom que le fichier C4D";
+      IDD_DEFINE_EXPORT_FILENAME          "Definir le nom du fichier";
+
+    IDD_SCALE_FACTOR                    "Facteur d'Echelle C4D -> LuxRender";
+
+}

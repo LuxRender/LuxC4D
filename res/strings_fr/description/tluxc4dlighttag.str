@@ -1,0 +1,104 @@
+//************************************************************************
+//* LuxC4D - CINEMA 4D plug-in for export to LuxRender                   *
+//* (http://www.luxrender.net)                                           *
+//*                                                                      *
+//* Author:                                                              *
+//* Marcus Spranger (abstrax), Patrick Depoix (Spirou4D)                 *
+//*                                                                      *
+//************************************************************************
+//*                                                                      *
+//* This file is part of LuxC4D.                                         *
+//*                                                                      *
+//* LuxC4D is free software: you can redistribute it and/or modify       *
+//* it under the terms of the GNU General Public License as published by *
+//* the Free Software Foundation, either version 3 of the License, or    *
+//* (at your option) any later version.                                  *
+//*                                                                      *
+//* LuxC4D is distributed in the hope that it will be useful,            *
+//* but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+//* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+//* GNU General Public License for more details.                         *
+//*                                                                      *
+//* You should have received a copy of the GNU General Public License    *
+//* along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
+//************************************************************************
+
+STRINGTABLE Tluxc4dlighttag
+{
+  Tluxc4dlighttag "Lumière LuxC4D";
+  
+  
+  IDD_LIGHT_TYPE                  "Type de Lumière";
+  IDD_LIGHT_IGNORE_FALLOFF_RADIUS "Ignorer le Rayon d'atténuation C4D";
+  
+    IDD_LIGHT_TYPE_AS_OBJECT  "Identique à l'Objet";
+    IDD_LIGHT_TYPE_POINT      "Lumière Ponctuelle";
+    IDD_LIGHT_TYPE_SPOT       "Lumière Spot";
+    IDD_LIGHT_TYPE_DISTANT    "Lumière Distante";
+    IDD_LIGHT_TYPE_AREA       "Surface Lumineuse";
+    IDD_LIGHT_TYPE_SUN        "Soleil";
+    IDD_LIGHT_TYPE_SKY        "Ciel";
+    IDD_LIGHT_TYPE_SUNSKY     "Soleil + Ciel";
+
+  IDG_POINT_LIGHT                 "Réglages de Lumière ponctuelle";
+  IDD_POINT_LIGHT_COLOR           "Couleur";
+  IDD_POINT_LIGHT_BRIGHTNESS      "Luminosité";
+
+  IDG_SPOT_LIGHT                    "Réglages de Lumière Spot";
+  IDD_SPOT_LIGHT_COLOR              "Couleur";
+  IDD_SPOT_LIGHT_BRIGHTNESS         "Luminosité";
+  IDD_SPOT_LIGHT_INNERANGLE         "Angle interne";
+  IDD_SPOT_LIGHT_OUTERANGLE         "Angle externe";
+  
+  IDG_DISTANT_LIGHT                 "Réglages de Lumière Distante";
+  IDD_DISTANT_LIGHT_COLOR           "Couleur";
+  IDD_DISTANT_LIGHT_BRIGHTNESS      "Luminosité";
+
+  IDG_AREA_LIGHT                    "Réglages de Surface Lumineuse";
+  IDD_AREA_LIGHT_COLOR              "Couleur";
+  IDD_AREA_LIGHT_BRIGHTNESS         "Luminosité";
+  IDD_AREA_LIGHT_FLIP_NORMALS       "Inverser les Normales";
+  IDD_AREA_LIGHT_SAMPLES            "Echantillons";
+  IDD_AREA_LIGHT_SHAPE              "Forme";
+  IDD_AREA_LIGHT_OBJECT             "Objet";
+  IDD_AREA_LIGHT_SIZE               "Taille";
+
+    IDD_AREA_LIGHT_SHAPE_DISC         "Disque";
+    IDD_AREA_LIGHT_SHAPE_RECTANGLE    "Rectangle";
+    IDD_AREA_LIGHT_SHAPE_SPHERE       "Sphère";
+    IDD_AREA_LIGHT_SHAPE_CYLINDER     "Cylindre";
+    IDD_AREA_LIGHT_SHAPE_CUBE         "Cube";
+    IDD_AREA_LIGHT_SHAPE_HEMISPHERE   "Hémisphère";
+    IDD_AREA_LIGHT_SHAPE_OBJECT       "Objet/Lien";
+
+  IDG_SUN_LIGHT                     "Réglages du Soleil";
+  IDD_SUN_LIGHT_BRIGHTNESS          "Luminosité";
+  IDD_SUN_LIGHT_SAMPLES             "Echantillons";
+  IDD_SUN_LIGHT_TURBIDITY           "Turbidité";
+  IDD_SUN_LIGHT_RELSIZE             "Taille Relative";
+
+  IDG_SKY_LIGHT                     "Réglage du Ciel";
+  IDD_SKY_LIGHT_BRIGHTNESS          "Luminosité";
+  IDD_SKY_LIGHT_SAMPLES             "Echantillons";
+  IDD_SKY_LIGHT_TURBIDITY           "Turbidité";
+  IDD_SKY_LIGHT_ADVANCED            "Réglage Avancé";
+  IDD_SKY_LIGHT_A_CONST             "A";
+  IDD_SKY_LIGHT_B_CONST             "B";
+  IDD_SKY_LIGHT_C_CONST             "C";
+  IDD_SKY_LIGHT_D_CONST             "D";
+  IDD_SKY_LIGHT_E_CONST             "E";
+
+  IDG_SUNSKY_LIGHT                  "Réglages du Soleil+Ciel";
+  IDD_SUNSKY_LIGHT_BRIGHTNESS       "Luminosité";
+  IDD_SUNSKY_LIGHT_SAMPLES          "Echantillons";
+  IDD_SUNSKY_LIGHT_TURBIDITY        "Turbidité";
+  IDD_SUNSKY_LIGHT_RELSIZE          "Taille Relative du Soleil";
+  IDD_SUNSKY_LIGHT_ADVANCED         "Réglage Avancé";
+  IDD_SUNSKY_LIGHT_A_CONST          "A";
+  IDD_SUNSKY_LIGHT_B_CONST          "B";
+  IDD_SUNSKY_LIGHT_C_CONST          "C";
+  IDD_SUNSKY_LIGHT_D_CONST          "D";
+  IDD_SUNSKY_LIGHT_E_CONST          "E";
+
+  IDB_COPY_PARAMETERS               "Copier les réglages de l'Objet";
+}
