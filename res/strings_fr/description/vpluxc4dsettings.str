@@ -34,7 +34,7 @@ STRINGTABLE VPluxc4dsettings
     IDD_ADVANCED_SAMPLER                "Réglages avancés";
     
       IDD_SAMPLER_LOWDISCREPANCY          "Faible Ecart";
-      IDD_SAMPLER_METROPOLIS              "Metropolis";
+      IDD_SAMPLER_METROPOLIS              "Métropolis";
       IDD_SAMPLER_ERPT                    "ERPT";
       IDD_SAMPLER_RANDOM                  "Aléatoire";
 
@@ -74,15 +74,15 @@ STRINGTABLE VPluxc4dsettings
     IDD_PATH_MAX_DEPTH                  "Profondeur Max.";
     IDD_PATH_DIRECT_LIGHT_STRATEGY      "Stratégie de Lumière Directe";
     IDD_PATH_RR_STRATEGY                "Stratégie de la Roulette Russe";
-    IDD_PATH_RR_CONTINUE_PROB           "Probabilité de la Roulette R. continue";
+    IDD_PATH_RR_CONTINUE_PROB           "Probabilité continue";
     IDD_PATH_INCLUDE_ENVIRONMENT        "Inclure l'Environnement";
 
       IDD_DIRECT_LIGHT_STRATEGY_AUTO      "Automatique";
       IDD_DIRECT_LIGHT_STRATEGY_ONE       "Une Lumière";
       IDD_DIRECT_LIGHT_STRATEGY_ALL       "Toutes les Lumières";
 
-      IDD_PATH_RR_STRATEGY_EFFICIENCY     "Efficience";
-      IDD_PATH_RR_STRATEGY_PROBABILITY    "Probabilité";
+      IDD_PATH_RR_STRATEGY_EFFICIENCY     "Par efficience";
+      IDD_PATH_RR_STRATEGY_PROBABILITY    "Par probabilité";
       IDD_PATH_RR_STRATEGY_NONE           "Aucune";
 
     IDD_DISTRIBUTED_PATH_DIRECT_LIGHT_STRATEGY          "Stratégie de Lumière Directe";
@@ -102,8 +102,8 @@ STRINGTABLE VPluxc4dsettings
     IDD_BIDIRECTIONAL_EYE_DEPTH             "Profondeur de l'oeil";
     IDD_BIDIRECTIONAL_LIGHT_DEPTH           "Profondeur de la Lumière";
     IDD_BIDIRECTIONAL_DIRECT_LIGHT_STRATEGY "Stratégie de Lumière Directe";
-    IDD_BIDIRECTIONAL_EYE_RR_THRESHOLD      "Seuil de la Roulette Russe de l'oeil";
-    IDD_BIDIRECTIONAL_LIGHT_RR_THRESHOLD    "Seuil de la Roulette Russe de la lumière";
+    IDD_BIDIRECTIONAL_EYE_RR_THRESHOLD      "Seuil R.R. de l'oeil";
+    IDD_BIDIRECTIONAL_LIGHT_RR_THRESHOLD    "Seuil R.R. de la lumière";
     IDD_BIDIRECTIONAL_MAX_DEPTH             "Profondeur Max.";
 
     IDD_DIRECT_LIGHTING_MAX_DEPTH       "Profondeur Max.";
@@ -146,24 +146,24 @@ STRINGTABLE VPluxc4dsettings
 
       IDD_FILM_FLEXIMAGE                  "FlexImage";
 
-    IDD_FLEXIMAGE_HALT_SPP              "Echantillons/Pixel Halt";
+    IDD_FLEXIMAGE_HALT_SPP              "Echantillons/Pixel d'arrêt";
     IDD_FLEXIMAGE_GAMMA                 "Gamma";
-    IDD_FLEXIMAGE_PREMULTIPLY           "Pré-Multiplier Alpha";
+    IDD_FLEXIMAGE_PREMULTIPLY           "Pré-Multiplier l'Alpha";
     IDD_FLEXIMAGE_DISPLAY_INTERVAL      "Afficher l'Intervalle (s)";
     IDD_FLEXIMAGE_WRITE_INTERVAL        "Ecrire l'Intervalle (s)";
     IDD_FLEXIMAGE_CLAMP_METHOD          "Méthode de Clampage";
-    IDD_FLEXIMAGE_REJECT_WARMUP         "Réchauffement de Rebond (spp)";
+    IDD_FLEXIMAGE_REJECT_WARMUP         "Nbre de Rejet de scintillements";
 
       IDG_FLEXIMAGE_TONEMAPPING           "Tone-mapping";
       IDD_FLEXIMAGE_TONEMAP_KERNEL        "Noyau du Tone-mapping";
-      IDD_FLEXIMAGE_REINHARD_PRESCALE     "Pré-echelle";
-      IDD_FLEXIMAGE_REINHARD_POSTSCALE    "Post-echelle";
+      IDD_FLEXIMAGE_REINHARD_PRESCALE     "Pré-ajustement";
+      IDD_FLEXIMAGE_REINHARD_POSTSCALE    "Post-ajustement";
       IDD_FLEXIMAGE_REINHARD_BURN         "Combustion";
       IDD_FLEXIMAGE_LINEAR_SENSITIVITY    "Sensitivité (ISO)";
       IDD_FLEXIMAGE_LINEAR_EXPOSURE       "Exposition (s)";
       IDD_FLEXIMAGE_LINEAR_FSTOP          "F-Stop";
       IDD_FLEXIMAGE_LINEAR_GAMMA          "Gamma";
-      IDD_FLEXIMAGE_CONTRAST_YWA          "Lumosité Adapt. de l'Affichage/Monde";
+      IDD_FLEXIMAGE_CONTRAST_YWA          "Luminosité adaptée de l'Affichage/Monde";
       
       IDG_FLEXIMAGE_FILE_FORMATS          "Format du Fichier de Sortie";
       IDD_FLEXIMAGE_WRITE_EXR             "Ecrire une image EXR";
@@ -172,7 +172,7 @@ STRINGTABLE VPluxc4dsettings
       IDD_FLEXIMAGE_EXR_CHANNELS          "Canaux";
       IDD_FLEXIMAGE_EXR_HALFTYPE          "Demi-Type";
       IDD_FLEXIMAGE_EXR_COMPRESSION       "Compression";
-      IDD_FLEXIMAGE_EXR_APPLY_IMAGING     "Appliquer le Tonemapping";
+      IDD_FLEXIMAGE_EXR_APPLY_IMAGING     "Appliquer le Tone-mapping";
       IDD_FLEXIMAGE_EXR_GAMUT_CLAMP       "Clamper le Gamut";
       IDD_FLEXIMAGE_EXR_WRITE_ZBUF        "Ecrire le Z-Buffer";
       IDD_FLEXIMAGE_EXR_ZBUF_NORM_TYPE    "Normalisation du Z-Buffer";
@@ -184,7 +184,7 @@ STRINGTABLE VPluxc4dsettings
     
       IDD_CLAMP_METHOD_LUM                "Luminosité";
       IDD_CLAMP_METHOD_HUE                "Teinte";
-      IDD_CLAMP_METHOD_CUT                "Compression";
+      IDD_CLAMP_METHOD_CUT                "Coupe";
 
       IDD_TONEMAP_KERNEL_REINHARD         "Reinhard";
       IDD_TONEMAP_KERNEL_LINEAR           "Linéaire";
@@ -200,10 +200,10 @@ STRINGTABLE VPluxc4dsettings
       IDD_ZBUF_NORM_TYPE_CAMERA           "Début/Fin de la Caméra";
       IDD_ZBUF_NORM_TYPE_SCENE            "Min/Max. de la Scène";
 
-      IDD_EXR_COMPRESSION_RLE             "Compression RLE (Le moins de perte)";
-      IDD_EXR_COMPRESSION_PIZ             "Compression PIZ (Le moins de perte)";
-      IDD_EXR_COMPRESSION_ZIP             "Compression ZIP (Le moins de perte)";
-      IDD_EXR_COMPRESSION_PXR24           "Compression Pxr24 (Perte)";
+      IDD_EXR_COMPRESSION_RLE             "RLE (Le moins de perte)";
+      IDD_EXR_COMPRESSION_PIZ             "PIZ (Le moins de perte)";
+      IDD_EXR_COMPRESSION_ZIP             "ZIP (Le moins de perte)";
+      IDD_EXR_COMPRESSION_PXR24           "Pxr24 (Perte)";
       IDD_EXR_COMPRESSION_NONE            "Aucune";
     
     

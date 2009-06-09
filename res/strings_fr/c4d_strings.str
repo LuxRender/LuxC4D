@@ -44,12 +44,12 @@ STRINGTABLE
   
   IDS_LUXC4D_PREFERENCES              "Préférences LuxC4D...";
   IDS_LUXC4D_PREFERENCES_DESCR        "Ouvrer une fenêtre de dialogue où vous pouvez régler les options globales de LuxC4D";
-  IDS_LUXC4D_PREFS_LUX_PATH_FS_TITLE  "Please select the Lux Render executable";
+  IDS_LUXC4D_PREFS_LUX_PATH_FS_TITLE  "Svp, sélectionnez l'exécutable LuxRender";
   
-  IDS_ERROR_INITIALISE_LUXAPIWRITER "Il n'est pas possible  d'initialiser l'exportation vers le fichier '#'!";
+  IDS_ERROR_INITIALISE_LUXAPIWRITER "Il n'est pas possible d'initialiser l'exportation vers le fichier '#'!";
   IDS_ERROR_IO                      "Ecriture du fichier erronnée!";
   IDS_ERROR_CONVERSION              "Conversion de la scène erronnée!!";
-  IDS_ERROR_INTERNAL                "Erreur interne!";
+  IDS_ERROR_INTERNAL                "Oups, Erreur interne!";
   IDS_ERROR_LUX_PATH_EMPTY          "Aucun chemin vers LuxRender spécifié dans les préférences!";
   IDS_ERROR_LUX_PATH_DOESNT_EXIST   "Le Chemin '#' n'existe pas ou est invalide!";
   IDS_ERROR_LUX_PATH_EXECUTE        "'#' ne peut pas être exécuté !";

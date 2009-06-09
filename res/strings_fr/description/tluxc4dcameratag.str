@@ -48,4 +48,4 @@ STRINGTABLE Tluxc4dcameratag
     IDD_LENS_SAMPLING_INVERSE_EXPONENTIAL "Exponentiel Inverse";
     IDD_LENS_SAMPLING_GAUSSIAN            "Gaussien";
     IDD_LENS_SAMPLING_INVERSE_GAUSSIAN    "Gaussien Inverse";
-}
+}";
