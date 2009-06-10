@@ -23,36 +23,10 @@
 //* along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
 //************************************************************************
 
-STRINGTABLE 
+STRINGTABLE Tluxc4dportaltag
 {
-  IDS_LUXC4D_EXPORTER         "LuxC4D Export";
-  IDS_LUXC4D_EXPORTER_DESCR   "Exports this scene to LuxRender scene file";
-  IDS_OVERWRITE_FILE_QUERY    "File '#' already exists! Should we overwrite it?";
-  IDS_EXPORT_FILENAME_QUERY   "Please choose the export filename";
+  Tluxc4dportaltag "LuxC4D Portal Tag";
   
-  IDS_LUXC4D_EXPORTERRENDER       "LuxC4D Export + Render";
-  IDS_LUXC4D_EXPORTERRENDER_DESCR "Exports this scene to LuxRender scene file and renders it";
   
-  IDS_LUXC4D_SETTINGS         "LuxC4D Scene Settings";
-  
-  IDS_LUXC4D_LIGHT_TAG        "LuxC4D Light Tag";
-  
-  IDS_LUXC4D_CAMERA_TAG       "LuxC4D Camera Tag";
-  
-  IDS_LUXC4D_PORTAL_TAG       "LuxC4D Portal Tag";
-  
-  IDS_LUXC4D_MATERIAL_MATTE   "Matte";
-  IDS_LUXC4D_MATERIAL_GLOSSY  "Glossy";
-  
-  IDS_LUXC4D_PREFERENCES              "LuxC4D Preferences ...";
-  IDS_LUXC4D_PREFERENCES_DESCR        "Opens a dialog where you can set global LuxC4D options";
-  IDS_LUXC4D_PREFS_LUX_PATH_FS_TITLE  "Please select the Lux Render executable";
-  
-  IDS_ERROR_INITIALISE_LUXAPIWRITER "Could not initialise export to file '#'!";
-  IDS_ERROR_IO                      "Writing to file failed!";
-  IDS_ERROR_CONVERSION              "Converting the scene failed!";
-  IDS_ERROR_INTERNAL                "An internal error occured!";
-  IDS_ERROR_LUX_PATH_EMPTY          "No path to LuxRender specified in preferences!";
-  IDS_ERROR_LUX_PATH_DOESNT_EXIST   "Path '#' doesn't exist / is invalid!";
-  IDS_ERROR_LUX_PATH_EXECUTE        "Could not execute '#'!";
+  IDD_FLIP_NORMALS "Invert Normals";
 }

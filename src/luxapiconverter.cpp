@@ -1076,6 +1076,13 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData* data,
                                        const Matrix&  globalMatrix,
                                        Bool           controlObject)
 {
+  LuxString name;
+  convert2LuxString(object->GetName(), name);
+  LuxString typeName;
+  convert2LuxString(object->GetTypeName(), typeName);
+  debugLog("doGeometryExport '%s' - object=%x, type='%s', controlObject=%d, cacheParent=%x",
+           name.c_str(), object, typeName.c_str(), (int)controlObject, object->GetCacheParent());
+
   // find texture tag with valid link that is not restricted to a selection
   TextureTag*   textureTag = 0;
   BaseMaterial* material = 0;

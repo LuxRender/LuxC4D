@@ -30,6 +30,7 @@
 #include "luxc4dpreferences.h"
 #include "luxc4dcameratag.h"
 #include "luxc4dlighttag.h"
+#include "luxc4dportaltag.h"
 #include "luxc4dsettings.h"
 #include "utilities.h"
 
@@ -99,6 +100,12 @@ Bool PluginStart(void)
   // register LuxC4DCameraTag
   if (!LuxC4DCameraTag::registerPlugin()) {
     ERRLOG("Could not register LuxC4DCameraTag plugin.");
+    return FALSE;
+  }
+
+  // register LuxC4DPortalTag
+  if (!LuxC4DPortalTag::registerPlugin()) {
+    ERRLOG("Could not register LuxC4DPortalTag plugin.");
     return FALSE;
   }
 
