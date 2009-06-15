@@ -33,6 +33,7 @@
 #include "luxmaterialdata.h"
 #include "tluxc4dcameratag.h"
 #include "tluxc4dlighttag.h"
+#include "tluxc4dportaltag.h"
 #include "utilities.h"
 
 
@@ -81,26 +82,8 @@ LuxAPIConverter::~LuxAPIConverter(void)
 {}
 
 
-/// Clears all data that is stored during the conversion process.
-void LuxAPIConverter::clearTemporaryData(void)
-{
-  mTempParamSet.clear();
-  mCamera       = 0;
-  mLightCount   = 0;
-  mAreaLightObjects.erase();
-  mReusableMaterials.erase();
-  mMaterialUsage.erase();
-  mCachedObject = 0;
-  mPolygonCache.erase();
-  mPointCache.erase();
-  mNormalCache.erase();
-  mUVCache.erase();
-  mDo           = 0;
-}
-
-
-/// Converts a scene into a the Lux format and sends it to a LuxAPI
-/// implementation, which can then consume the data.
+/// Converts a scene into a set of Lux API commands and sends them to a LuxAPI
+/// implementation, which can consume the data.
 ///
 /// @param[in]  document
 ///   The C4D document that should be converted and exported.
@@ -117,29 +100,8 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
   mReceiver = &receiver;
   clearTemporaryData();
 
-  // obtain active render settings
-  RenderData* renderData = document.GetActiveRenderData();
-  if (!renderData)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertScene(): could not obtain render data");
-  mC4DRenderSettings = renderData->GetDataInstance();
-  if (!mC4DRenderSettings)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertScene(): could not obtain render settings");
-
-  // get base container of LuxC4DSettings video post effect node - if available
-  mLuxC4DSettings = 0;
-  PluginVideoPost* videoPost = renderData->GetFirstVideoPost();
-  for (; videoPost; videoPost = videoPost->GetNext()) {
-    if (videoPost->GetType() == PID_LUXC4D_SETTINGS) {
-      mLuxC4DSettings = (LuxC4DSettings*)videoPost->GetNodeData();
-      break;
-    }
-  }
-  if (!mLuxC4DSettings)  ERRLOG("LuxAPIConverter::convertScene(): could not obtain LuxC4DSettings -> defaults will be exported");
-
-  // obtain global scene scale which is applied to everything
-  if (mLuxC4DSettings) {
-    mC4D2LuxScale = mLuxC4DSettings->getC4D2LuxScale();
-  } else {
-    mC4D2LuxScale = 0.01;
-  }
+  // get global scene data like camera, environment, render settings...
+  if (!obtainGlobalSceneData()) { return FALSE; }
 
   // create file head (only important for file export)
   tagDateTime time;
@@ -149,7 +111,7 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
                   (int)time.lDay, (int)time.lDay, (int)time.lYear);
 
   // start the scene
-  if (!mReceiver->startScene(buffer))  return FALSE;
+  if (!mReceiver->startScene(buffer)) { return FALSE; }
 
   // export global data
   if (!exportFilm() ||
@@ -187,7 +149,7 @@ CLEANUP_AND_RETURN:
 
 
 /// Allocates a new instance of HierarchyData which will be used to keep track
-/// of implicite visibility. It will be called during the object tree traversal
+/// of implicit visibility. It will be called during the object tree traversal
 /// in Hierarchy::Run().
 ///
 /// @return
@@ -200,6 +162,9 @@ void* LuxAPIConverter::Alloc(void)
 
 /// Deallocates an instance of HierarchyData. It will be called during the
 /// object tree traversal in Hierarchy::Run().
+///
+/// If for the corresponding node of the hierarchy a new scope was opened,
+/// it will be closed here.
 ///
 /// @param[in]  data
 ///   The pointer to the HierarchyData instance to be deallocated.
@@ -230,7 +195,8 @@ void LuxAPIConverter::CopyTo(void* src, void* dst)
 
 
 /// Does the actual object export. It will be called during the object tree
-/// traversal in Hierarchy::Run() for every object.
+/// traversal in Hierarchy::Run() for every object and will call this->mDo()
+/// which exports that object.
 ///
 /// @param[in/out]  data
 ///   Private helper data that was passed from the parent object (as a copy).
@@ -260,7 +226,7 @@ Bool LuxAPIConverter::Do(void*         data,
     ((HierarchyData*)data)->mVisible = (mode == MODE_ON);
   }
 
-  return (this->*mDo)((HierarchyData*)data, object, globalMatrix, controlObject);
+  return (this->*mDo)(*((HierarchyData*)data), *object, globalMatrix, controlObject);
 }
 
 
@@ -268,6 +234,91 @@ Bool LuxAPIConverter::Do(void*         data,
 /*****************************************************************************
  * Implementation of private member functions of class LuxAPIConverter.
  *****************************************************************************/
+
+/// Clears all data that is stored during the conversion process.
+void LuxAPIConverter::clearTemporaryData(void)
+{
+  mTempParamSet.clear();
+  mCamera       = 0;
+  mLightCount   = 0;
+  mAreaLightObjects.erase();
+  mReusableMaterials.erase();
+  mMaterialUsage.erase();
+  mCachedObject = 0;
+  mPolygonCache.erase();
+  mPointCache.erase();
+  mNormalCache.erase();
+  mUVCache.erase();
+  mDo           = 0;
+}
+
+
+/// Determines all objects and settings of the current scene, which are global
+/// and not dependant on any hierarchy. These include the render settings,
+/// the LuxC4D Scene Settings (if available), the render camera, the environment
+/// to use and so on...
+///
+/// @return
+///   TRUE if all necessary data could be gathered and FALSE if not.
+Bool LuxAPIConverter::obtainGlobalSceneData(void)
+{
+  // obtain active render settings
+  RenderData* renderData = mDocument->GetActiveRenderData();
+  if (!renderData)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertScene(): could not obtain render data");
+  mC4DRenderSettings = renderData->GetDataInstance();
+  if (!mC4DRenderSettings)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::convertScene(): could not obtain render settings");
+
+  // get base container of LuxC4DSettings video post effect node - if available
+  mLuxC4DSettings = 0;
+  PluginVideoPost* videoPost = renderData->GetFirstVideoPost();
+  for (; videoPost; videoPost = videoPost->GetNext()) {
+    if (videoPost->GetType() == PID_LUXC4D_SETTINGS) {
+      mLuxC4DSettings = (LuxC4DSettings*)videoPost->GetNodeData();
+      break;
+    }
+  }
+  if (!mLuxC4DSettings)  ERRLOG("LuxAPIConverter::convertScene(): could not obtain LuxC4DSettings -> defaults will be exported");
+
+  // obtain global scene scale which is applied to everything
+  if (mLuxC4DSettings) {
+    mC4D2LuxScale = mLuxC4DSettings->getC4D2LuxScale();
+  } else {
+    mC4D2LuxScale = 0.01;
+  }
+
+  // obtain stage object if there is one
+  BaseObject *stageObject = mDocument->GetHighest(Ostage, FALSE);
+  if (stageObject && (stageObject->GetType() == Ostage) &&
+      stageObject->GetDeformMode())
+  {
+#if _C4D_VERSION>=100
+    // ignore the stage object if it belongs to a layer that should not be
+    // rendered (only for C4D >R10)
+    const LayerData* layerData = stageObject->GetLayerData(mDocument);
+    if (!layerData || layerData->render) {
+#endif
+      mCamera = (CameraObject*)getParameterLink(*stageObject, STAGEOBJECT_CLINK, Ocamera);
+      if (mCamera && (mCamera->GetType() != Ocamera)) { mCamera = 0; }
+#if _C4D_VERSION>=100
+    }
+#endif
+  }
+
+  // if no camera was specified in a stage object obtain the camera object from
+  // the render BaseDraw
+  if (!mCamera) {
+    BaseDraw* view = mDocument->GetRenderBaseDraw();
+    if (!view)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): could not obtain render base draw");
+    BaseObject* cameraObj = view->GetSceneCamera(mDocument);
+    if (!cameraObj)  cameraObj = view->GetEditorCamera();
+    if (!cameraObj)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): could not obtain camera");
+    if (cameraObj->GetType() != Ocamera)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): obtained camera object is no camera");
+    mCamera = (CameraObject*)cameraObj;
+  }
+
+  return TRUE;
+}
+
 
 /// Determines the film resolution and converts it into a Lux "Film" statement.
 ///
@@ -344,15 +395,7 @@ Bool LuxAPIConverter::exportCamera(void)
   GeAssert(mDocument);
   GeAssert(mReceiver);
   GeAssert(mC4DRenderSettings);
-
-  // obtain camera object and its container
-  BaseDraw* view = mDocument->GetRenderBaseDraw();
-  if (!view)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): could not obtain render base draw");
-  BaseObject* cameraObj = view->GetSceneCamera(mDocument);
-  if (!cameraObj)  cameraObj = view->GetEditorCamera();
-  if (!cameraObj)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): could not obtain camera");
-  if (cameraObj->GetType() != Ocamera)  ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportCamera(): obtained camera object is no camera");
-  mCamera = (CameraObject*)cameraObj;
+  GeAssert(mCamera);
 
   // calculate world to camera transformation matrix and swap Z and Y axis, as
   // in Lux the camera looks along the Y axis
@@ -422,7 +465,7 @@ Bool LuxAPIConverter::exportCamera(void)
 
 
 /// Exports the pixel filter of the LuxC4D settings, if available. If not, we
-/// export the default pixel filter (mitchell).
+/// export the default pixel filter (gaussian).
 ///
 /// @return
 ///   TRUE, if successful, FALSE otherwise
@@ -435,7 +478,11 @@ Bool LuxAPIConverter::exportPixelFilter(void)
   // if no settings object found, use defaults
   mTempParamSet.clear();
   if (!mLuxC4DSettings) {
-    return mReceiver->pixelFilter("mitchell", mTempParamSet);
+    LuxFloat xWidth = 1.3f;
+    LuxFloat yWidth = 1.3f;
+    mTempParamSet.addParam(LUX_FLOAT, "xwidth", &xWidth);
+    mTempParamSet.addParam(LUX_FLOAT, "ywidth", &yWidth);
+    return mReceiver->pixelFilter("gaussian", mTempParamSet);
   }
 
   // otherwise, obtain settings from object
@@ -470,7 +517,7 @@ Bool LuxAPIConverter::exportSampler(void)
 
 
 /// Exports the surface integrator of the LuxC4D settings, if vailable. If not,
-/// we use the default integrator (path, maxdepth=2).
+/// we use the default integrator (path, maxdepth=10).
 ///
 /// @return
 ///   TRUE, if successful, FALSE otherwise
@@ -516,7 +563,7 @@ Bool LuxAPIConverter::exportAccelerator(void)
 /// be stored in a set and later the geometry export ignores these.
 ///
 /// @return
-///   TRUE, if successful, FALSE otherwise
+///   TRUE, if successful, FALSE otherwise.
 Bool LuxAPIConverter::exportLights(void)
 {
   // safety checks
@@ -530,30 +577,42 @@ Bool LuxAPIConverter::exportLights(void)
 }
 
 
+/// Does the actual export of a light object and will be called by Do().
 ///
-Bool LuxAPIConverter::doLightExport(HierarchyData* data,
-                                    BaseObject*    object,
+/// @param[in]  data
+///   The hierarchy data for this object.
+/// @param[in]  object
+///   The object to export.
+/// @param[in]  globalMatrix
+///   The global matrix of the object to export.
+/// @param[in]  controlObject
+///   TRUE if this object is a control object for generated geometry further
+///   down the hierarchy.
+/// @return
+///   TRUE, if successful, FALSE otherwise.
+Bool LuxAPIConverter::doLightExport(HierarchyData& hierarchyData,
+                                    BaseObject&    object,
                                     const Matrix&  globalMatrix,
                                     Bool           controlObject)
 {
   // skip generator objects, invisible objects, objects that are no lights
   // or lights that are not enabled
-  if (controlObject || !data->mVisible ||
-      (object->GetType() != Olight) || !object->GetDeformMode())
+  if (controlObject || !hierarchyData.mVisible ||
+      (object.GetType() != Olight) || !object.GetDeformMode())
   {
     return TRUE;
   }
 
 #if _C4D_VERSION>=100
   // skip objects that belong to a layer that should not be rendered
-  const LayerData* layerData = object->GetLayerData(mDocument);
+  const LayerData* layerData = object.GetLayerData(mDocument);
   if (layerData && !layerData->render) {
     return TRUE;
   }
 #endif
 
   // export light object
-  return exportLight(*object, globalMatrix);
+  return exportLight(object, globalMatrix);
 }
 
 
@@ -791,7 +850,6 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
     // disc area light
     case IDD_AREA_LIGHT_SHAPE_DISC:
       radius = data.mSize.x * 0.5 * mC4D2LuxScale;
-      //data.mGain /= pi * radius * radius;
       flipYZ = TRUE;
       shapeParams.addParam(LUX_FLOAT, "radius", &radius);
       shapeName = "disk";
@@ -800,7 +858,6 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
     case IDD_AREA_LIGHT_SHAPE_RECTANGLE:
       width  = data.mSize.x * mC4D2LuxScale;
       height = data.mSize.y * mC4D2LuxScale;
-      //data.mGain /= width * height;
       flipYZ = TRUE;
       shapeParams.addParam(LUX_FLOAT, "width",  &width);
       shapeParams.addParam(LUX_FLOAT, "height", &height);
@@ -809,7 +866,6 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
     // sphere area light
     case IDD_AREA_LIGHT_SHAPE_SPHERE:
       radius = data.mSize.x * 0.5 * mC4D2LuxScale;
-      //data.mGain /= 4. * pi * radius * radius;
       flipYZ = TRUE;
       shapeParams.addParam(LUX_FLOAT, "radius", &radius);
       shapeName = "sphere";
@@ -819,7 +875,6 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       radius =  data.mSize.x * 0.5 * mC4D2LuxScale;
       zMin   = -data.mSize.z * 0.5 * mC4D2LuxScale;
       zMax   =  data.mSize.z * 0.5 * mC4D2LuxScale;
-      //data.mGain /= 2. * pi * radius * ( radius + zMax - zMin);
       flipYZ = TRUE;
       shapeParams.addParam(LUX_FLOAT, "radius", &radius);
       shapeParams.addParam(LUX_FLOAT, "zmin",   &zMin);
@@ -853,7 +908,6 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       triangles[27] = 3;  triangles[28] = 6;  triangles[29] = 7;  
       triangles[30] = 0;  triangles[31] = 3;  triangles[32] = 7;  
       triangles[33] = 0;  triangles[34] = 7;  triangles[35] = 4;  
-      //data.mGain /= 8. * (xRad*yRad + xRad*zRad + yRad*zRad);
       flipYZ = FALSE;
       shapeParams.addParam(LUX_POINT, "P",
                            &points.front(), points.size());
@@ -865,7 +919,6 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
     case IDD_AREA_LIGHT_SHAPE_HEMISPHERE:
       radius = data.mSize.x * 0.5 * mC4D2LuxScale;
       zMin   = 0;
-      //data.mGain /= 2. * pi * radius * radius;
       flipYZ = TRUE;
       shapeParams.addParam(LUX_FLOAT, "radius", &radius);
       shapeParams.addParam(LUX_FLOAT, "zmin",   &zMin);
@@ -875,8 +928,6 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
     case IDD_AREA_LIGHT_SHAPE_OBJECT:
       if (!convertGeometry(*data.mShapeObject, triangles, points))  return FALSE;
       if (!triangles.size() || !points.size())  return TRUE;
-      //radius = Len(data.mShapeObject->GetRad()) * mC4D2LuxScale;
-      //data.mGain /= 4. * pi * radius * radius;
       flipYZ = FALSE;
       shapeParams.addParam(LUX_POINT, "P",
                            &points.front(), points.size());
@@ -1031,7 +1082,7 @@ Bool LuxAPIConverter::exportStandardMaterial(void)
 {
   LuxMaterialData materialData(gLuxMatteInfo);
   materialData.setChannel(LUX_MATTE_DIFFUSE,
-                          gNewNC LuxConstantTextureData(LuxColor(0.2f, 0.2f, 0.8f)));
+                          gNewNC LuxConstantTextureData(LuxColor(0.8f, 0.8f, 0.8f)));
   return materialData.sendToAPI(*mReceiver, "_default");
 }
 
@@ -1070,23 +1121,28 @@ Bool LuxAPIConverter::exportGeometry(void)
 }
 
 
+/// Does the actual export of a geometry object and will be called by Do().
 ///
-Bool LuxAPIConverter::doGeometryExport(HierarchyData* data,
-                                       BaseObject*    object,
+/// @param[in]  data
+///   The hierarchy data for this object.
+/// @param[in]  object
+///   The object to export.
+/// @param[in]  globalMatrix
+///   The global matrix of the object to export.
+/// @param[in]  controlObject
+///   TRUE if this object is a control object for generated geometry further
+///   down the hierarchy.
+/// @return
+///   TRUE, if successful, FALSE otherwise.
+Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
+                                       BaseObject&    object,
                                        const Matrix&  globalMatrix,
                                        Bool           controlObject)
 {
-  LuxString name;
-  convert2LuxString(object->GetName(), name);
-  LuxString typeName;
-  convert2LuxString(object->GetTypeName(), typeName);
-  debugLog("doGeometryExport '%s' - object=%x, type='%s', controlObject=%d, cacheParent=%x",
-           name.c_str(), object, typeName.c_str(), (int)controlObject, object->GetCacheParent());
-
   // find texture tag with valid link that is not restricted to a selection
   TextureTag*   textureTag = 0;
   BaseMaterial* material = 0;
-  for (BaseTag* tag=object->GetFirstTag(); tag; tag=tag->GetNext()) {
+  for (BaseTag* tag=object.GetFirstTag(); tag; tag=tag->GetNext()) {
     if (tag->GetType() == Ttexture) {
       material = (BaseMaterial*)getParameterLink(*tag, TEXTURETAG_MATERIAL, Mbase);
       if (!material) {
@@ -1105,43 +1161,68 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData* data,
   if (textureTag && material) {
     LuxString materialName;
     if (!exportMaterial(*textureTag, *material, materialName))  return FALSE;
-    data->mStartedNewScope = TRUE;
-    data->mObjectName = object->GetName();
-    if (!mReceiver->setComment("start of object '" + data->mObjectName + "'"))  return FALSE;
+    hierarchyData.mStartedNewScope = TRUE;
+    hierarchyData.mObjectName = object.GetName();
+    if (!mReceiver->setComment("start of object '" + hierarchyData.mObjectName + "'"))  return FALSE;
     if (!mReceiver->attributeBegin())  return FALSE;
     if (!mReceiver->namedMaterial(materialName.c_str()))  return FALSE;
   }
 
   // skip generator objects, invisible objects, objects that are no polygon
   // objects or objects that have already been exported as area light
-  if (controlObject || !data->mVisible ||
-      (object->GetType() != Opolygon) || mAreaLightObjects.get(object))
+  if (controlObject || !hierarchyData.mVisible ||
+      (object.GetType() != Opolygon) || mAreaLightObjects.get(&object))
   {
     return TRUE;
   }
 
 #if _C4D_VERSION>=100
   // skip objects that belong to a layer that should not be rendered
-  const LayerData* layerData = object->GetLayerData(mDocument);
+  const LayerData* layerData = object.GetLayerData(mDocument);
   if (layerData && !layerData->render) {
     return TRUE;
   }
 #endif
 
   // start new scope, if not done already (for the new default material)
-  if (!data->mStartedNewScope) {
-    data->mStartedNewScope = TRUE;
-    data->mObjectName = object->GetName();
-    if (!mReceiver->setComment("start of object '" + data->mObjectName + "'"))  return FALSE;
+  if (!hierarchyData.mStartedNewScope) {
+    hierarchyData.mStartedNewScope = TRUE;
+    hierarchyData.mObjectName = object.GetName();
+    if (!mReceiver->setComment("start of object '" + hierarchyData.mObjectName + "'"))  return FALSE;
     if (!mReceiver->attributeBegin())  return FALSE;
   }
 
+  // check if object has portal tag and if it does, export it as portal shape
+  BaseTag* portalTag = findTagForParamObject(&object, PID_LUXC4D_PORTAL_TAG);
+  if (portalTag) {
+    Bool doObjectExport;
+    if (!exportPortalObject((PolygonObject&)object,
+                            globalMatrix,
+                            *portalTag,
+                            doObjectExport))
+    {
+      return FALSE;
+    }
+    if (!doObjectExport)  return TRUE;
+  }
+
   // export polygon object
-  return exportPolygonObject(*((PolygonObject*)object), globalMatrix);
+  return exportPolygonObject((PolygonObject&)object, globalMatrix);
 }
 
 
+/// Exports a material including its textures.
 ///
+/// @param[in]  textureTag
+///   The texture the material assigned is to. It's needed for obtaining the
+///   texture mapping.
+/// @param[in]  material
+///   The material to export.
+/// @param[out]  materialName
+///   Here we return the name under which the material will be exported. Use
+///   that one to reference it in the object.
+/// @return
+///   TRUE, if successful, FALSE otherwise.
 Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
                                      BaseMaterial& material,
                                      LuxString&    materialName)
@@ -1230,7 +1311,15 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
 }
 
 
+/// Exports the material as matte "dummy" material that has the average color
+/// of the material.
 ///
+/// @param[in]  material
+///   The material to export.
+/// @param[in]  materialName
+///   The name under which the material will be stored.
+/// @return
+///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportDummyMaterial(BaseMaterial& material,
                                           LuxString&    materialName)
 {
@@ -1242,7 +1331,17 @@ Bool LuxAPIConverter::exportDummyMaterial(BaseMaterial& material,
 }
 
 
+/// Exports the material as Lux matte material using the colour and bump
+/// channels and the Oren-Nayar sigma value.
 ///
+/// @param[in]  textureTag
+///   The texture tag this material was assigned to.
+/// @param[in]  material
+///   The material to export.
+/// @param[in]  materialName
+///   The name under which the material will be stored.
+/// @return
+///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportDiffuseMaterial(TextureTag& textureTag,
                                             Material&   material,
                                             LuxString&  materialName)
@@ -1278,7 +1377,17 @@ Bool LuxAPIConverter::exportDiffuseMaterial(TextureTag& textureTag,
 }
 
 
+/// Exports the material as Lux glossy material using the colour, reflection
+/// and bump channels.
 ///
+/// @param[in]  textureTag
+///   The texture tag this material was assigned to.
+/// @param[in]  material
+///   The material to export.
+/// @param[in]  materialName
+///   The name under which the material will be stored.
+/// @return
+///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportGlossyMaterial(TextureTag& textureTag,
                                            Material&   material,
                                            LuxString&  materialName)
@@ -1322,7 +1431,18 @@ Bool LuxAPIConverter::exportGlossyMaterial(TextureTag& textureTag,
 }
 
 
+/// Exports the material as Lux mirror or shiny metal material (depending on
+/// the dispersion of the reflection) using the colour, reflection and bump
+/// channels.
 ///
+/// @param[in]  textureTag
+///   The texture tag this material was assigned to.
+/// @param[in]  material
+///   The material to export.
+/// @param[in]  materialName
+///   The name under which the material will be stored.
+/// @return
+///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportReflectiveMaterial(TextureTag& textureTag,
                                                Material&   material,
                                                LuxString&  materialName)
@@ -1393,7 +1513,18 @@ Bool LuxAPIConverter::exportReflectiveMaterial(TextureTag& textureTag,
 }
 
 
+/// Exports the material as Lux glass or rough glass material (depending on the
+/// disperison of the transparency channel) using the colour, reflection
+/// and bump channels.
 ///
+/// @param[in]  textureTag
+///   The texture tag this material was assigned to.
+/// @param[in]  material
+///   The material to export.
+/// @param[in]  materialName
+///   The name under which the material will be stored.
+/// @return
+///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportTransparentMaterial(TextureTag& textureTag,
                                                 Material&   material,
                                                 LuxString&  materialName)
@@ -1493,7 +1624,17 @@ Bool LuxAPIConverter::exportTransparentMaterial(TextureTag& textureTag,
 }
 
 
+/// Exports the material as Lux matte translucent material using the colour,
+/// transparency and bump channels and the Oren/Nayar sigma.
 ///
+/// @param[in]  textureTag
+///   The texture tag this material was assigned to.
+/// @param[in]  material
+///   The material to export.
+/// @param[in]  materialName
+///   The name under which the material will be stored.
+/// @return
+///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportTranslucentMaterial(TextureTag& textureTag,
                                                 Material&   material,
                                                 LuxString&  materialName)
@@ -1578,7 +1719,7 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(TextureTag& textureTag,
     return gNewNC LuxConstantTextureData(0.0f);
   }
 
-  // if we are here, we've got a bitmap shader -> let's create a imagemap texture
+  // if we are here, we've got a bitmap shader -> let's create an imagemap texture
   Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
   Filename fullPath;
   GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
@@ -1620,7 +1761,7 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(TextureTag& textureTag,
     return gNewNC LuxConstantTextureData(color);
   }
 
-  // if we are here, we've got a bitmap shader -> let's create a imagemap texture
+  // if we are here, we've got a bitmap shader -> let's create an imagemap texture
   Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
   Filename fullPath;
   GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
@@ -1689,6 +1830,136 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
   mTempParamSet.addParam(LUX_TRIANGLE, "triindices",
                          triangles.arrayAddress(), triangles.size());
   if (!mReceiver->shape("mesh", mTempParamSet))  return FALSE;
+
+  return TRUE;
+}
+
+
+/// Exports a portal shape and sends it to a LuxAPI implementation.
+///
+/// @param[in]  object
+///   The polygon object wich defines the portal shape.
+/// @param[in]  globalMatrix
+///   The global matrix of the object (will be obtained during scene hierarchy
+///   traversal).
+/// @param[in]  tag
+///   The portal tag with additional settings (must be of type
+///   PID_LUXC4D_PORTAL_TAG!).
+/// @param[out]  exportObject
+///   This will be set by this function and if it is set to TRUE, the portal
+///   object should be exported also as a standard polygon object. If it's set
+///   to FALSE it should be exported only as portal shap.
+/// @return
+///   TRUE, if successful, FALSE otherwise
+Bool LuxAPIConverter::exportPortalObject(PolygonObject& object,
+                                         const Matrix&  globalMatrix,
+                                         BaseTag&       tag,
+                                         Bool&          exportObject)
+{
+  static const Real cThicknessExtension = 1.1f;
+
+  // in the beginning we set exportObject to TRUE and only set it to FALSE,
+  // when we really have exported the portal and the user doesn't want us to
+  // export the object twice
+  exportObject = TRUE;
+
+  // only export get polygon object with geometry/polygons
+  if (!object.GetPolygonCount()) { return TRUE; }
+
+  // obtain settings from tag
+  BaseContainer* tagData = tag.GetDataInstance();
+  if (!tagData) { return FALSE; }
+  if (!tagData->GetBool(IDD_PORTAL_ENABLED)) { return TRUE; }
+  Bool simplify = tagData->GetBool(IDD_PORTAL_SIMPLIFY);
+  exportObject = tagData->GetBool(IDD_PORTAL_EXPORT_OBJECT);
+  Bool flipNormals = tagData->GetBool(IDD_PORTAL_FLIP_NORMALS);
+
+  // log
+  debugLog("exporting portal polygon object '" + object.GetName() + "' ...");
+
+  // the container for the geometry
+  TrianglesT triangles;
+  PointsT    points;
+
+  // if we should create a simplified geometry:
+  if (simplify) {
+    // determine bounding box centre and radius
+    Vector bboxCentre = object.GetMp() * mC4D2LuxScale;
+    Vector bboxRad = object.GetRad() * mC4D2LuxScale;
+    // setup points depending on the face direction
+    points.init(4);
+    switch (tagData->GetLong(IDD_PORTAL_FACE_DIRECTION)) {
+      case IDD_PORTAL_FACE_DIR_X_PLUS:
+        points[0] = bboxCentre + Vector(-bboxRad.x*cThicknessExtension, -bboxRad.y, -bboxRad.z);
+        points[1] = bboxCentre + Vector(-bboxRad.x*cThicknessExtension, -bboxRad.y,  bboxRad.z);
+        points[2] = bboxCentre + Vector(-bboxRad.x*cThicknessExtension,  bboxRad.y,  bboxRad.z);
+        points[3] = bboxCentre + Vector(-bboxRad.x*cThicknessExtension,  bboxRad.y, -bboxRad.z);
+        break;
+      case IDD_PORTAL_FACE_DIR_X_MINUS:
+        points[0] = bboxCentre + Vector( bboxRad.x*cThicknessExtension, -bboxRad.y,  bboxRad.z);
+        points[1] = bboxCentre + Vector( bboxRad.x*cThicknessExtension, -bboxRad.y, -bboxRad.z);
+        points[2] = bboxCentre + Vector( bboxRad.x*cThicknessExtension,  bboxRad.y, -bboxRad.z);
+        points[3] = bboxCentre + Vector( bboxRad.x*cThicknessExtension,  bboxRad.y,  bboxRad.z);
+        break;
+      case IDD_PORTAL_FACE_DIR_Y_PLUS:
+        points[0] = bboxCentre + Vector(-bboxRad.x, -bboxRad.y*cThicknessExtension, -bboxRad.z);
+        points[1] = bboxCentre + Vector( bboxRad.x, -bboxRad.y*cThicknessExtension, -bboxRad.z);
+        points[2] = bboxCentre + Vector( bboxRad.x, -bboxRad.y*cThicknessExtension,  bboxRad.z);
+        points[3] = bboxCentre + Vector(-bboxRad.x, -bboxRad.y*cThicknessExtension,  bboxRad.z);
+        break;
+      case IDD_PORTAL_FACE_DIR_Y_MINUS:
+        points[0] = bboxCentre + Vector( bboxRad.x,  bboxRad.y*cThicknessExtension, -bboxRad.z);
+        points[1] = bboxCentre + Vector(-bboxRad.x,  bboxRad.y*cThicknessExtension, -bboxRad.z);
+        points[2] = bboxCentre + Vector(-bboxRad.x,  bboxRad.y*cThicknessExtension,  bboxRad.z);
+        points[3] = bboxCentre + Vector( bboxRad.x,  bboxRad.y*cThicknessExtension,  bboxRad.z);
+        break;
+      case IDD_PORTAL_FACE_DIR_Z_PLUS:
+        points[0] = bboxCentre + Vector( bboxRad.x, -bboxRad.y, -bboxRad.z*cThicknessExtension);
+        points[1] = bboxCentre + Vector(-bboxRad.x, -bboxRad.y, -bboxRad.z*cThicknessExtension);
+        points[2] = bboxCentre + Vector(-bboxRad.x,  bboxRad.y, -bboxRad.z*cThicknessExtension);
+        points[3] = bboxCentre + Vector( bboxRad.x,  bboxRad.y, -bboxRad.z*cThicknessExtension);
+        break;
+      case IDD_PORTAL_FACE_DIR_Z_MINUS:
+        points[0] = bboxCentre + Vector(-bboxRad.x, -bboxRad.y,  bboxRad.z*cThicknessExtension);
+        points[1] = bboxCentre + Vector( bboxRad.x, -bboxRad.y,  bboxRad.z*cThicknessExtension);
+        points[2] = bboxCentre + Vector( bboxRad.x,  bboxRad.y,  bboxRad.z*cThicknessExtension);
+        points[3] = bboxCentre + Vector(-bboxRad.x,  bboxRad.y,  bboxRad.z*cThicknessExtension);
+        break;
+      default:
+        ERRLOG_RETURN_VALUE(FALSE, "invalid face direction in portal tag '" + tag.GetName() + "'");
+    }
+    // setup triangles
+    triangles.init(2*3);
+    triangles[ 0] = 0;  triangles[ 1] = 1;  triangles[ 2] = 2;  
+    triangles[ 3] = 0;  triangles[ 4] = 2;  triangles[ 5] = 3;  
+  } else {
+    // convert and cache geometry
+    if (!convertGeometry(object, triangles, points)) { return FALSE; }
+  }
+
+  // skip empty objects
+  if (!triangles.size() || !points.size()) {
+    debugLog("  which is empty -> nothing exported");
+    return TRUE;
+  }
+
+  // write transformation matrix
+  LuxMatrix  transformMatrix(globalMatrix, mC4D2LuxScale);
+  if (!mReceiver->transform(transformMatrix))  return FALSE;
+
+  // setup shape parameters
+  mTempParamSet.clear();
+  mTempParamSet.addParam(LUX_POINT, "P",
+                         points.arrayAddress(), points.size());
+  mTempParamSet.addParam(LUX_TRIANGLE, "triindices",
+                         triangles.arrayAddress(), triangles.size());
+  
+
+  // if the normals should be flipped, export "reverseorientation"
+  if (flipNormals && !mReceiver->reverseOrientation())  return FALSE;
+
+  // export shape
+  if (!mReceiver->portalShape("mesh", mTempParamSet)) { return FALSE; }
 
   return TRUE;
 }

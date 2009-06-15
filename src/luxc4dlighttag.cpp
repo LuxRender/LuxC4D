@@ -218,7 +218,7 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
 /// First initialisation of the tag. When this function is called, the tag is
 /// not yet assigned to the object and we can't copy the object settings over
 /// to the tag yet. That has to be done later. But we can at least set the
-/// default values, found in Lux.
+/// default values.
 ///
 /// @param[in]  node
 ///   The tag data node, created by C4D for storing the tag settings.

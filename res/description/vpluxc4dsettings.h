@@ -197,6 +197,28 @@ enum
     IDD_TRIANGLE_FILTER_HEIGHT,
 
 
+    // ----------------------------------
+    // FILTERING GROUP
+    IDG_ACCELERATION = 15000,
+    IDD_ACCELERATION,
+    IDD_ADVANCED_ACCELERATION,
+
+      // tabreckdtree acceleration
+      IDG_ACCELERATION_TABRECKDTREE = 15100,
+
+      // bvh acceleration
+      IDG_ACCELERATION_BVH = 14200,
+
+      // qbvh acceleration
+      IDG_ACCELERATION_QBVH = 14300,
+
+      // acceleration types
+      IDD_ACCELERATION_TABRECKDTREE = 0,
+      IDD_ACCELERATION_BVH,
+      IDD_ACCELERATION_QBVH,
+      IDD_ACCELERATION_NUMBER,
+
+
   // ----------------------------------
   // OUTPUT TAB
   // ----------------------------------

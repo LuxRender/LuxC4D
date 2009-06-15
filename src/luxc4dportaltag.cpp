@@ -37,7 +37,7 @@
 
 
 /// Allocates a new instance of LuxC4DPortalTag which the caller owns.
-/// This function is usually called by C4D when a new tag is created.
+/// This function is usually called by C4D when a new portal tag is created.
 ///
 /// @return
 ///   Pointer to the new instance or NULL, if we ran out of memory.
@@ -74,9 +74,73 @@ Bool LuxC4DPortalTag::Init(GeListNode* node)
   if (!data)  return FALSE;
 
   // initialise parameters
-  data->SetBool(IDD_FLIP_NORMALS, FALSE);
+  data->SetBool(IDD_PORTAL_ENABLED,        TRUE);
+  data->SetBool(IDD_PORTAL_SIMPLIFY,       FALSE);
+  data->SetLong(IDD_PORTAL_FACE_DIRECTION, IDD_PORTAL_FACE_DIR_X_PLUS);
+  data->SetBool(IDD_PORTAL_EXPORT_OBJECT,  FALSE);
+  data->SetBool(IDD_PORTAL_FLIP_NORMALS,   FALSE);
 
   return TRUE;
+}
+
+
+/// Overwritten function that is called to load a description. We use it to
+/// hide descriptions, we don't want to show due to the selection of specific
+/// parameters.
+///
+/// @param[in]  node
+///   Pointer to the data node.
+/// @param[in]  description
+///   The description to add the parameters to.
+/// @param[out]  flags
+///   State flags set during loading of description.
+/// @return
+///   TRUE if successul, FALSE otherwise.
+Bool LuxC4DPortalTag::GetDDescription(GeListNode*  node,
+                                      Description* description,
+                                      LONG&        flags)
+{
+  // get container for easy access to current values
+  BaseContainer* data = getData();
+  if (!data)  return FALSE;
+
+  // load the description from resource file
+  if (!description->LoadDescription(node->GetType())) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxC4DPortalTag::GetDDescription(): could not load description for node");
+  }
+
+  // allocate empty atom array, which can be used for passing parameters into GetParameterI()
+  AutoAlloc<AtomArray> params;
+  if (!params) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxC4DPortalTag::GetDDescription(): could not allocate empty AtomArray");
+  }
+
+  // hide options if tag is disabled
+  showParameter(description, IDG_PORTAL_OPTIONS, params, data->GetBool(IDD_PORTAL_ENABLED));
+
+  // set flag and return
+  flags |= DESCFLAGS_DESC_LOADED;
+  return TRUE;
+}
+
+
+///
+Bool LuxC4DPortalTag::GetDEnabling(GeListNode*          node,
+                                   const DescID&        id,
+                                   GeData&              t_data,
+                                   LONG                 flags,
+                                   const BaseContainer* itemdesc)
+{
+  // get container for easy access to current values
+  BaseContainer* data = getData();
+  if (!data)  return FALSE;
+
+  //
+  if (id == IDD_PORTAL_FACE_DIRECTION) {
+    return data->GetBool(IDD_PORTAL_SIMPLIFY);
+  }
+
+  return SUPER::GetDEnabling(node, id, t_data, flags, itemdesc);
 }
 
 

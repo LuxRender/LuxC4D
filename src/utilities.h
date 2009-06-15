@@ -103,6 +103,9 @@ BaseList2D* getParameterLink(GeListNode& node,
                              LONG        paramID,
                              LONG        instanceOf = 0);
 
+BaseTag* findTagForParamObject(BaseObject* object,
+                               LONG        tagId);
+
 //Filename getRelativePath(const Filename& path,
 //                         const Filename& startPath);
 
@@ -111,6 +114,14 @@ BaseList2D* getParameterLink(GeListNode& node,
  * Inlined functions
  *****************************************************************************/
 
+/// Replacement of Vector::Normalize() as it was added later to Vector and is
+/// not available in R9.6.
+///
+/// @param[in,out]  Vector
+///   Reference to the vector that will be normalised.
+/// @return
+///   A reference to the input vector, which has been normalised, so that you
+///   can use this function in more alaborate expressions.
 inline Vector& normalize(Vector& v)
 {
   Real vlen = Len(v);
@@ -125,6 +136,13 @@ inline Vector& normalize(Vector& v)
 }
 
 
+/// Wrapper which returns the point positions of a PointObject. This is needed
+/// as with R10 the function name changed.
+///
+/// @param[in]  object
+///   Reference to the object of which the point array will be obtained.
+/// @return
+///   The array of point positions of the object.
 inline const Vector* getPoints(PointObject& object)
 {
 #if _C4D_VERSION>=100
@@ -135,6 +153,13 @@ inline const Vector* getPoints(PointObject& object)
 }
 
 
+/// Wrapper which returns the polygons of a PointObject. This is needed
+/// as with R10 the function name changed.
+///
+/// @param[in]  object
+///   Reference to the object of which the polygon array will be obtained.
+/// @return
+///   The array of polygons of the object.
 inline const CPolygon* getPolygons(PolygonObject& object)
 {
 #if _C4D_VERSION>=100

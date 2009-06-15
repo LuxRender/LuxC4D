@@ -32,6 +32,7 @@
 
 #include "fixarray1d.h"
 #include "luxapi.h"
+#include "luxc4dportaltag.h"
 #include "luxc4dsettings.h"
 #include "luxmaterialdata.h"
 #include "luxtexturedata.h"
@@ -244,13 +245,14 @@ private:
   ULONG           mQuadCount;
 
   // the current conversion function that will be called by Do()
-  Bool            (LuxAPIConverter::*mDo)(HierarchyData* data,
-                                          BaseObject*    object,
+  Bool            (LuxAPIConverter::*mDo)(HierarchyData& hierarchyData,
+                                          BaseObject&    object,
                                           const Matrix&  globalMatrix,
                                           Bool           controlObject);
 
 
   void clearTemporaryData(void);
+  Bool obtainGlobalSceneData(void);
   
   Bool exportFilm(void);
   Bool exportCamera(void);
@@ -260,8 +262,8 @@ private:
   Bool exportAccelerator(void);
 
   Bool exportLights(void);
-  Bool doLightExport(HierarchyData* data,
-                     BaseObject*    object,
+  Bool doLightExport(HierarchyData& data,
+                     BaseObject&    object,
                      const Matrix&  globalMatrix,
                      Bool           controlObject);
 
@@ -280,8 +282,8 @@ private:
   Bool exportStandardMaterial(void);
 
   Bool exportGeometry(void);
-  Bool doGeometryExport(HierarchyData* data,
-                        BaseObject*    object,
+  Bool doGeometryExport(HierarchyData& data,
+                        BaseObject&    object,
                         const Matrix&  globalMatrix,
                         Bool           controlObject);
 
@@ -325,6 +327,10 @@ private:
 
   Bool exportPolygonObject(PolygonObject& object,
                            const Matrix&  globalMatrix);
+  Bool exportPortalObject(PolygonObject& object,
+                          const Matrix&  globalMatrix,
+                          BaseTag&       tag,
+                          Bool&          exportObject);
   Bool convertGeometry(PolygonObject&  object,
                        TrianglesT&     triangles,
                        PointsT&        points,

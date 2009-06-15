@@ -323,6 +323,17 @@ public:
   ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool shape(IdentifierName     type,
                      const LuxParamSet& paramSet) =0;
+
+  /// Adds a portal geometry object to the current scope.
+  ///
+  /// @param[in]  type
+  ///   The type name of the object (e.g. "mesh").
+  /// @param[in]  paramSet
+  ///   The additional parameters of the object (e.g. "triindices").
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
+  virtual Bool portalShape(IdentifierName     type,
+                           const LuxParamSet& paramSet) =0;
 };
 
 

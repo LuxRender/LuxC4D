@@ -55,6 +55,14 @@ public:
   static Bool registerPlugin(void);
 
   virtual Bool Init(GeListNode* node);
+  virtual Bool GetDDescription(GeListNode*  node,
+                               Description* description,
+                               LONG&        flags);
+  virtual Bool GetDEnabling(GeListNode*          node,
+                            const DescID&        id,
+                            GeData&              t_data,
+                            LONG                 flags,
+                            const BaseContainer* itemdesc);
 
 
 private:

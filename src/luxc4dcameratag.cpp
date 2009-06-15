@@ -36,14 +36,21 @@
  *****************************************************************************/
 
 
+/// Allocates a new instance of LuxC4DCameraTag which the caller owns.
+/// This function is usually called by C4D when a new camera tag is created.
 ///
+/// @return
+///   Pointer to the new instance or NULL, if we ran out of memory.
 NodeData* LuxC4DCameraTag::alloc(void)
 {
   return gNew LuxC4DCameraTag;
 }
 
 
+/// Registers this TagData plugin.
 ///
+/// @return
+///   TRUE if registered successful or FALSE if not.
 Bool LuxC4DCameraTag::registerPlugin(void)
 {
   return RegisterTagPlugin(PID_LUXC4D_CAMERA_TAG,
@@ -56,7 +63,24 @@ Bool LuxC4DCameraTag::registerPlugin(void)
 }
 
 
+/// Determines the Lux camera parameters from a C4D camera object. If a camera
+/// tag is assigned to this camera object, we obtain the additional settings
+/// from there, too.
 ///
+/// @param[in]  camera
+///   Reference to the camera object of which we want to obtain the parameters.
+/// @param[in]  c4dLuxScale
+///   The conversion scale factor (C4D -> Lux) that will be used for conversion
+///   of distances.
+/// @param[in]  c4dRenderSettings
+///   The data container of the C4D render settings which are used for the
+///   export.
+/// @param[ou]  parameters
+///   Reference to the Lux parameter structure, where we store the converted
+///   camera parameters.
+/// @return
+///   TRUE if the conversion was successful and the returned parameters are
+///   valid, FALSE otherwise.
 Bool LuxC4DCameraTag::getCameraParameters(CameraObject&     camera,
                                           LReal             c4d2LuxScale,
                                           BaseContainer&    c4dRenderSettings,
@@ -172,7 +196,10 @@ Bool LuxC4DCameraTag::getCameraParameters(CameraObject&     camera,
 }
 
 
+/// Initialises the tag parameters.
 ///
+/// @return
+///   TRUE if registered successful or FALSE if not.
 Bool LuxC4DCameraTag::Init(GeListNode* node)
 {
   // obtain container from data node.
@@ -191,15 +218,22 @@ Bool LuxC4DCameraTag::Init(GeListNode* node)
 }
 
 
+/// Overwritten function that is called to load a description. We use it to
+/// hide descriptions, we don't want to show due to the selection of specific
+/// parameters.
 ///
+/// @param[in]  node
+///   Pointer to the data node.
+/// @param[in]  description
+///   The description to add the parameters to.
+/// @param[out]  flags
+///   State flags set during loading of description.
+/// @return
+///   TRUE if successul, FALSE otherwise.
 Bool LuxC4DCameraTag::GetDDescription(GeListNode*  node,
                                       Description* description,
                                       LONG&        flags)
 {
-  // get tag list node
-  BaseTag* tag = (BaseTag*)node;
-  if (!tag)  ERRLOG_RETURN_VALUE(FALSE, "LuxC4DCameraTag::GetDDescription(): no pointer to tag list node passed");
-
   // get container for easy access to current values
   BaseContainer* data = getData();
   if (!data)  return FALSE;

@@ -105,6 +105,9 @@ public:
   virtual Bool shape(IdentifierName     type,
                      const LuxParamSet& paramSet);
 
+  virtual Bool portalShape(IdentifierName     type,
+                           const LuxParamSet& paramSet);
+
 
 private:
 

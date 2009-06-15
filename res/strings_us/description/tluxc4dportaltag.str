@@ -28,5 +28,16 @@ STRINGTABLE Tluxc4dportaltag
   Tluxc4dportaltag "LuxC4D Portal Tag";
   
   
-  IDD_FLIP_NORMALS "Invert Normals";
+  IDD_PORTAL_ENABLED        "Enable Light Portal";
+  IDD_PORTAL_SIMPLIFY       "Simplify to Rectangle";
+  IDD_PORTAL_FACE_DIRECTION "Face Direction";
+  IDD_PORTAL_EXPORT_OBJECT  "Export Portal + Object";
+  IDD_PORTAL_FLIP_NORMALS   "Invert Normals";
+  
+    IDD_PORTAL_FACE_DIR_X_PLUS  "X+";
+    IDD_PORTAL_FACE_DIR_X_MINUS "X-";
+    IDD_PORTAL_FACE_DIR_Y_PLUS  "Y+";
+    IDD_PORTAL_FACE_DIR_Y_MINUS "Y-";
+    IDD_PORTAL_FACE_DIR_Z_PLUS  "Z+";
+    IDD_PORTAL_FACE_DIR_Z_MINUS "Z-";
 }

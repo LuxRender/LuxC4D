@@ -30,7 +30,7 @@
 
 
 
-///
+/// Works like printf, but writes the string to the debug console.
 void debugLog(const CHAR* format, ...)
 {
   static const SizeT cBufferSize = 2048;
@@ -44,7 +44,7 @@ void debugLog(const CHAR* format, ...)
 }
 
 
-///
+/// Writes a string to the debug console.
 void debugLog(const String& msg)
 {
   static const SizeT cBufferSize = 2048;
@@ -56,7 +56,12 @@ void debugLog(const String& msg)
 }
 
 
+/// Converts a C4D String to a LuxString.
 ///
+/// @param[in]  c4dString
+///   The C4D String object to convert.
+/// @param[out]  luxString
+///   The LuxString where the content of the C4D String will be stored.
 void convert2LuxString(const String& c4dString,
                        LuxString&    luxString)
 {
@@ -67,7 +72,12 @@ void convert2LuxString(const String& c4dString,
 }
 
 
+/// Converts a C4D Filename to a LuxString. It also replaces '\' with '/'.
 ///
+/// @param[in]  c4dPath
+///   The C4D Filename object to convert.
+/// @param[out]  luxString
+///   The LuxString where the content of the C4D Filename will be stored.
 void convert2LuxString(const Filename& c4dPath,
                        LuxString&      luxString)
 {
@@ -108,7 +118,7 @@ void showParameter(Description* description,
 }
 
 
-/// Obtains a description parameter of type LONG of an object.
+/// Obtains a description parameter of type LONG of a C4DAtom.
 ///
 /// @param[in]  atom
 ///   The atom of which we want to read out the parameter.
@@ -131,7 +141,7 @@ LONG getParameterLong(C4DAtom& atom,
 }
 
 
-/// Obtains a description parameter of type Real of an object.
+/// Obtains a description parameter of type Real of a C4DAtom.
 ///
 /// @param[in]  atom
 ///   The atom of which we want to read out the parameter.
@@ -154,7 +164,7 @@ Real getParameterReal(C4DAtom& atom,
 }
 
 
-/// Obtains a description parameter of type Vector of an object.
+/// Obtains a description parameter of type Vector of a C4DAtom.
 ///
 /// @param[in]  atom
 ///   The atom of which we want to read out the parameter.
@@ -177,7 +187,17 @@ Vector getParameterVector(C4DAtom&      atom,
 }
 
 
+/// Obtains a description parameter of type String of a C4DAtom.
 ///
+/// @param[in]  atom
+///   The atom of which we want to read out the parameter.
+/// @param[in]  paramID
+///   The ID of the description parameter.
+/// @param[in]  preset
+///   The value the function returs, if the parameter doesn't exist or is not
+///   of type Vector.
+/// @return
+///   The value of the parameter or the preset value, if we couldn't fetch it.
 String getParameterString(C4DAtom&      atom,
                           LONG          paramID,
                           const String& preset)
@@ -190,7 +210,17 @@ String getParameterString(C4DAtom&      atom,
 }
 
 
-//
+/// Obtains a description parameter of type Filename of a C4DAtom.
+///
+/// @param[in]  atom
+///   The atom of which we want to read out the parameter.
+/// @param[in]  paramID
+///   The ID of the description parameter.
+/// @param[in]  preset
+///   The value the function returs, if the parameter doesn't exist or is not
+///   of type Vector.
+/// @return
+///   The value of the parameter or the preset value, if we couldn't fetch it.
 Filename getParameterFilename(C4DAtom&        atom,
                               LONG            paramID,
                               const Filename& preset)
@@ -223,6 +253,28 @@ BaseList2D* getParameterLink(GeListNode& node,
     if (link) {
       return link->GetLink(node.GetDocument(), instanceOf);
     }
+  }
+  return 0;
+}
+
+
+/// Traverses the generated hierarchy of a parametric object upwards
+/// and looks for the first occurence of a tag of a specific type.
+///
+/// @param[in]  object
+///   The object of which the generator hierarchy will we traversed.
+/// @param[in]  tagId
+///   The ID of the tag to look for.
+/// @return
+///   The pointer to the first found tag of the specified type or NULL
+///   if we couldn't find it.
+BaseTag* findTagForParamObject(BaseObject* object,
+                               LONG        tagId)
+{
+  BaseTag* tag;
+  for (; object; object=object->GetCacheParent()) {
+    tag = object->GetTag(tagId);
+    if (tag) { return tag; }
   }
   return 0;
 }

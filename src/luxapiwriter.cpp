@@ -417,6 +417,14 @@ Bool LuxAPIWriter::shape(IdentifierName     type,
 }
 
 
+Bool LuxAPIWriter::portalShape(IdentifierName     type,
+                               const LuxParamSet& paramSet)
+{
+  writeComment(mObjectsFile);
+  return writeSetting(*mObjectsFile, "PortalShape", type, 0, 0, paramSet, TRUE);
+}
+
+
 
 /*****************************************************************************
  * Implementation of private member functions of class LuxAPIWriter.
