@@ -628,8 +628,6 @@ Bool LuxAPIConverter::doLightExport(HierarchyData& hierarchyData,
 Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
                                   const Matrix& globalMatrix)
 {
-  //static const LuxFloat
-
   // get parameters from light object and/or from its associated light tag
   LuxC4DLightTag::LightParameters parameters;
   if (!LuxC4DLightTag::getLightParameters(lightObject, mC4D2LuxScale, parameters)) {
@@ -641,15 +639,13 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
   Vector direction      = globalMatrix.v3;
   normalize(direction);
 
-  // don't export (almost) black lights
-  if ((parameters.mType != IDD_LIGHT_TYPE_SUN) &&
-      (parameters.mType != IDD_LIGHT_TYPE_SKY) &&
-      (parameters.mType != IDD_LIGHT_TYPE_SUNSKY) &&
-      (parameters.mColor.x * parameters.mBrightness < 0.001) &&
-      (parameters.mColor.y * parameters.mBrightness < 0.001) &&
-      (parameters.mColor.z * parameters.mBrightness < 0.001))
-  {
-    return TRUE;
+  // open attribute scope and write light group, if it's not empty
+  if (!mReceiver->setComment("light '" + lightObject.GetName() + "'"))  return FALSE;
+  if (!mReceiver->attributeBegin())  return FALSE;
+  if (parameters.mGroup.Content()) {
+    LuxString lightGroup;
+    convert2LuxString(parameters.mGroup, lightGroup);
+    if (!mReceiver->lightGroup(lightGroup.c_str()))  return FALSE;
   }
 
   // now determine the data depending on the light type and export the data
@@ -664,7 +660,8 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
         data.mGain  = parameters.mBrightness;
         data.mFrom  = scaledPosition;
         ++mLightCount;
-        return exportPointLight(data);
+        if (!exportPointLight(data))  return FALSE;
+        break;
       }
 
     case IDD_LIGHT_TYPE_SPOT:
@@ -677,7 +674,8 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
         data.mConeAngle      = Deg(parameters.mOuterAngle) * 0.5;
         data.mConeDeltaAngle = data.mConeAngle - Deg(parameters.mInnerAngle) * 0.5f;
         ++mLightCount;
-        return exportSpotLight(data);
+        if (!exportSpotLight(data))  return FALSE;
+        break;
       }
 
     case IDD_LIGHT_TYPE_DISTANT:
@@ -688,7 +686,8 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
         data.mFrom  = scaledPosition;
         data.mTo    = scaledPosition + direction;
         ++mLightCount;
-        return exportDistantLight(data);
+        if (!exportDistantLight(data))  return FALSE;
+        break;
       }
 
     case IDD_LIGHT_TYPE_AREA:
@@ -711,7 +710,8 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
           }
         }
         ++mLightCount;
-        return exportAreaLight(data);
+        if (!exportAreaLight(data))  return FALSE;
+        break;
       }
 
     case IDD_LIGHT_TYPE_SUN:
@@ -723,7 +723,8 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
         data.mTurbidity = parameters.mTurbidity;
         data.mRelSize   = parameters.mRelSize;
         ++mLightCount;
-        return exportSunLight(data);
+        if (!exportSunLight(data))  return FALSE;
+        break;
       }
 
     case IDD_LIGHT_TYPE_SKY:
@@ -740,7 +741,8 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
         data.mDConst    = parameters.mD;
         data.mEConst    = parameters.mE;
         ++mLightCount;
-        return exportSkyLight(data);
+        if (!exportSkyLight(data))  return FALSE;
+        break;
       }
 
     case IDD_LIGHT_TYPE_SUNSKY:
@@ -758,12 +760,16 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
         data.mDConst    = parameters.mD;
         data.mEConst    = parameters.mE;
         ++mLightCount;
-        return exportSunSkyLight(data);
+        if (!exportSunSkyLight(data))  return FALSE;
+        break;
       }
 
     default:
       ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportLight(): invalid light type passed");
   }
+
+  // close attribute scope
+  if (!mReceiver->attributeEnd())  return FALSE;
 
   return TRUE;
 }
@@ -939,9 +945,6 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       return TRUE;
   }
 
-  // AttributeBegin
-  if (!mReceiver->attributeBegin())  return FALSE;
-
   // export transformation matrix of  area light
   if (flipYZ) {
     Vector temp = data.mLightMatrix.v2;
@@ -963,9 +966,6 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
 
   // export area light shape
   if (!mReceiver->shape(shapeName, shapeParams))  return FALSE;
-
-  // AttributeEnd
-  if (!mReceiver->attributeEnd())  return FALSE;
 
   return TRUE;
 }
@@ -1211,6 +1211,49 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
 }
 
 
+/// Reads the texture settings from a texture tag and obtains the parameters
+/// that are relevant for Lux.
+///
+/// @param[in]  textureTag
+///   Reference to the C4D texture tag.
+/// @param[out]  luxTexMapping
+///   The structure where the Lux texture mapping parameters will be stored.
+/// @return
+///   TRUE if executed successful, FALSE otherwise.
+Bool LuxAPIConverter::convertTextureMapping(TextureTag&     textureTag,
+                                            TextureMapping& luxTexMapping)
+{
+  // get base container of tag
+  BaseContainer* data = textureTag.GetDataInstance();
+  if (!data) {
+    ERRLOG_RETURN_VALUE(FALSE, "could not obtain container for texture tag");
+  }
+
+  // get UV shift and scale from texture tag
+  luxTexMapping.mUShift = getParameterReal(textureTag, TEXTURETAG_OFFSETX);
+  luxTexMapping.mVShift = getParameterReal(textureTag, TEXTURETAG_OFFSETY);
+  luxTexMapping.mUScale = getParameterReal(textureTag, TEXTURETAG_TILESX);
+  luxTexMapping.mVScale = getParameterReal(textureTag, TEXTURETAG_TILESY);
+
+  // convert to Lux system where everything is inverse
+  luxTexMapping.mUShift *= -luxTexMapping.mUScale;
+  luxTexMapping.mVShift *= -luxTexMapping.mVScale;
+
+  // if there is almost no shift or scale, don't export it
+  if ((fabsf(luxTexMapping.mUShift) < 0.001f) &&
+      (fabsf(luxTexMapping.mVShift) < 0.001f) &&
+      (fabsf(luxTexMapping.mUScale - 1.0f) < 0.001f) &&
+      (fabsf(luxTexMapping.mVScale - 1.0f) < 0.001f))
+  {
+    luxTexMapping.mHasDefaultParams = TRUE;
+  } else {
+    luxTexMapping.mHasDefaultParams = FALSE;
+  }
+
+  return TRUE;
+}
+
+
 /// Exports a material including its textures.
 ///
 /// @param[in]  textureTag
@@ -1227,31 +1270,49 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
                                      BaseMaterial& material,
                                      LuxString&    materialName)
 {
-  // TODO: check texture mapping type - we will reuse materials only, when they
-  // are UV mapped
-  // for now we just export UV mapped materials and because of that every exported
-  // material can be reused
-  LuxString* reusableMaterialName = mReusableMaterials.get(&material);
-  if (reusableMaterialName) {
-    materialName = *reusableMaterialName;
-    return TRUE;
+  TextureMapping mapping;
+
+  // get texture mapping
+  if (!convertTextureMapping(textureTag, mapping)) {
+    return FALSE;
+  }
+
+  // if the texture has default mapping parameters, we look if this material
+  // was already used before (also with default texture mapping)
+  // TODO: the reusable material map should be
+  //       (material + projection) -> (material name)
+  //       this will become important when we export more texture mapping types
+  //       than only UV
+  if (mapping.mHasDefaultParams) {
+    LuxString* reusableMaterialName = mReusableMaterials.get(&material);
+    if (reusableMaterialName) {
+      materialName = *reusableMaterialName;
+      return TRUE;
+    }
   }
 
   // determine material name:
   String c4dMaterialName;
 
-  // TODO: if the texture mapping is not plain UV, export a special material
-  // for this object -> we attach the object name in front of the material name
-  //BaseObject* object = textureTag.GetObject();
-  //if (object) {
-  //  c4dMaterialName = object->GetName();
-  //}
+  // if the texture mapping has default parameters, use a name that is
+  // independent of the object, so that the material can be reused
+  if (mapping.mHasDefaultParams) {
+    BaseObject* object = textureTag.GetObject();
+    if (object) {
+      c4dMaterialName = object->GetName();
+    } else {
+      c4dMaterialName = "???";
+    }
+  }
 
-  // get the material name
+  // attach material name
   c4dMaterialName += "::";
   c4dMaterialName += material.GetName();
 
-  // check if material name was already used
+  // TODO: attach projection type
+  // ...
+
+  // if material name was already used, create a new unique one by adding a counter
   LONG* usageCount = mMaterialUsage.get(c4dMaterialName);
   if (!usageCount) {
     mMaterialUsage.add(c4dMaterialName, 1);
@@ -1263,6 +1324,11 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
   // convert C4D string to LuxString
   convert2LuxString(c4dMaterialName, materialName);
 
+  // get texture mapping
+  if (!convertTextureMapping(textureTag, mapping)) {
+    return FALSE;
+  }
+
   // convert standard C4D material to different Lux materials - depending on
   // the used material channels
   Bool success = FALSE;
@@ -1273,23 +1339,23 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
 
     // D		-> diffuse
     if (hasDiffuse && !hasTransparency && !hasReflection) {
-      success = exportDiffuseMaterial(textureTag, (Material&)material, materialName);
+      success = exportDiffuseMaterial(mapping, (Material&)material, materialName);
     // T		-> transparent
     // TR		-> transparent
     // DTR	-> transparent
     } else if ((!hasDiffuse && hasTransparency) ||
                (hasDiffuse && hasTransparency && hasReflection))
     {
-      success = exportTransparentMaterial(textureTag, (Material&)material, materialName);
+      success = exportTransparentMaterial(mapping, (Material&)material, materialName);
     // DT		-> translucent
     } else if (hasDiffuse && hasTransparency && !hasReflection) {
-      success = exportTranslucentMaterial(textureTag, (Material&)material, materialName);
+      success = exportTranslucentMaterial(mapping, (Material&)material, materialName);
     // R		-> reflective
     } else if (!hasDiffuse && !hasTransparency && hasReflection) {
-      success = exportReflectiveMaterial(textureTag, (Material&)material, materialName);
+      success = exportReflectiveMaterial(mapping, (Material&)material, materialName);
     // DR		-> glossy
     } else if (hasDiffuse && !hasTransparency && hasReflection) {
-      success = exportGlossyMaterial(textureTag, (Material&)material, materialName);
+      success = exportGlossyMaterial(mapping, (Material&)material, materialName);
     // -		-> dummy
     } else {
       success = exportDummyMaterial(material, materialName);
@@ -1334,24 +1400,24 @@ Bool LuxAPIConverter::exportDummyMaterial(BaseMaterial& material,
 /// Exports the material as Lux matte material using the colour and bump
 /// channels and the Oren-Nayar sigma value.
 ///
-/// @param[in]  textureTag
-///   The texture tag this material was assigned to.
+/// @param[in]  mapping
+///   The mapping parameters of texture.
 /// @param[in]  material
 ///   The material to export.
 /// @param[in]  materialName
 ///   The name under which the material will be stored.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
-Bool LuxAPIConverter::exportDiffuseMaterial(TextureTag& textureTag,
-                                            Material&   material,
-                                            LuxString&  materialName)
+Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
+                                            Material&             material,
+                                            LuxString&            materialName)
 {
   LuxMaterialData materialData(gLuxMatteInfo);
 
   // obtain diffuse channel
   if (getParameterLong(material, MATERIAL_USE_COLOR)) {
     materialData.setChannel(LUX_MATTE_DIFFUSE,
-                            convertColorChannel(textureTag,
+                            convertColorChannel(mapping,
                                                 material,
                                                 MATERIAL_COLOR_SHADER,
                                                 MATERIAL_COLOR_COLOR,
@@ -1371,7 +1437,7 @@ Bool LuxAPIConverter::exportDiffuseMaterial(TextureTag& textureTag,
   }
 
   // obtain bump channel
-  addBumpChannel(textureTag, material, materialData, LUX_MATTE_BUMP);
+  addBumpChannel(mapping, material, materialData, LUX_MATTE_BUMP);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
@@ -1380,24 +1446,24 @@ Bool LuxAPIConverter::exportDiffuseMaterial(TextureTag& textureTag,
 /// Exports the material as Lux glossy material using the colour, reflection
 /// and bump channels.
 ///
-/// @param[in]  textureTag
-///   The texture tag this material was assigned to.
+/// @param[in]  mapping
+///   The mapping parameters of texture.
 /// @param[in]  material
 ///   The material to export.
 /// @param[in]  materialName
 ///   The name under which the material will be stored.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
-Bool LuxAPIConverter::exportGlossyMaterial(TextureTag& textureTag,
-                                           Material&   material,
-                                           LuxString&  materialName)
+Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
+                                           Material&             material,
+                                           LuxString&            materialName)
 {
   LuxMaterialData materialData(gLuxGlossyInfo);
 
   // obtain diffuse channel
   if (getParameterLong(material, MATERIAL_USE_COLOR)) {
     materialData.setChannel(LUX_GLOSSY_DIFFUSE,
-                            convertColorChannel(textureTag,
+                            convertColorChannel(mapping,
                                                 material,
                                                 MATERIAL_COLOR_SHADER,
                                                 MATERIAL_COLOR_COLOR,
@@ -1408,7 +1474,7 @@ Bool LuxAPIConverter::exportGlossyMaterial(TextureTag& textureTag,
   // obtain specular reflection channel + dispersion
   if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
     materialData.setChannel(LUX_GLOSSY_SPECULAR,
-                            convertColorChannel(textureTag,
+                            convertColorChannel(mapping,
                                                 material,
                                                 MATERIAL_REFLECTION_SHADER,
                                                 MATERIAL_REFLECTION_COLOR,
@@ -1425,7 +1491,7 @@ Bool LuxAPIConverter::exportGlossyMaterial(TextureTag& textureTag,
   }
 
   // obtain bump channel
-  addBumpChannel(textureTag, material, materialData, LUX_GLOSSY_BUMP);
+  addBumpChannel(mapping, material, materialData, LUX_GLOSSY_BUMP);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
@@ -1435,17 +1501,17 @@ Bool LuxAPIConverter::exportGlossyMaterial(TextureTag& textureTag,
 /// the dispersion of the reflection) using the colour, reflection and bump
 /// channels.
 ///
-/// @param[in]  textureTag
-///   The texture tag this material was assigned to.
+/// @param[in]  mapping
+///   The mapping parameters of texture.
 /// @param[in]  material
 ///   The material to export.
 /// @param[in]  materialName
 ///   The name under which the material will be stored.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
-Bool LuxAPIConverter::exportReflectiveMaterial(TextureTag& textureTag,
-                                               Material&   material,
-                                               LuxString&  materialName)
+Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
+                                               Material&             material,
+                                               LuxString&            materialName)
 {
   // get dispersion
   LuxFloat roughness = 0.0f;
@@ -1463,7 +1529,7 @@ Bool LuxAPIConverter::exportReflectiveMaterial(TextureTag& textureTag,
     // obtain specular reflection channel + dispersion
     if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
       materialData.setChannel(LUX_MIRROR_REFLECTION,
-                              convertColorChannel(textureTag,
+                              convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_REFLECTION_SHADER,
                                                   MATERIAL_REFLECTION_COLOR,
@@ -1472,7 +1538,7 @@ Bool LuxAPIConverter::exportReflectiveMaterial(TextureTag& textureTag,
     }
 
     // obtain bump channel
-    addBumpChannel(textureTag, material, materialData, LUX_MIRROR_BUMP);
+    addBumpChannel(mapping, material, materialData, LUX_MIRROR_BUMP);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
 
@@ -1492,7 +1558,7 @@ Bool LuxAPIConverter::exportReflectiveMaterial(TextureTag& textureTag,
     // obtain specular reflection channel + dispersion
     if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
       materialData.setChannel(LUX_SHINY_METAL_SPECULAR,
-                              convertColorChannel(textureTag,
+                              convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_REFLECTION_SHADER,
                                                   MATERIAL_REFLECTION_COLOR,
@@ -1506,7 +1572,7 @@ Bool LuxAPIConverter::exportReflectiveMaterial(TextureTag& textureTag,
     }
 
     // obtain bump channel
-    addBumpChannel(textureTag, material, materialData, LUX_SHINY_METAL_BUMP);
+    addBumpChannel(mapping, material, materialData, LUX_SHINY_METAL_BUMP);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
   }
@@ -1517,17 +1583,17 @@ Bool LuxAPIConverter::exportReflectiveMaterial(TextureTag& textureTag,
 /// disperison of the transparency channel) using the colour, reflection
 /// and bump channels.
 ///
-/// @param[in]  textureTag
-///   The texture tag this material was assigned to.
+/// @param[in]  mapping
+///   The mapping parameters of texture.
 /// @param[in]  material
 ///   The material to export.
 /// @param[in]  materialName
 ///   The name under which the material will be stored.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
-Bool LuxAPIConverter::exportTransparentMaterial(TextureTag& textureTag,
-                                                Material&   material,
-                                                LuxString&  materialName)
+Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
+                                                Material&             material,
+                                                LuxString&            materialName)
 {
   // get dispersion
   LuxFloat roughness = 0.0f;
@@ -1545,7 +1611,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(TextureTag& textureTag,
     // obtain reflection channel
     if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
       materialData.setChannel(LUX_GLASS_REFLECTION,
-                              convertColorChannel(textureTag,
+                              convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_REFLECTION_SHADER,
                                                   MATERIAL_REFLECTION_COLOR,
@@ -1559,7 +1625,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(TextureTag& textureTag,
     // obtain transparency channel + IOR
     if (getParameterLong(material, MATERIAL_USE_TRANSPARENCY)) {
       materialData.setChannel(LUX_GLASS_TRANSMISSION,
-                              convertColorChannel(textureTag,
+                              convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_TRANSPARENCY_SHADER,
                                                   MATERIAL_TRANSPARENCY_COLOR,
@@ -1572,7 +1638,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(TextureTag& textureTag,
     }
 
     // obtain bump channel
-    addBumpChannel(textureTag, material, materialData, LUX_GLASS_BUMP);
+    addBumpChannel(mapping, material, materialData, LUX_GLASS_BUMP);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
   
@@ -1584,7 +1650,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(TextureTag& textureTag,
     // obtain reflection channel
     if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
       materialData.setChannel(LUX_ROUGH_GLASS_REFLECTION,
-                              convertColorChannel(textureTag,
+                              convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_REFLECTION_SHADER,
                                                   MATERIAL_REFLECTION_COLOR,
@@ -1598,7 +1664,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(TextureTag& textureTag,
     // obtain transparency channel + IOR + roughness
     if (getParameterLong(material, MATERIAL_USE_TRANSPARENCY)) {
       materialData.setChannel(LUX_ROUGH_GLASS_TRANSMISSION,
-                              convertColorChannel(textureTag,
+                              convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_TRANSPARENCY_SHADER,
                                                   MATERIAL_TRANSPARENCY_COLOR,
@@ -1616,7 +1682,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(TextureTag& textureTag,
     }
 
     // obtain bump channel
-    addBumpChannel(textureTag, material, materialData, LUX_GLASS_BUMP);
+    addBumpChannel(mapping, material, materialData, LUX_GLASS_BUMP);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
   }
@@ -1627,24 +1693,24 @@ Bool LuxAPIConverter::exportTransparentMaterial(TextureTag& textureTag,
 /// Exports the material as Lux matte translucent material using the colour,
 /// transparency and bump channels and the Oren/Nayar sigma.
 ///
-/// @param[in]  textureTag
-///   The texture tag this material was assigned to.
+/// @param[in]  mapping
+///   The mapping parameters of texture.
 /// @param[in]  material
 ///   The material to export.
 /// @param[in]  materialName
 ///   The name under which the material will be stored.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
-Bool LuxAPIConverter::exportTranslucentMaterial(TextureTag& textureTag,
-                                                Material&   material,
-                                                LuxString&  materialName)
+Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
+                                                Material&             material,
+                                                LuxString&            materialName)
 {
   LuxMaterialData materialData(gLuxMatteTranslucentInfo);
 
   // obtain diffuse channel
   if (getParameterLong(material, MATERIAL_USE_COLOR)) {
     materialData.setChannel(LUX_MATTE_DIFFUSE,
-                            convertColorChannel(textureTag,
+                            convertColorChannel(mapping,
                                                 material,
                                                 MATERIAL_COLOR_SHADER,
                                                 MATERIAL_COLOR_COLOR,
@@ -1655,7 +1721,7 @@ Bool LuxAPIConverter::exportTranslucentMaterial(TextureTag& textureTag,
   // obtain transmission channel
   if (getParameterLong(material, MATERIAL_USE_TRANSPARENCY)) {
     materialData.setChannel(LUX_MATTE_TRANSLUCENT_TRANSMISSION,
-                            convertColorChannel(textureTag,
+                            convertColorChannel(mapping,
                                                 material,
                                                 MATERIAL_TRANSPARENCY_SHADER,
                                                 MATERIAL_TRANSPARENCY_COLOR,
@@ -1675,21 +1741,33 @@ Bool LuxAPIConverter::exportTranslucentMaterial(TextureTag& textureTag,
   }
 
   // obtain bump channel
-  addBumpChannel(textureTag, material, materialData, LUX_MATTE_BUMP);
+  addBumpChannel(mapping, material, materialData, LUX_MATTE_BUMP);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
 
 
+/// Reads a standard C4D material and adds its bump channel to the corresponding
+/// Lux material (if available).
 ///
-Bool LuxAPIConverter::addBumpChannel(TextureTag&      textureTag,
-                                     Material&        material,
-                                     LuxMaterialData& materialData,
-                                     ULONG            channelId)
+/// @param[in]  mapping
+///   The converted Lux texture mapping parameters.
+/// @param[in]  material
+///   The C4D standard material.
+/// @param[out]  materialData
+///   The Lux material settings to which the bump channel will be added.
+/// @param[in]  channelId
+///   The ID of the bump channel of the Lux material data.
+/// @return
+///   TRUE if executed successfully, FALSE otherwise.
+Bool LuxAPIConverter::addBumpChannel(const TextureMapping& mapping,
+                                     Material&             material,
+                                     LuxMaterialData&      materialData,
+                                     ULONG                 channelId)
 {
   if (getParameterLong(material, MATERIAL_USE_BUMP)) {
     return materialData.setChannel(channelId,
-                                   convertFloatChannel(textureTag,
+                                   convertFloatChannel(mapping,
                                                        material,
                                                        MATERIAL_BUMP_SHADER,
                                                        MATERIAL_BUMP_STRENGTH,
@@ -1700,12 +1778,29 @@ Bool LuxAPIConverter::addBumpChannel(TextureTag&      textureTag,
 }
 
 
+/// Reads out a greyscale shader of a channel of a C4D standard material. We
+/// analyse the channel mix options, too and try to emulate the C4D
+/// behaviour in the exported Lux material.
 ///
-LuxTextureDataH LuxAPIConverter::convertFloatChannel(TextureTag& textureTag,
-                                                     Material&   material,
-                                                     LONG        shaderId,
-                                                     LONG        strengthId,
-                                                     Real        strengthScale)
+/// @param[in]  mapping
+///   The texture mapping of the corresponding Lux material.
+/// @param[in]  material
+///   The C4D standard material of which we read out the channel/shader.
+/// @param[in]  shaderId
+///   The ID of the C4D channel/shader.
+/// @param[in]  strengthId
+///   The ID of the texture mixing description parameter.
+/// @param[in]  strengthScale  (default == 1.0)
+///   An optional scaling that can be applied to scale the texture values.
+///   We need this for example for the bump channel which needs to be scaled
+///   according to the geometric export scale.
+/// @return
+///   An AutoRef of the converted Lux texture.
+LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mapping,
+                                                     Material&             material,
+                                                     LONG                  shaderId,
+                                                     LONG                  strengthId,
+                                                     Real                  strengthScale)
 {
   // fetch bitmap shader, if available
   BaseList2D* bitmapLink = getParameterLink(material, shaderId, Xbitmap);
@@ -1723,7 +1818,7 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(TextureTag& textureTag,
   Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
   Filename fullPath;
   GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
-  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE, fullPath);
+  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE, mapping, fullPath);
 
   // if strength is not ~1.0, scale texture
   strength *= strengthScale;
@@ -1738,13 +1833,30 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(TextureTag& textureTag,
 }
 
 
+/// Reads out a colour shader of a channel of a C4D standard material. We
+/// analyse the channel mix options, too and try to emulate the C4D
+/// behaviour in the exported Lux material.
 ///
-LuxTextureDataH LuxAPIConverter::convertColorChannel(TextureTag& textureTag,
-                                                     Material&   material,
-                                                     LONG        shaderId,
-                                                     LONG        colorId,
-                                                     LONG        brightnessId,
-                                                     LONG        mixerId)
+/// @param[in]  mapping
+///   The texture mapping of the corresponding Lux material.
+/// @param[in]  material
+///   The C4D standard material of which we read out the channel/shader.
+/// @param[in]  shaderId
+///   The ID of the C4D channel/shader.
+/// @param[in]  colorId
+///   The ID of the colour description parameter of the channel.
+/// @param[in]  brightnessId
+///   The ID of the brightness description parameter of the channel.
+/// @param[in]  mixerId
+///   The ID of the texture mixing description parameter.
+/// @return
+///   An AutoRef of the converted Lux texture.
+LuxTextureDataH LuxAPIConverter::convertColorChannel(const TextureMapping& mapping,
+                                                     Material&             material,
+                                                     LONG                  shaderId,
+                                                     LONG                  colorId,
+                                                     LONG                  brightnessId,
+                                                     LONG                  mixerId)
 {
   // fetch bitmap shader, if available
   BaseList2D* bitmapLink = getParameterLink(material, shaderId, Xbitmap);
@@ -1765,7 +1877,7 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(TextureTag& textureTag,
   Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
   Filename fullPath;
   GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
-  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_COLOR_TEXTURE, fullPath);
+  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_COLOR_TEXTURE, mapping, fullPath);
 
   // if the texture strength is < 100%, we mix the colour with the texture
   if (strength < 0.999f) {
@@ -2559,7 +2671,7 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
   // with distinct UVs. It basically works like that:
   // for each polygon
   //   for each point of the polygon
-  //     find entry in point2poly array with same UVs
+  //     find entry in point2poly array with same UVs and normals
   //     if found: store array offset of entry as temporary point index
   //     else:     store array offset of first free entry as temporary point index
   //               store new entry in point2poly map

@@ -30,6 +30,7 @@ STRINGTABLE Tluxc4dlighttag
   
   IDD_LIGHT_TYPE                  "Type de Lumière";
   IDD_LIGHT_IGNORE_FALLOFF_RADIUS "Ignorer le Rayon d'atténuation C4D";
+  IDD_LIGHT_GROUP_NAME            "Light Group";                          // ***
   
     IDD_LIGHT_TYPE_AS_OBJECT  "Identique à l'Objet";
     IDD_LIGHT_TYPE_POINT      "Lumière Ponctuelle";

@@ -322,6 +322,13 @@ Bool LuxAPIWriter::objectEnd(void)
 }
 
 
+Bool LuxAPIWriter::lightGroup(IdentifierName name)
+{
+  writeComment(mObjectsFile);
+  return writeSetting(*mObjectsFile, "LightGroup", name);
+}
+
+
 Bool LuxAPIWriter::lightSource(IdentifierName     type,
                                const LuxParamSet& paramSet)
 {

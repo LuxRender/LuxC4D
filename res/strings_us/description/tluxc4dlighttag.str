@@ -30,6 +30,7 @@ STRINGTABLE Tluxc4dlighttag
   
   IDD_LIGHT_TYPE                  "Light Type";
   IDD_LIGHT_IGNORE_FALLOFF_RADIUS "Ignore C4D Falloff Radius";
+  IDD_LIGHT_GROUP_NAME            "Light Group";
   
     IDD_LIGHT_TYPE_AS_OBJECT  "Same as Object";
     IDD_LIGHT_TYPE_POINT      "Point Light";

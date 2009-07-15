@@ -162,7 +162,7 @@ private:
     LuxFloat   mDConst;
     LuxFloat   mEConst;
   };
-  
+
 
   // Union which is used during conversion of vertices with normals.
   union Point2PolyN {
@@ -290,40 +290,42 @@ private:
   Bool exportMaterial(TextureTag&   textureTag,
                       BaseMaterial& material,
                       LuxString&    materialName);
+  Bool convertTextureMapping(TextureTag&     textureTag,
+                             TextureMapping& luxTexMapping);
   Bool exportDummyMaterial(BaseMaterial& material,
                            LuxString&    materialName);
-  Bool exportDiffuseMaterial(TextureTag& textureTag,
-                             Material&   material,
-                             LuxString&  materialName);
-  Bool exportGlossyMaterial(TextureTag& textureTag,
-                            Material&   material,
-                            LuxString&  materialName);
-  Bool exportReflectiveMaterial(TextureTag& textureTag,
-                                Material&   material,
-                                LuxString&  materialName);
-  Bool exportTransparentMaterial(TextureTag& textureTag,
-                                 Material&   material,
-                                 LuxString&  materialName);
-  Bool exportTranslucentMaterial(TextureTag& textureTag,
-                                 Material&   material,
-                                 LuxString&  materialName);
+  Bool exportDiffuseMaterial(const TextureMapping& mapping,
+                             Material&             material,
+                             LuxString&            materialName);
+  Bool exportGlossyMaterial(const TextureMapping& mapping,
+                            Material&             material,
+                            LuxString&            materialName);
+  Bool exportReflectiveMaterial(const TextureMapping& mapping,
+                                Material&             material,
+                                LuxString&            materialName);
+  Bool exportTransparentMaterial(const TextureMapping& mapping,
+                                 Material&             material,
+                                 LuxString&            materialName);
+  Bool exportTranslucentMaterial(const TextureMapping& mapping,
+                                 Material&             material,
+                                 LuxString&            materialName);
 
-  Bool addBumpChannel(TextureTag&      textureTag,
-                      Material&        material,
-                      LuxMaterialData& materialData,
-                      ULONG            channelId);
+  Bool addBumpChannel(const TextureMapping& mapping,
+                      Material&             material,
+                      LuxMaterialData&      materialData,
+                      ULONG                 channelId);
 
-  LuxTextureDataH convertFloatChannel(TextureTag& textureTag,
-                                      Material&   material,
-                                      LONG        shaderId,
-                                      LONG        strengthId,
-                                      Real        strengthScale = 1.0f);
-  LuxTextureDataH convertColorChannel(TextureTag& textureTag,
-                                      Material&   material,
-                                      LONG        shaderId,
-                                      LONG        colorId,
-                                      LONG        brightnessId,
-                                      LONG        mixerId);
+  LuxTextureDataH convertFloatChannel(const TextureMapping& mapping,
+                                      Material&             material,
+                                      LONG                  shaderId,
+                                      LONG                  strengthId,
+                                      Real                  strengthScale = 1.0f);
+  LuxTextureDataH convertColorChannel(const TextureMapping& mapping,
+                                      Material&             material,
+                                      LONG                  shaderId,
+                                      LONG                  colorId,
+                                      LONG                  brightnessId,
+                                      LONG                  mixerId);
 
   Bool exportPolygonObject(PolygonObject& object,
                            const Matrix&  globalMatrix);

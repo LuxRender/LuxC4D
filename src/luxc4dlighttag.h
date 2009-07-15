@@ -55,6 +55,7 @@ public:
   struct LightParameters {
 
     // used by all light types
+    String         mGroup;
     LONG           mType;
     Real           mBrightness;
 

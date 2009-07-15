@@ -51,7 +51,7 @@ Bool LuxTextureData::sendToAPIAndAddToParamSet(LuxAPI&                receiver,
     return TRUE;
   }
 
-  // normal case of non-constant textures which we 
+  // normal case of non-constant textures which we set-up as named texture
   if (!sendToAPI(receiver, textureName.c_str())) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxTextureData::addToParamSet(): could not send texture to LuxAPI");
   }
@@ -60,6 +60,17 @@ Bool LuxTextureData::sendToAPIAndAddToParamSet(LuxAPI&                receiver,
   }
   
   return TRUE;
+}
+
+
+void LuxTextureData::add2DMapping(LuxParamSet& paramSet)
+{
+  paramSet.addParam(LUX_STRING, "mapping", &mMapping.mMappingType);
+  if (mMapping.mHasDefaultParams) { return; }
+  paramSet.addParam(LUX_FLOAT,  "uscale", &mMapping.mUScale);
+  paramSet.addParam(LUX_FLOAT,  "vscale", &mMapping.mVScale);
+  paramSet.addParam(LUX_FLOAT,  "udelta", &mMapping.mUShift);
+  paramSet.addParam(LUX_FLOAT,  "vdelta", &mMapping.mVShift);
 }
 
 
@@ -284,25 +295,29 @@ Bool LuxConstantTextureData::sendToAPI(LuxAPI&          receiver,
  * Implementation of member functions of class LuxImageMapData.
  *****************************************************************************/
 
-LuxImageMapData::LuxImageMapData(LuxTextureType  type)
+LuxImageMapData::LuxImageMapData(LuxTextureType type)
 : LuxTextureData(type)
 {}
 
 
-LuxImageMapData::LuxImageMapData(LuxTextureType  type,
-                                 const Filename& path)
+LuxImageMapData::LuxImageMapData(LuxTextureType        type,
+                                 const TextureMapping& mapping,
+                                 const Filename&       path)
 : LuxTextureData(type),
   mPath(path)
-{}
+{
+  mMapping = mapping;
+}
 
 
 Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
                                 const LuxString& name)
 {
   LuxParamSet paramSet(9);
-  LuxString imagePath;
+  LuxString   imagePath;
 
   convert2LuxString(mPath, imagePath);
   paramSet.addParam(LUX_STRING, "filename", &imagePath);
+  add2DMapping(paramSet);
   return sendToAPIHelper(receiver, name, "imagemap", paramSet);
 }

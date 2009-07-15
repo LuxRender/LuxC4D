@@ -30,6 +30,7 @@ CONTAINER Tluxc4dlighttag
   
   GROUP ID_TAGPROPERTIES {
   
+    STRING IDD_LIGHT_GROUP_NAME           { }
     LONG IDD_LIGHT_TYPE {
       CYCLE {
         IDD_LIGHT_TYPE_AS_OBJECT;

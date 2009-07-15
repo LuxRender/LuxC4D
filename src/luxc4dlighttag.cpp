@@ -145,6 +145,9 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
   BaseDocument* document = tag->GetDocument();
   if (!document)  ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): could not obtain document from tag");
 
+  // obtain name of light group
+  parameters.mGroup = data->GetString(IDD_LIGHT_GROUP_NAME);
+
   // then obtain current light type of tag and read the corresponding values
   parameters.mType = tagData->getLightType();
   switch (parameters.mType) {

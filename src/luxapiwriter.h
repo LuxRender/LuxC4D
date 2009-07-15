@@ -83,6 +83,7 @@ public:
   virtual Bool objectBegin(IdentifierName name);
   virtual Bool objectEnd(void);
 
+  virtual Bool lightGroup(IdentifierName name);
   virtual Bool lightSource(IdentifierName     type,
                            const LuxParamSet& paramSet);
   virtual Bool areaLightSource(IdentifierName     type,

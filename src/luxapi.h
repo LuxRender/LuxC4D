@@ -206,6 +206,8 @@ public:
   /// attributeBegin(). By giving this level a name, we can refer to it later
   /// and create instances of it.
   ///
+  /// @param[in]  name
+  ///   The name of the object by which you can refer to it.
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool objectBegin(IdentifierName name) =0;
@@ -217,6 +219,15 @@ public:
   ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool objectEnd(void) =0;
 
+
+  /// Defines the group of all lights defined in current scope. The default is
+  /// "_default".
+  ///
+  /// @param[in]  name
+  ///   The name of the light group.
+  /// @return
+  ///   TRUE if executed successfully, otherwise FALSE.
+  virtual Bool lightGroup(IdentifierName name) =0;
 
   /// Adds a light source object to the current scope.
   ///

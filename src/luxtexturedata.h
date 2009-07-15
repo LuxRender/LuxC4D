@@ -33,6 +33,11 @@
 
 
 
+/// At the moment we support 2 different types of textures:
+///   LUX_FLOAT_TEXTURE: The value of a specific location in the texture is a
+///                      floating point scalar.
+///   LUX_COLOR_TEXTURE: The value of a specific location in the texture is a
+///                      floating point RGB colour.
 enum LuxTextureType {
   LUX_FLOAT_TEXTURE = 0,
   LUX_COLOR_TEXTURE,
@@ -40,14 +45,37 @@ enum LuxTextureType {
 };
 
 
+/// This structure stores texture mapping parameters that are relevant to Lux.
+struct TextureMapping {
+  /// The mapping type of the texture - already as string.
+  LuxString mMappingType;
+  /// If TRUE the texture mapping parameters will NOT be exported and the Lux
+  /// defaults get applied.
+  Bool      mHasDefaultParams;
+  /// The texture scaling along the U axis.
+  LuxFloat  mUScale;
+  /// The texture scaling along the V axis.
+  LuxFloat  mVScale;
+  /// The texture shift along the U axis.
+  LuxFloat  mUShift;
+  /// The texture shift along the V axis.
+  LuxFloat  mVShift;
+
+  /// Default constructor. The texture mapping parameters will be disabled.
+  TextureMapping() : mMappingType("uv"), mHasDefaultParams(TRUE)  {}
+};
+  
+
 
 /***************************************************************************//*!
+ Base class of a texture parameter container implementation.
 *//****************************************************************************/
 class LuxTextureData
 {
   public:
 
     const LuxTextureType mType;
+    TextureMapping       mMapping;
 
 
     inline LuxTextureData(LuxTextureType type) : mType(type) {}
@@ -64,6 +92,8 @@ class LuxTextureData
 
 
   protected:
+
+    void add2DMapping(LuxParamSet& paramSet);
 
     Bool sendToAPIHelper(LuxAPI&                receiver,
                          const LuxString&       name,
@@ -180,12 +210,13 @@ class LuxImageMapData : public LuxTextureData
 {
   public:
 
-    Filename mPath;
+    Filename       mPath;
 
 
     LuxImageMapData(LuxTextureType type);
-    LuxImageMapData(LuxTextureType  type,
-                    const Filename& path );
+    LuxImageMapData(LuxTextureType        type,
+                    const TextureMapping& mapping,
+                    const Filename&       path );
 
 
   protected:
