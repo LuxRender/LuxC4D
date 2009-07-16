@@ -289,31 +289,42 @@ private:
 
   Bool exportMaterial(TextureTag&   textureTag,
                       BaseMaterial& material,
-                      LuxString&    materialName);
+                      LuxString&    materialName,
+                      Bool&         hasEmissionChannel);
   Bool convertTextureMapping(TextureTag&     textureTag,
                              TextureMapping& luxTexMapping);
   Bool exportDummyMaterial(BaseMaterial& material,
-                           LuxString&    materialName);
+                           LuxString&    materialName,
+                           Bool&         hasEmissionChannel);
   Bool exportDiffuseMaterial(const TextureMapping& mapping,
                              Material&             material,
-                             LuxString&            materialName);
+                             LuxString&            materialName,
+                             Bool&                 hasEmissionChannel);
   Bool exportGlossyMaterial(const TextureMapping& mapping,
                             Material&             material,
-                            LuxString&            materialName);
+                            LuxString&            materialName,
+                            Bool&                 hasEmissionChannel);
   Bool exportReflectiveMaterial(const TextureMapping& mapping,
                                 Material&             material,
-                                LuxString&            materialName);
+                                LuxString&            materialName,
+                                Bool&                 hasEmissionChannel);
   Bool exportTransparentMaterial(const TextureMapping& mapping,
                                  Material&             material,
-                                 LuxString&            materialName);
+                                 LuxString&            materialName,
+                                 Bool&                 hasEmissionChannel);
   Bool exportTranslucentMaterial(const TextureMapping& mapping,
                                  Material&             material,
-                                 LuxString&            materialName);
+                                 LuxString&            materialName,
+                                 Bool&                 hasEmissionChannel);
 
   Bool addBumpChannel(const TextureMapping& mapping,
                       Material&             material,
                       LuxMaterialData&      materialData,
                       ULONG                 channelId);
+  Bool addEmissionChannel(const TextureMapping& mapping,
+                          Material&             material,
+                          LuxMaterialData&      materialData,
+                          Bool&                 hasEmissionChannel);
 
   LuxTextureDataH convertFloatChannel(const TextureMapping& mapping,
                                       Material&             material,

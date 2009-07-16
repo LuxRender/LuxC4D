@@ -842,7 +842,7 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
 {
   LuxParamSet shapeParams(8);
   const char* shapeName;
-  LuxFloat   radius, width, height, zMin, zMax;
+  LuxFloat    radius, width, height, zMin, zMax;
   Real        xRad, yRad, zRad;
   Bool        flipYZ;
   PointsT     points;
@@ -1160,12 +1160,21 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
   // if we have found a valid texture tag, export material
   if (textureTag && material) {
     LuxString materialName;
-    if (!exportMaterial(*textureTag, *material, materialName))  return FALSE;
+    Bool      hasEmissionChannel;
+    if (!exportMaterial(*textureTag, *material, materialName, hasEmissionChannel))  return FALSE;
     hierarchyData.mStartedNewScope = TRUE;
     hierarchyData.mObjectName = object.GetName();
     if (!mReceiver->setComment("start of object '" + hierarchyData.mObjectName + "'"))  return FALSE;
     if (!mReceiver->attributeBegin())  return FALSE;
     if (!mReceiver->namedMaterial(materialName.c_str()))  return FALSE;
+    if (hasEmissionChannel) {
+      LuxParamSet areaParamSet(3);
+      LuxString   textureName = materialName + ".L";
+      LuxFloat    gain = 50.0f;
+      areaParamSet.addParam(LUX_TEXTURE, "L",    &textureName);
+      areaParamSet.addParam(LUX_FLOAT,   "gain", &gain);
+      if (!mReceiver->areaLightSource("area", areaParamSet))  return FALSE;
+    }
   }
 
   // skip generator objects, invisible objects, objects that are no polygon
@@ -1264,11 +1273,14 @@ Bool LuxAPIConverter::convertTextureMapping(TextureTag&     textureTag,
 /// @param[out]  materialName
 ///   Here we return the name under which the material will be exported. Use
 ///   that one to reference it in the object.
+/// @param[out]  hasEmissionChannel
+///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE, if successful, FALSE otherwise.
 Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
                                      BaseMaterial& material,
-                                     LuxString&    materialName)
+                                     LuxString&    materialName,
+                                     Bool&         hasEmissionChannel)
 {
   TextureMapping mapping;
 
@@ -1294,9 +1306,10 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
   // determine material name:
   String c4dMaterialName;
 
-  // if the texture mapping has default parameters, use a name that is
-  // independent of the object, so that the material can be reused
-  if (mapping.mHasDefaultParams) {
+  // if the texture mapping doesn't have default parameters, we export the
+  // material only for this object and give it a unique name dependent of the
+  // object
+  if (!mapping.mHasDefaultParams) {
     BaseObject* object = textureTag.GetObject();
     if (object) {
       c4dMaterialName = object->GetName();
@@ -1339,37 +1352,52 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
 
     // D		-> diffuse
     if (hasDiffuse && !hasTransparency && !hasReflection) {
-      success = exportDiffuseMaterial(mapping, (Material&)material, materialName);
+      success = exportDiffuseMaterial(mapping,
+                                      (Material&)material,
+                                      materialName,
+                                      hasEmissionChannel);
     // T		-> transparent
     // TR		-> transparent
     // DTR	-> transparent
     } else if ((!hasDiffuse && hasTransparency) ||
                (hasDiffuse && hasTransparency && hasReflection))
     {
-      success = exportTransparentMaterial(mapping, (Material&)material, materialName);
+      success = exportTransparentMaterial(mapping,
+                                          (Material&)material,
+                                          materialName,
+                                          hasEmissionChannel);
     // DT		-> translucent
     } else if (hasDiffuse && hasTransparency && !hasReflection) {
-      success = exportTranslucentMaterial(mapping, (Material&)material, materialName);
+      success = exportTranslucentMaterial(mapping,
+                                          (Material&)material,
+                                          materialName,
+                                          hasEmissionChannel);
     // R		-> reflective
     } else if (!hasDiffuse && !hasTransparency && hasReflection) {
-      success = exportReflectiveMaterial(mapping, (Material&)material, materialName);
+      success = exportReflectiveMaterial(mapping,
+                                         (Material&)material,
+                                         materialName,
+                                         hasEmissionChannel);
     // DR		-> glossy
     } else if (hasDiffuse && !hasTransparency && hasReflection) {
-      success = exportGlossyMaterial(mapping, (Material&)material, materialName);
+      success = exportGlossyMaterial(mapping,
+                                     (Material&)material,
+                                     materialName,
+                                     hasEmissionChannel);
     // -		-> dummy
     } else {
-      success = exportDummyMaterial(material, materialName);
+      success = exportDummyMaterial(material, materialName, hasEmissionChannel);
     }
 
   // if it's not a standard material, just export a placeholder material (matte)
   // with the colour set to the average colour of the C4D material
   } else {
-    success = exportDummyMaterial(material, materialName);
+    success = exportDummyMaterial(material, materialName, hasEmissionChannel);
   }
 
   // if material export was successful, we add the material and its name to the
-  // list of reusable materials
-  if (success) {
+  // list of reusable materials, if the texture mapping had defaults only
+  if (success && mapping.mHasDefaultParams) {
     mReusableMaterials.add(&material, materialName);
   }
 
@@ -1384,10 +1412,13 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
 ///   The material to export.
 /// @param[in]  materialName
 ///   The name under which the material will be stored.
+/// @param[out]  hasEmissionChannel
+///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportDummyMaterial(BaseMaterial& material,
-                                          LuxString&    materialName)
+                                          LuxString&    materialName,
+                                          Bool&         hasEmissionChannel)
 {
   // export dummy matte material with average colour of input material
   LuxMaterialData materialData(gLuxMatteInfo);
@@ -1406,11 +1437,14 @@ Bool LuxAPIConverter::exportDummyMaterial(BaseMaterial& material,
 ///   The material to export.
 /// @param[in]  materialName
 ///   The name under which the material will be stored.
+/// @param[out]  hasEmissionChannel
+///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
                                             Material&             material,
-                                            LuxString&            materialName)
+                                            LuxString&            materialName,
+                                            Bool&                 hasEmissionChannel)
 {
   LuxMaterialData materialData(gLuxMatteInfo);
 
@@ -1436,8 +1470,9 @@ Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
     }
   }
 
-  // obtain bump channel
+  // obtain bump and emission channels
   addBumpChannel(mapping, material, materialData, LUX_MATTE_BUMP);
+  addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
@@ -1452,11 +1487,14 @@ Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
 ///   The material to export.
 /// @param[in]  materialName
 ///   The name under which the material will be stored.
+/// @param[out]  hasEmissionChannel
+///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
                                            Material&             material,
-                                           LuxString&            materialName)
+                                           LuxString&            materialName,
+                                           Bool&                 hasEmissionChannel)
 {
   LuxMaterialData materialData(gLuxGlossyInfo);
 
@@ -1490,8 +1528,9 @@ Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
                             gNewNC LuxConstantTextureData(roughness));
   }
 
-  // obtain bump channel
+  // obtain bump and emission channels
   addBumpChannel(mapping, material, materialData, LUX_GLOSSY_BUMP);
+  addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
@@ -1507,11 +1546,14 @@ Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
 ///   The material to export.
 /// @param[in]  materialName
 ///   The name under which the material will be stored.
+/// @param[out]  hasEmissionChannel
+///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
                                                Material&             material,
-                                               LuxString&            materialName)
+                                               LuxString&            materialName,
+                                               Bool&                 hasEmissionChannel)
 {
   // get dispersion
   LuxFloat roughness = 0.0f;
@@ -1537,8 +1579,9 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
                                                   MATERIAL_REFLECTION_TEXTURESTRENGTH));
     }
 
-    // obtain bump channel
+    // obtain bump and emission channels
     addBumpChannel(mapping, material, materialData, LUX_MIRROR_BUMP);
+    addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
 
@@ -1571,8 +1614,9 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
                               gNewNC LuxConstantTextureData(roughness));
     }
 
-    // obtain bump channel
+    // obtain bump and emission channels
     addBumpChannel(mapping, material, materialData, LUX_SHINY_METAL_BUMP);
+    addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
   }
@@ -1589,11 +1633,14 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
 ///   The material to export.
 /// @param[in]  materialName
 ///   The name under which the material will be stored.
+/// @param[out]  hasEmissionChannel
+///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                 Material&             material,
-                                                LuxString&            materialName)
+                                                LuxString&            materialName,
+                                                Bool&                 hasEmissionChannel)
 {
   // get dispersion
   LuxFloat roughness = 0.0f;
@@ -1637,11 +1684,12 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                                              1.0f)));
     }
 
-    // obtain bump channel
+    // obtain bump and emission channels
     addBumpChannel(mapping, material, materialData, LUX_GLASS_BUMP);
+    addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
-  
+
   // if roughness is not nearly or equal 0, we convert to a rough glass material
   } else {
 
@@ -1681,12 +1729,12 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                               gNewNC LuxConstantTextureData(roughness));
     }
 
-    // obtain bump channel
+    // obtain bump and emission channel
     addBumpChannel(mapping, material, materialData, LUX_GLASS_BUMP);
+    addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
   }
-
 }
 
 
@@ -1699,11 +1747,14 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
 ///   The material to export.
 /// @param[in]  materialName
 ///   The name under which the material will be stored.
+/// @param[out]  hasEmissionChannel
+///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
 Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
                                                 Material&             material,
-                                                LuxString&            materialName)
+                                                LuxString&            materialName,
+                                                Bool&                 hasEmissionChannel)
 {
   LuxMaterialData materialData(gLuxMatteTranslucentInfo);
 
@@ -1740,8 +1791,9 @@ Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
     }
   }
 
-  // obtain bump channel
+  // obtain bump and emission channels
   addBumpChannel(mapping, material, materialData, LUX_MATTE_BUMP);
+  addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
@@ -1772,6 +1824,38 @@ Bool LuxAPIConverter::addBumpChannel(const TextureMapping& mapping,
                                                        MATERIAL_BUMP_SHADER,
                                                        MATERIAL_BUMP_STRENGTH,
                                                        mC4D2LuxScale));
+  }
+
+  return TRUE;
+}
+
+
+/// Reads a standard C4D material and adds its luminance channel as emission
+/// channel to a Lux material (if available).
+///
+/// @param[in]  mapping
+///   The converted Lux texture mapping parameters.
+/// @param[in]  material
+///   The C4D standard material.
+/// @param[out]  materialData
+///   The Lux material settings to which the bump channel will be added.
+/// @return
+///   TRUE if executed successfully, FALSE otherwise.
+Bool LuxAPIConverter::addEmissionChannel(const TextureMapping& mapping,
+                                         Material&             material,
+                                         LuxMaterialData&      materialData,
+                                         Bool&                 hasEmissionChannel)
+{
+  if (getParameterLong(material, MATERIAL_USE_LUMINANCE)) {
+    hasEmissionChannel = TRUE;
+    return materialData.setEmissionChannel(convertColorChannel(mapping,
+                                                               material,
+                                                               MATERIAL_LUMINANCE_SHADER,
+                                                               MATERIAL_LUMINANCE_COLOR,
+                                                               MATERIAL_LUMINANCE_BRIGHTNESS,
+                                                               MATERIAL_LUMINANCE_TEXTURESTRENGTH));
+  } else {
+    hasEmissionChannel = FALSE;
   }
 
   return TRUE;

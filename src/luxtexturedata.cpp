@@ -284,7 +284,7 @@ Bool LuxConstantTextureData::sendToAPI(LuxAPI&          receiver,
   if (mType == LUX_FLOAT_TEXTURE) {
     paramSet.addParam(LUX_FLOAT, "value", (void*)&mFloat);
   } else {
-    paramSet.addParam(LUX_COLOR, "color", (void*)&mColor);
+    paramSet.addParam(LUX_COLOR, "value", (void*)&mColor);
   }
   return sendToAPIHelper(receiver, name, "constant", paramSet);
 }

@@ -35,6 +35,8 @@
 
 
 /***************************************************************************//*!
+ This structure stores a description of a material channel which will be used
+ for storing and exporting a material channel.
 *//****************************************************************************/
 struct LuxChannelInfo
 {
@@ -45,6 +47,8 @@ struct LuxChannelInfo
 
 
 /***************************************************************************//*!
+ This class stores the texture and additional attributes of a material channel.
+ Each material has multiple channels.
 *//****************************************************************************/
 class LuxMaterialChannel
 {
@@ -54,15 +58,18 @@ class LuxMaterialChannel
     Bool            mEnabled;
 
 
+    /// Default constructor which disables this channel by default.
     inline LuxMaterialChannel()
     : mEnabled(FALSE)
     {}
 
+    /// Copy constructor.
     inline LuxMaterialChannel(const LuxMaterialChannel& other)
     {
       *this = other;
     }
 
+    /// Copy operator.
     inline LuxMaterialChannel& operator=(const LuxMaterialChannel& other)
     {
       mTexture = other.mTexture;
@@ -74,6 +81,8 @@ class LuxMaterialChannel
 
 
 /***************************************************************************//*!
+ This structure stores a description of a whole Lux material which will be used
+ for storing and exporting a material.
 *//****************************************************************************/
 struct LuxMaterialInfo
 {
@@ -84,6 +93,8 @@ struct LuxMaterialInfo
 
 
 /***************************************************************************//*!
+ This generic class stores a Lux material. By constructing it with a specific
+ material description we define the properties of a the wanted Lux material.
 *//****************************************************************************/
 class LuxMaterialData
 {
@@ -93,6 +104,8 @@ class LuxMaterialData
 
     Bool setChannel(ULONG           channelId,
                     LuxTextureDataH texture);
+    Bool setEmissionChannel(LuxTextureDataH texture);
+    Bool hasEmissionChannel(void);
 
     Bool sendToAPI(LuxAPI&          receiver,
                    const LuxString& name);
@@ -102,6 +115,7 @@ class LuxMaterialData
 
     const LuxMaterialInfo*         mInfo;
     FixArray1D<LuxMaterialChannel> mChannels;
+    LuxMaterialChannel             mEmissionChannel;
 
 
   private:

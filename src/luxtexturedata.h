@@ -81,6 +81,8 @@ class LuxTextureData
     inline LuxTextureData(LuxTextureType type) : mType(type) {}
     virtual ~LuxTextureData() {}
 
+    virtual Bool sendToAPI(LuxAPI&          receiver,
+                           const LuxString& name) =0;
     Bool sendToAPIAndAddToParamSet(LuxAPI&                receiver,
                                    LuxParamSet&           paramSet,
                                    LuxAPI::IdentifierName paramName,
@@ -99,9 +101,6 @@ class LuxTextureData
                          const LuxString&       name,
                          LuxAPI::IdentifierName typeName,
                          const LuxParamSet&     paramSet) const;
-
-    virtual Bool sendToAPI(LuxAPI&          receiver,
-                           const LuxString& name) =0;
 
 
   private:

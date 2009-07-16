@@ -27,6 +27,13 @@
 
 
 
+/// Constructs aan empty Lux material container by passing in a material
+/// info structure which describes the available channels and their
+/// attributes.
+///
+/// @param[in]  info
+///   The info structure that describes the properties/channels of the
+///   material.
 LuxMaterialData::LuxMaterialData(const LuxMaterialInfo& info)
 : mInfo(&info)
 {
@@ -37,26 +44,86 @@ LuxMaterialData::LuxMaterialData(const LuxMaterialInfo& info)
 }
 
 
+/// Stores a texture in a material channel and activates it.
+///
+/// @param[in]  channelId
+///   The ID of the material channel (must be valid).
+/// @param[in]  texture
+///   AutoRef to the texture to store in the material channel (texture type
+///   must match material channel data type).
+/// @return
+///   TRUE if successful, FALSE otherwise.
 Bool LuxMaterialData::setChannel(ULONG           channelId,
                                  LuxTextureDataH texture)
 {
+  // check channel ID
   if (channelId > mChannels.size()) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setChannel(): invalid channel ID (" +
                                LongToString(channelId) + ")");
   }
+
+  // make sure that the texture AutoRef is valid
   if (!texture) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setChannel(): no texture passed");
   }
+
+  // make sure that the data type of the texture matches the data type of the
+  // material channel
   if (mInfo->mChannelInfos[channelId].mType != texture->mType) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setChannel(): type mismatch -> can't set texture in channel with ID " +
                                LongToString(channelId));
   }
+
+  // store texture and enable channel
   mChannels[channelId].mTexture = texture;
   mChannels[channelId].mEnabled = TRUE;
   return TRUE;
 }
 
 
+/// Stores a texture in a material channel and activates it.
+///
+/// @param[in]  texture
+///   AutoRef to the texture to store in the emission channel (texture type
+///   must be LUX_COLOR_TEXTURE).
+/// @return
+///   TRUE if successful, FALSE otherwise.
+Bool LuxMaterialData::setEmissionChannel(LuxTextureDataH texture)
+{
+  // make sure that the texture AutoRef is valid
+  if (!texture) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setEmissionChannel(): no texture passed");
+  }
+
+  // make sure that the data type of the texture matches the data type of the
+  // material channel
+  if (texture->mType != LUX_COLOR_TEXTURE) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setEmissionChannel(): type mismatch -> can't set emission texture");
+  }
+
+  // store texture and enable channel
+  mEmissionChannel.mTexture = texture;
+  mEmissionChannel.mEnabled = TRUE;
+  return TRUE;
+}
+
+
+/// Returns TRUE if the emission channel is active.
+Bool LuxMaterialData::hasEmissionChannel(void)
+{
+  return mEmissionChannel.mEnabled;
+}
+
+
+/// Sends the complete material and its textures to a Lux API receiver.
+///
+/// @param[in]  receiver
+///   The Lux API receiver the material will be sent to.
+/// @param[in]  name
+///   The name under which the material will be exported. It can then later be
+///   referenced by it.
+/// @return
+///   TRUE if successful, FALSE otherwise.
 Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
                                 const LuxString& name)
 {
@@ -68,7 +135,8 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
   LuxString type(mInfo->mName);
   paramSet.addParam(LUX_STRING, "type", &type);
 
-  // loop over channels and add them to parameter set
+  // loop over active channels, export their textures and add them to parameter
+  // set
   FixArray1D<LuxString> textureNames(mInfo->mChannelCount);
   ULONG textureNameCount = 0;
   for (ULONG channelIx=0; channelIx<mInfo->mChannelCount; ++channelIx) {
@@ -76,7 +144,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
     // for convenience, store reference to channel in variable
     LuxMaterialChannel& channel(mChannels[channelIx]);
 
-    // skip unused channels
+    // only handle active channels:
     if (channel.mEnabled) {
       textureNames[textureNameCount] =
         name + "." + mInfo->mChannelInfos[channelIx].mTextureSuffix;
@@ -91,7 +159,16 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
     }
   }
 
-  // 
+  // if emission channel is active, export its texture, but don't add it to
+  // material as it will be referenced by an area light command in the object
+  // scope
+  if (mEmissionChannel.mEnabled) {
+    if (!mEmissionChannel.mTexture->sendToAPI(receiver, name + ".L")) {
+      ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::sendToAPI(): texture export failed");
+    }
+  }
+
+  // write materials
   receiver.makeNamedMaterial(name.c_str(), paramSet);
 
   return TRUE;

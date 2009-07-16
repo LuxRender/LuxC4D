@@ -64,9 +64,7 @@ Bool LuxC4DPortalTag::registerPlugin(void)
 
 
 /// Initialises the tag parameters.
-///
-/// @return
-///   TRUE if registered successful or FALSE if not.
+/// (see C4D API documentation for parameters)
 Bool LuxC4DPortalTag::Init(GeListNode* node)
 {
   // obtain container from data node.
@@ -87,15 +85,7 @@ Bool LuxC4DPortalTag::Init(GeListNode* node)
 /// Overwritten function that is called to load a description. We use it to
 /// hide descriptions, we don't want to show due to the selection of specific
 /// parameters.
-///
-/// @param[in]  node
-///   Pointer to the data node.
-/// @param[in]  description
-///   The description to add the parameters to.
-/// @param[out]  flags
-///   State flags set during loading of description.
-/// @return
-///   TRUE if successul, FALSE otherwise.
+/// (see C4D API documentation for parameters)
 Bool LuxC4DPortalTag::GetDDescription(GeListNode*  node,
                                       Description* description,
                                       LONG&        flags)
@@ -124,7 +114,9 @@ Bool LuxC4DPortalTag::GetDDescription(GeListNode*  node,
 }
 
 
-///
+/// Overwritten function to enable/disable description controls depending on
+/// the current options.
+/// (see C4D API documentation for parameters)
 Bool LuxC4DPortalTag::GetDEnabling(GeListNode*          node,
                                    const DescID&        id,
                                    GeData&              t_data,
@@ -136,7 +128,7 @@ Bool LuxC4DPortalTag::GetDEnabling(GeListNode*          node,
   if (!data)  return FALSE;
 
   //
-  if (id == IDD_PORTAL_FACE_DIRECTION) {
+  if (id == DescID(IDD_PORTAL_FACE_DIRECTION)) {
     return data->GetBool(IDD_PORTAL_SIMPLIFY);
   }
 
