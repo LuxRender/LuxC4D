@@ -3,8 +3,8 @@
 //* (http://www.luxrender.net)                                           *
 //*                                                                      *
 //* Author:                                                              *
-//* Marcus Spranger (abstrax), Patrick Depoix (Spirou4D)                 *
-//*                                                                      *
+//* Marcus Spranger (abstrax)                                            *
+//* Trad. FR: Patrick Depoix (spirou4D)                                  *
 //************************************************************************
 //*                                                                      *
 //* This file is part of LuxC4D.                                         *
@@ -25,16 +25,16 @@
 
 STRINGTABLE VPluxc4dsettings
 {
-  VPluxc4dsettings "Réglages de scène LuxC4D";
+  VPluxc4dsettings "Réglages LuxC4D";
   
   IDG_RENDER                          "Rendu";
   
-    IDG_SAMPLING                        "Echantillonnage";
+    IDG_SAMPLING                        "ECHANTILLONNAGE";
     IDD_SAMPLER                         "Echantillonneur";
     IDD_ADVANCED_SAMPLER                "Réglages avancés";
     
-      IDD_SAMPLER_LOWDISCREPANCY          "Faible Ecart";
-      IDD_SAMPLER_METROPOLIS              "Métropolis";
+      IDD_SAMPLER_LOWDISCREPANCY          "Basse Divergence";
+      IDD_SAMPLER_METROPOLIS              "Metropolis";
       IDD_SAMPLER_ERPT                    "ERPT";
       IDD_SAMPLER_RANDOM                  "Aléatoire";
 
@@ -44,16 +44,16 @@ STRINGTABLE VPluxc4dsettings
     IDD_RANDOM_PIXELSAMPLER             "Echantillonneur de Pixel";
     IDD_RANDOM_PIXELSAMPLES             "Pixels";
 
-      IDD_PIXELSAMPLER_LOWDISCREPANCY     "Faible Ecart";
+      IDD_PIXELSAMPLER_LOWDISCREPANCY     "Basse Divergence";
       IDD_PIXELSAMPLER_HILBERT            "Hilbert";
       IDD_PIXELSAMPLER_VEGAS              "Vegas";
       IDD_PIXELSAMPLER_LINEAR             "Linéaire";
       IDD_PIXELSAMPLER_TILE               "Mosaïque";
 
     IDD_METROPOLIS_INIT_SAMPLES         "Echantillons Initiaux";
-    IDD_METROPOLIS_MAX_CONSEC_REJECTS   "Rebonds Consécutifs Max.";
-    IDD_METROPOLIS_LARGE_MUTATION_PROB  "Probabilité de Large Mutation";
-    IDD_METROPOLIS_MICRO_MUTATION_PROB  "Probabilité de Petite Mutation";
+    IDD_METROPOLIS_MAX_CONSEC_REJECTS   "Rejets Consécutifs Max.";
+    IDD_METROPOLIS_LARGE_MUTATION_PROB  "Probabilité de grande Mutation";
+    IDD_METROPOLIS_MICRO_MUTATION_PROB  "Probabilité de petite Mutation";
     IDD_METROPOLIS_USE_VARIANCE         "Utiliser la Variance";
     IDD_METROPOLIS_STRENGTH             "Puissance";
 
@@ -62,59 +62,59 @@ STRINGTABLE VPluxc4dsettings
     IDD_ERPT_MICRO_MUTATION_PROB        "Probabilité de petite Mutation";
 
 
-    IDG_INTEGRATION                     "Intégration";
-    IDD_INTEGRATOR                      "Intégrateur";
+    IDG_INTEGRATION                     "INTEGRATION";
+    IDD_INTEGRATOR                      "Intégrateur de surface";
     IDD_ADVANCED_INTEGRATOR             "Réglages avancés";
     
       IDD_INTEGRATOR_PATH                 "Chemin";
-      IDD_INTEGRATOR_DISTRIBUTED_PATH     "Chemin distributé";
+      IDD_INTEGRATOR_DISTRIBUTED_PATH     "Chemin distribué";
       IDD_INTEGRATOR_BIDIRECTIONAL        "Bidirectionel";
-      IDD_INTEGRATOR_DIRECT_LIGHTING      "Eclairage Direct";
+      IDD_INTEGRATOR_DIRECT_LIGHTING      "Illumination Directe";
     
-    IDD_PATH_MAX_DEPTH                  "Profondeur Max.";
-    IDD_PATH_DIRECT_LIGHT_STRATEGY      "Stratégie de Lumière Directe";
+    IDD_PATH_MAX_DEPTH                  "Rebonds Max.";
+    IDD_PATH_DIRECT_LIGHT_STRATEGY      "Stratégie d'Illumination Directe";
     IDD_PATH_RR_STRATEGY                "Stratégie de la Roulette Russe";
     IDD_PATH_RR_CONTINUE_PROB           "Probabilité continue";
     IDD_PATH_INCLUDE_ENVIRONMENT        "Inclure l'Environnement";
 
       IDD_DIRECT_LIGHT_STRATEGY_AUTO      "Automatique";
-      IDD_DIRECT_LIGHT_STRATEGY_ONE       "Une Lumière";
+      IDD_DIRECT_LIGHT_STRATEGY_ONE       "Une seul Lumière";
       IDD_DIRECT_LIGHT_STRATEGY_ALL       "Toutes les Lumières";
 
-      IDD_PATH_RR_STRATEGY_EFFICIENCY     "Par efficience";
+      IDD_PATH_RR_STRATEGY_EFFICIENCY     "Par efficacité";
       IDD_PATH_RR_STRATEGY_PROBABILITY    "Par probabilité";
       IDD_PATH_RR_STRATEGY_NONE           "Aucune";
 
-    IDD_DISTRIBUTED_PATH_DIRECT_LIGHT_STRATEGY          "Stratégie de Lumière Directe";
-    IDD_DISTRIBUTED_PATH_DIRECT_DIRECT_LIGHT_SAMPLES    "Echantillons de Lumière au premier point";
-    IDD_DISTRIBUTED_PATH_INDIRECT_DIRECT_LIGHT_SAMPLES  "Echantillons de Lumière aux autres points";
-    IDD_DISTRIBUTED_PATH_DIFFUSE_REFLECT_DEPTH          "Profondeur de Réflexion Diffuse";
+    IDD_DISTRIBUTED_PATH_DIRECT_LIGHT_STRATEGY          "Stratégie d'Illumination Directe";
+    IDD_DISTRIBUTED_PATH_DIRECT_DIRECT_LIGHT_SAMPLES    "Echantillons de lumière au premier point";
+    IDD_DISTRIBUTED_PATH_INDIRECT_DIRECT_LIGHT_SAMPLES  "Echantillons de lumière aux autres points";
+    IDD_DISTRIBUTED_PATH_DIFFUSE_REFLECT_DEPTH          "Rebonds de Réflexion Diffuse";
     IDD_DISTRIBUTED_PATH_DIFFUSE_REFLECT_SAMPLES        "Echantillons";
-    IDD_DISTRIBUTED_PATH_DIFFUSE_REFRACT_DEPTH          "Profondeur de Réfraction Diffuse";
+    IDD_DISTRIBUTED_PATH_DIFFUSE_REFRACT_DEPTH          "Rebonds de Réfraction Diffuse";
     IDD_DISTRIBUTED_PATH_DIFFUSE_REFRACT_SAMPLES        "Echantillons";
-    IDD_DISTRIBUTED_PATH_GLOSSY_REFLECT_DEPTH           "Profondeur de Réflexion Luissante";
+    IDD_DISTRIBUTED_PATH_GLOSSY_REFLECT_DEPTH           "Rebonds de Réflexion Luissante";
     IDD_DISTRIBUTED_PATH_GLOSSY_REFLECT_SAMPLES         "Echantillons";
-    IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_DEPTH           "Profondeur de Réfraction Luissante";
+    IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_DEPTH           "Rebonds de Réfraction Luissante";
     IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_SAMPLES         "Echantillons";
-    IDD_DISTRIBUTED_PATH_SPECULAR_REFLECT_DEPTH         "Profondeur de Réflexion Spéculaire";
-    IDD_DISTRIBUTED_PATH_SPECULAR_REFRACT_DEPTH         "Profondeur de Réfraction Spéculaire";
+    IDD_DISTRIBUTED_PATH_SPECULAR_REFLECT_DEPTH         "Rebonds de Réflexion Spéculaire";
+    IDD_DISTRIBUTED_PATH_SPECULAR_REFRACT_DEPTH         "Rebonds de Réfraction Spéculaire";
     
-    IDD_BIDIRECTIONAL_EYE_DEPTH             "Profondeur de l'oeil";
-    IDD_BIDIRECTIONAL_LIGHT_DEPTH           "Profondeur de la Lumière";
-    IDD_BIDIRECTIONAL_DIRECT_LIGHT_STRATEGY "Stratégie de Lumière Directe";
+    IDD_BIDIRECTIONAL_EYE_DEPTH             "Rebonds de l'oeil";
+    IDD_BIDIRECTIONAL_LIGHT_DEPTH           "Rebonds de la lumière";
+    IDD_BIDIRECTIONAL_DIRECT_LIGHT_STRATEGY "Stratégie d'Illumination Directe";
     IDD_BIDIRECTIONAL_EYE_RR_THRESHOLD      "Seuil R.R. de l'oeil";
     IDD_BIDIRECTIONAL_LIGHT_RR_THRESHOLD    "Seuil R.R. de la lumière";
-    IDD_BIDIRECTIONAL_MAX_DEPTH             "Profondeur Max.";
+    IDD_BIDIRECTIONAL_MAX_DEPTH             "Rebonds Max.";
 
-    IDD_DIRECT_LIGHTING_MAX_DEPTH       "Profondeur Max.";
-    IDD_DIRECT_LIGHTING_STRATEGY        "Stratégie de Lumière Directe";
+    IDD_DIRECT_LIGHTING_MAX_DEPTH       "Rebonds Max.";
+    IDD_DIRECT_LIGHTING_STRATEGY        "Stratégie d'Illumination Directe";
 
 
-    IDG_FILTERING                       "Filtrage";
+    IDG_FILTERING                       "FILTRAGE";
     IDD_PIXEL_FILTER                    "Filtrage des Pixels";
     
       IDD_PIXEL_FILTER_BOX                "Boite";
-      IDD_PIXEL_FILTER_GAUSSIAN           "Flou Gaussien";
+      IDD_PIXEL_FILTER_GAUSSIAN           "Gaussien";
       IDD_PIXEL_FILTER_MITCHELL           "Mitchell";
       IDD_PIXEL_FILTER_SINC               "Sinc";
       IDD_PIXEL_FILTER_TRIANGLE           "Triangle";
@@ -141,31 +141,31 @@ STRINGTABLE VPluxc4dsettings
 
   IDG_OUTPUT                          "Sortie";
 
-    IDG_FILM                            "Film";
+    IDG_FILM                            "FILM";
     IDD_FILM                            "Film";
 
       IDD_FILM_FLEXIMAGE                  "FlexImage";
 
-    IDD_FLEXIMAGE_HALT_SPP              "Echantillons/Pixel d'arrêt";
+    IDD_FLEXIMAGE_HALT_SPP              "Arrêt (échantillons/pixel)";
     IDD_FLEXIMAGE_GAMMA                 "Gamma";
-    IDD_FLEXIMAGE_PREMULTIPLY           "Pré-Multiplier l'Alpha";
-    IDD_FLEXIMAGE_DISPLAY_INTERVAL      "Afficher l'Intervalle (s)";
-    IDD_FLEXIMAGE_WRITE_INTERVAL        "Ecrire l'Intervalle (s)";
-    IDD_FLEXIMAGE_CLAMP_METHOD          "Méthode de Clampage";
-    IDD_FLEXIMAGE_REJECT_WARMUP         "Nbre de Rejet de scintillements";
+    IDD_FLEXIMAGE_PREMULTIPLY           "Pré-multiplier l'Alpha";
+    IDD_FLEXIMAGE_DISPLAY_INTERVAL      "Intervalle d'affichage (sec)";
+    IDD_FLEXIMAGE_WRITE_INTERVAL        "Intervalle d'écriture (sec)";
+    IDD_FLEXIMAGE_CLAMP_METHOD          "Méthode de clampage";
+    IDD_FLEXIMAGE_REJECT_WARMUP         "Nbre de Rejets de scintillements";
 
-      IDG_FLEXIMAGE_TONEMAPPING           "Tone-mapping";
-      IDD_FLEXIMAGE_TONEMAP_KERNEL        "Noyau du Tone-mapping";
+      IDG_FLEXIMAGE_TONEMAPPING           "TONE-MAPPING";
+      IDD_FLEXIMAGE_TONEMAP_KERNEL        "Procédé";
       IDD_FLEXIMAGE_REINHARD_PRESCALE     "Pré-ajustement";
       IDD_FLEXIMAGE_REINHARD_POSTSCALE    "Post-ajustement";
       IDD_FLEXIMAGE_REINHARD_BURN         "Combustion";
       IDD_FLEXIMAGE_LINEAR_SENSITIVITY    "Sensitivité (ISO)";
-      IDD_FLEXIMAGE_LINEAR_EXPOSURE       "Exposition (s)";
+      IDD_FLEXIMAGE_LINEAR_EXPOSURE       "Exposition (sec)";
       IDD_FLEXIMAGE_LINEAR_FSTOP          "F-Stop";
       IDD_FLEXIMAGE_LINEAR_GAMMA          "Gamma";
       IDD_FLEXIMAGE_CONTRAST_YWA          "Luminosité adaptée de l'Affichage/Monde";
       
-      IDG_FLEXIMAGE_FILE_FORMATS          "Format du Fichier de Sortie";
+      IDG_FLEXIMAGE_FILE_FORMATS          "FORMATAGE";
       IDD_FLEXIMAGE_WRITE_EXR             "Ecrire une image EXR";
       IDD_FLEXIMAGE_WRITE_PNG             "Ecrire une image PNG";
       IDD_FLEXIMAGE_WRITE_TGA             "Ecrire une image TGA";
@@ -191,8 +191,8 @@ STRINGTABLE VPluxc4dsettings
       IDD_TONEMAP_KERNEL_CONTRAST         "Contraste";
       IDD_TONEMAP_KERNEL_MAXWHITE         "Blanc Max.";
 
-      IDD_WRITE_CHANNELS_Y                "J";
-      IDD_WRITE_CHANNELS_YA               "J + alpha";
+      IDD_WRITE_CHANNELS_Y                "Niveaux de gris";
+      IDD_WRITE_CHANNELS_YA               "Niveaux de gris + alpha";
       IDD_WRITE_CHANNELS_RGB              "RVB";
       IDD_WRITE_CHANNELS_RGBA             "RVB + alpha";
 

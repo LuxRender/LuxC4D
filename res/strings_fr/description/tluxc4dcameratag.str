@@ -3,8 +3,8 @@
 //* (http://www.luxrender.net)                                           *
 //*                                                                      *
 //* Author:                                                              *
-//* Marcus Spranger (abstrax), Patrick Depoix (Spirou4D)                 *
-//*                                                                      *
+//* Marcus Spranger (abstrax)                                            *
+//* Trad. FR: Patrick Depoix (spirou4D)                                  *
 //************************************************************************
 //*                                                                      *
 //* This file is part of LuxC4D.                                         *
@@ -29,14 +29,14 @@ STRINGTABLE Tluxc4dcameratag
   
   
   IDG_DOF                 "Profondeur de champs";
-  IDD_ENABLE_DOF          "Activer la Profondeur de champ";
+  IDD_ENABLE_DOF          "Activer";
   IDD_USE_FSTOP           "Utiliser le F-Stop";
   IDD_FSTOP               "F-Stop";
   IDD_LENS_RADIUS         "Rayon de la lentille (mm)";
-  IDD_FOCUS_TYPE          "Type de mise au point";
+  IDD_FOCUS_TYPE          "Mise au point";
   IDD_FOCUS_OBJECT        "Objet de Référence";
-  IDD_BLADE_NUMBER        "Nombre de lames de l'obturateur";
-  IDD_LENS_SAMPLING_TYPE  "Type d'échantillonnage de la Lentille";
+  IDD_BLADE_NUMBER        "Lames (Obturateur)";
+  IDD_LENS_SAMPLING_TYPE  "Flou (Lentille)";
   IDD_EXPONENTIAL_POWER   "Exposant";
   
     IDD_FOCUS_TYPE_CAMERA     "Distance Focale";
@@ -48,4 +48,4 @@ STRINGTABLE Tluxc4dcameratag
     IDD_LENS_SAMPLING_INVERSE_EXPONENTIAL "Exponentiel Inverse";
     IDD_LENS_SAMPLING_GAUSSIAN            "Gaussien";
     IDD_LENS_SAMPLING_INVERSE_GAUSSIAN    "Gaussien Inverse";
-}";
+}

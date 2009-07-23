@@ -3,8 +3,8 @@
 //* (http://www.luxrender.net)                                           *
 //*                                                                      *
 //* Author:                                                              *
-//* Marcus Spranger (abstrax), Patrick Depoix (Spirou4D)                 *
-//*                                                                      *
+//* Marcus Spranger (abstrax)                                            *
+//* Trad. FR: Patrick Depoix (spirou4D)                                  *
 //************************************************************************
 //*                                                                      *
 //* This file is part of LuxC4D.                                         *
@@ -33,13 +33,13 @@ STRINGTABLE
   IDS_LUXC4D_EXPORTERRENDER       "Exportation + Rendu LuxC4D";
   IDS_LUXC4D_EXPORTERRENDER_DESCR "Exporter sous un fichier LuxRender et faites le rendu";
   
-  IDS_LUXC4D_SETTINGS         "Réglage de Scène LuxC4D";
+  IDS_LUXC4D_SETTINGS         "Réglages LuxC4D";
   
   IDS_LUXC4D_LIGHT_TAG        "Lumière LuxC4D";
   
   IDS_LUXC4D_CAMERA_TAG       "Caméra LuxC4D";
   
-  IDS_LUXC4D_PORTAL_TAG       "LuxC4D Portal Tag";
+  IDS_LUXC4D_PORTAL_TAG       "Portail LuxC4D";
   
   IDS_LUXC4D_MATERIAL_MATTE   "Mat";
   IDS_LUXC4D_MATERIAL_GLOSSY  "Luisant";

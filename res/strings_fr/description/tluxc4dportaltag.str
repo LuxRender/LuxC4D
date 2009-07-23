@@ -4,7 +4,7 @@
 //*                                                                      *
 //* Author:                                                              *
 //* Marcus Spranger (abstrax)                                            *
-//*                                                                      *
+//* Trad. Fr: Patrick Depoix (spirou4D)                                  *
 //************************************************************************
 //*                                                                      *
 //* This file is part of LuxC4D.                                         *
@@ -25,14 +25,14 @@
 
 STRINGTABLE Tluxc4dportaltag
 {
-  Tluxc4dportaltag "LuxC4D Portal Tag";
+  Tluxc4dportaltag "Portail LuxC4D";
   
   
-  IDD_PORTAL_ENABLED        "Enable Light Portal";
-  IDD_PORTAL_SIMPLIFY       "Simplify to Rectangle";
-  IDD_PORTAL_FACE_DIRECTION "Face Direction";
-  IDD_PORTAL_EXPORT_OBJECT  "Export Portal + Object";
-  IDD_PORTAL_FLIP_NORMALS   "Invert Normals";
+  IDD_PORTAL_ENABLED        "Activer";
+  IDD_PORTAL_SIMPLIFY       "Simplifier en Rectangle";
+  IDD_PORTAL_FACE_DIRECTION "Direction de la Face";
+  IDD_PORTAL_EXPORT_OBJECT  "Exporter Portail + Objet";
+  IDD_PORTAL_FLIP_NORMALS   "Inverser les Normales";
   
     IDD_PORTAL_FACE_DIR_X_PLUS  "X+";
     IDD_PORTAL_FACE_DIR_X_MINUS "X-";

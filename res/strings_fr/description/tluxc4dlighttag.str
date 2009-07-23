@@ -3,8 +3,8 @@
 //* (http://www.luxrender.net)                                           *
 //*                                                                      *
 //* Author:                                                              *
-//* Marcus Spranger (abstrax), Patrick Depoix (Spirou4D)                 *
-//*                                                                      *
+//* Marcus Spranger (abstrax)                                            *
+//* Trad. FR: Patrick Depoix (spirou4D)                                  *
 //************************************************************************
 //*                                                                      *
 //* This file is part of LuxC4D.                                         *
@@ -30,12 +30,12 @@ STRINGTABLE Tluxc4dlighttag
   
   IDD_LIGHT_TYPE                  "Type de Lumière";
   IDD_LIGHT_IGNORE_FALLOFF_RADIUS "Ignorer le Rayon d'atténuation C4D";
-  IDD_LIGHT_GROUP_NAME            "Light Group";                          // ***
+  IDD_LIGHT_GROUP_NAME            "Groupe de Lumière";  
   
     IDD_LIGHT_TYPE_AS_OBJECT  "Identique à l'Objet";
     IDD_LIGHT_TYPE_POINT      "Lumière Ponctuelle";
     IDD_LIGHT_TYPE_SPOT       "Lumière Spot";
-    IDD_LIGHT_TYPE_DISTANT    "Lumière Distante";
+    IDD_LIGHT_TYPE_DISTANT    "Lumière Infinie";
     IDD_LIGHT_TYPE_AREA       "Surface Lumineuse";
     IDD_LIGHT_TYPE_SUN        "Soleil";
     IDD_LIGHT_TYPE_SKY        "Ciel";
@@ -51,7 +51,7 @@ STRINGTABLE Tluxc4dlighttag
   IDD_SPOT_LIGHT_INNERANGLE         "Angle interne";
   IDD_SPOT_LIGHT_OUTERANGLE         "Angle externe";
   
-  IDG_DISTANT_LIGHT                 "Réglages de Lumière Distante";
+  IDG_DISTANT_LIGHT                 "Réglages de Lumière Infinie";
   IDD_DISTANT_LIGHT_COLOR           "Couleur";
   IDD_DISTANT_LIGHT_BRIGHTNESS      "Luminosité";
 
