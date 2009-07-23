@@ -2,7 +2,7 @@
 
 rem  Here you can configure the compression tool and the version number that will
 rem  be used in the archive filename.
-set VERSION=0.06beta
+set VERSION=0.06
 set PACKER_DIR=c:\program files\7-zip
 set PACKER="%PACKER_DIR%\7za.exe"
 set ARCHIVE_OPT=a -tzip -mx9
