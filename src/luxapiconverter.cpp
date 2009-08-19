@@ -170,12 +170,7 @@ void* LuxAPIConverter::Alloc(void)
 ///   The pointer to the HierarchyData instance to be deallocated.
 void LuxAPIConverter::Free(void* data)
 {
-  HierarchyData* hierarchyData = (HierarchyData*)data;
-  if (hierarchyData->mStartedNewScope) {
-    mReceiver->setComment("end of object '" + hierarchyData->mObjectName + "'");
-    mReceiver->attributeEnd();
-  }
-  gDelete(hierarchyData);
+  gDelete(data);
 }
 
 
@@ -190,6 +185,8 @@ void LuxAPIConverter::CopyTo(void* src, void* dst)
 {
   if (src && dst) {
     ((HierarchyData*)dst)->mVisible = ((HierarchyData*)src)->mVisible;
+    ((HierarchyData*)dst)->mMaterialName = ((HierarchyData*)src)->mMaterialName;
+    ((HierarchyData*)dst)->mMaterialIsEmissive = ((HierarchyData*)src)->mMaterialIsEmissive;
   }
 }
 
@@ -1098,9 +1095,8 @@ Bool LuxAPIConverter::exportGeometry(void)
   GeAssert(mReceiver);
 
   // open global attribute scope where the default material is defined
-  if (!mReceiver->setComment("start of world scope with default material") ||
-      !mReceiver->attributeBegin() ||
-      !mReceiver->namedMaterial("_default"))
+  if (!mReceiver->setComment("start of world scope") ||
+      !mReceiver->attributeBegin())
   {
     return FALSE;
   }
@@ -1108,6 +1104,7 @@ Bool LuxAPIConverter::exportGeometry(void)
   // traverse complete scene hierarchy and export all needed objects
   mDo = &LuxAPIConverter::doGeometryExport;
   HierarchyData data;
+  data.mMaterialName = "_default";
   if (!Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER | VFLAG_POLYGONAL, &data, 0)) {
     return FALSE;
   }
@@ -1159,21 +1156,12 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
 
   // if we have found a valid texture tag, export material
   if (textureTag && material) {
-    LuxString materialName;
-    Bool      hasEmissionChannel;
-    if (!exportMaterial(*textureTag, *material, materialName, hasEmissionChannel))  return FALSE;
-    hierarchyData.mStartedNewScope = TRUE;
-    hierarchyData.mObjectName = object.GetName();
-    if (!mReceiver->setComment("start of object '" + hierarchyData.mObjectName + "'"))  return FALSE;
-    if (!mReceiver->attributeBegin())  return FALSE;
-    if (!mReceiver->namedMaterial(materialName.c_str()))  return FALSE;
-    if (hasEmissionChannel) {
-      LuxParamSet areaParamSet(3);
-      LuxString   textureName = materialName + ".L";
-      LuxFloat    gain = 50.0f;
-      areaParamSet.addParam(LUX_TEXTURE, "L",    &textureName);
-      areaParamSet.addParam(LUX_FLOAT,   "gain", &gain);
-      if (!mReceiver->areaLightSource("area", areaParamSet))  return FALSE;
+    if (!exportMaterial(*textureTag,
+                        *material,
+                        hierarchyData.mMaterialName,
+                        hierarchyData.mMaterialIsEmissive))
+    {
+      return FALSE;
     }
   }
 
@@ -1193,18 +1181,15 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
   }
 #endif
 
-  // start new scope, if not done already (for the new default material)
-  if (!hierarchyData.mStartedNewScope) {
-    hierarchyData.mStartedNewScope = TRUE;
-    hierarchyData.mObjectName = object.GetName();
-    if (!mReceiver->setComment("start of object '" + hierarchyData.mObjectName + "'"))  return FALSE;
-    if (!mReceiver->attributeBegin())  return FALSE;
-  }
+  // start new attribute scope
+  hierarchyData.mObjectName = object.GetName();
+  if (!mReceiver->setComment("start of object '" + hierarchyData.mObjectName + "'"))  return FALSE;
+  if (!mReceiver->attributeBegin())  return FALSE;
 
   // check if object has portal tag and if it does, export it as portal shape
   BaseTag* portalTag = findTagForParamObject(&object, PID_LUXC4D_PORTAL_TAG);
+  Bool doObjectExport = TRUE;
   if (portalTag) {
-    Bool doObjectExport;
     if (!exportPortalObject((PolygonObject&)object,
                             globalMatrix,
                             *portalTag,
@@ -1212,11 +1197,29 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
     {
       return FALSE;
     }
-    if (!doObjectExport)  return TRUE;
   }
 
-  // export polygon object
-  return exportPolygonObject((PolygonObject&)object, globalMatrix);
+  // if we still want the object exported:
+  if (doObjectExport) {
+    // export material reference
+    if (!mReceiver->namedMaterial(hierarchyData.mMaterialName.c_str()))  return FALSE;
+    if (hierarchyData.mMaterialIsEmissive) {
+      LuxParamSet areaParamSet(3);
+      LuxString   textureName = hierarchyData.mMaterialName + ".L";
+      LuxFloat    gain = 50.0f;
+      areaParamSet.addParam(LUX_TEXTURE, "L",    &textureName);
+      areaParamSet.addParam(LUX_FLOAT,   "gain", &gain);
+      if (!mReceiver->areaLightSource("area", areaParamSet))  return FALSE;
+    }
+    // export polygon object
+    if (!exportPolygonObject((PolygonObject&)object, globalMatrix))  return FALSE;
+  }
+
+  // close attribute scope
+  if (!mReceiver->setComment("end of object '" + hierarchyData.mObjectName + "'"))  return FALSE;
+  if (!mReceiver->attributeEnd())  return FALSE;
+
+  return TRUE;
 }
 
 

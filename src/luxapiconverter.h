@@ -78,12 +78,14 @@ private:
   /// hierarchy traversal.
   struct HierarchyData {
 
-    Bool   mVisible;
-    Bool   mStartedNewScope;
-    String mObjectName;
+    Bool      mVisible;
+    String    mObjectName;
+    LuxString mMaterialName;
+    Bool      mMaterialIsEmissive;
 
-    HierarchyData(Bool visible=TRUE, Bool startedNewScope=FALSE)
-    : mVisible(visible), mStartedNewScope(startedNewScope)
+    HierarchyData(Bool visible=TRUE)
+    : mVisible(visible),
+      mMaterialIsEmissive(FALSE)
     {}
   };
  
