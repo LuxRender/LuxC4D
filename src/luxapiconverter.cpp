@@ -170,7 +170,8 @@ void* LuxAPIConverter::Alloc(void)
 ///   The pointer to the HierarchyData instance to be deallocated.
 void LuxAPIConverter::Free(void* data)
 {
-  gDelete(data);
+  HierarchyData* hierarchyData = (HierarchyData*)data;
+  gDelete(hierarchyData);
 }
 
 
