@@ -31,6 +31,13 @@
 #include <string>
 
 
+
+#ifndef MAXLONG
+#define MAXLONG (MAXLONGl)
+#endif
+
+
+
 /// Each enumeration specifies one type used by the Lux API.
 /// NOTE: Changes here must also be applied to cTokenType of
 ///       LuxAPIWriter::writeSetting().

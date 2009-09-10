@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="PropsBuildPluginRelease32"
+	InheritedPropertySheets=".\PropsBuildRelease32.vsprops"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		PreprocessorDefinitions="__PC;_WINDOWS"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		IgnoreImportLibrary="true"
+		AdditionalDependencies="_api_Win32_Release.lib"
+		OutputFile="$(OutDir)\$(ProjectName).cdl"
+		LinkIncremental="1"
+		AdditionalLibraryDirectories="$(C4D_ROOT)\resource\_api_lib"
+		GenerateManifest="false"
+		GenerateMapFile="true"
+		OptimizeReferences="2"
+		EnableCOMDATFolding="2"
+		LinkTimeCodeGeneration="1"
+		ImportLibrary="$(OutDir)\$(ProjectName).lib"
+		TargetMachine="1"
+	/>
+</VisualStudioPropertySheet>

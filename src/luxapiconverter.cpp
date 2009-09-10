@@ -1354,15 +1354,15 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
     Bool hasTransparency = getParameterLong(material, MATERIAL_USE_TRANSPARENCY);
     Bool hasReflection = getParameterLong(material, MATERIAL_USE_REFLECTION);
 
-    // D		-> diffuse
+    // D    -> diffuse
     if (hasDiffuse && !hasTransparency && !hasReflection) {
       success = exportDiffuseMaterial(mapping,
                                       (Material&)material,
                                       materialName,
                                       hasEmissionChannel);
-    // T		-> transparent
-    // TR		-> transparent
-    // DTR	-> transparent
+    // T    -> transparent
+    // TR   -> transparent
+    // DTR  -> transparent
     } else if ((!hasDiffuse && hasTransparency) ||
                (hasDiffuse && hasTransparency && hasReflection))
     {
@@ -1370,25 +1370,25 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
                                           (Material&)material,
                                           materialName,
                                           hasEmissionChannel);
-    // DT		-> translucent
+    // DT   -> translucent
     } else if (hasDiffuse && hasTransparency && !hasReflection) {
       success = exportTranslucentMaterial(mapping,
                                           (Material&)material,
                                           materialName,
                                           hasEmissionChannel);
-    // R		-> reflective
+    // R    -> reflective
     } else if (!hasDiffuse && !hasTransparency && hasReflection) {
       success = exportReflectiveMaterial(mapping,
                                          (Material&)material,
                                          materialName,
                                          hasEmissionChannel);
-    // DR		-> glossy
+    // DR   -> glossy
     } else if (hasDiffuse && !hasTransparency && hasReflection) {
       success = exportGlossyMaterial(mapping,
                                      (Material&)material,
                                      materialName,
                                      hasEmissionChannel);
-    // -		-> dummy
+    // -    -> dummy
     } else {
       success = exportDummyMaterial(material, materialName, hasEmissionChannel);
     }
@@ -2326,8 +2326,14 @@ Bool LuxAPIConverter::convertAndCacheObject(PolygonObject& object,
     UVWTag* uvwTag = (UVWTag*)object.GetTag(Tuvw);
     if (uvwTag && uvs.init(polygonCount*4)) {
       UVWStruct polygonUVWs;
+#if _C4D_VERSION>=115
+      const void* tagData = uvwTag->GetDataAddressR();
+      for (ULONG polygonIx=0; polygonIx<polygonCount; ++polygonIx) {
+        uvwTag->Get(tagData, (LONG)polygonIx, polygonUVWs);
+#else
       for (ULONG polygonIx=0; polygonIx<polygonCount; ++polygonIx) {
         polygonUVWs = uvwTag->Get((LONG)polygonIx);
+#endif
         uvs[polygonIx*4]   = polygonUVWs.a;
         uvs[polygonIx*4+1] = polygonUVWs.b;
         uvs[polygonIx*4+2] = polygonUVWs.c;

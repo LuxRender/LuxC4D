@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="PropsBuildOldPluginRelease32"
+	InheritedPropertySheets=".\PropsBuildPluginRelease32.vsprops"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		DisableSpecificWarnings="4985"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="_api_v8_Win32_Release.lib $(NOINHERIT)"
+	/>
+</VisualStudioPropertySheet>

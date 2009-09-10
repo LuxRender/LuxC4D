@@ -83,13 +83,13 @@ class AutoRef
     /// that different template classes are handled as different types that have
     /// no access to private/protected members of objects with other template
     /// parameters.
-    inline AutoRef(T* data, ULONG* count);
+    inline AutoRef(T* data, SizeT* count);
 
 
   private :
 
     T*     mData;
-    ULONG* mRefCount;
+    SizeT* mRefCount;
 };
 
 
@@ -111,7 +111,7 @@ inline AutoRef<T,array>::AutoRef(void)
 ///   Pointer to the data the AutoRef should be the reference of.
 template<class T, Bool array>
 inline AutoRef<T,array>::AutoRef(T* data)
-: mData(data), mRefCount(gNewNC ULONG(1))
+: mData(data), mRefCount(gNewNC SizeT(1))
 {
   if (!mRefCount) {
     ERRLOG_RETURN("AutoRef::AutoRef(): Could not allocate reference counter.");
@@ -341,7 +341,7 @@ inline AutoRef<T,array>::operator AutoRef<trgT,array>(void) const
 /// no access to private/protected members of objects with other template
 /// parameters.
 template<class T, Bool array>
-inline AutoRef<T,array>::AutoRef(T* data, ULONG* count)
+inline AutoRef<T,array>::AutoRef(T* data, SizeT* count)
 : mData(data), mRefCount(count)
 {
   if (mRefCount) { ++(*mRefCount); }
