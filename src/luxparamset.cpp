@@ -95,10 +95,10 @@ LuxParamSet::~LuxParamSet()
 ///   still owns the memory.
 /// @param[in]  arraySize
 ///   The size of te parameter array (default: 1) (must not be NULL).
-Bool LuxParamSet::addParam(LuxParamType type,
+Bool LuxParamSet::addParam(LuxParamType       type,
                            LuxParamName name,
-                           LuxParamRef  value,
-                           ULONG        arraySize)
+                           LuxParamRef        value,
+                           ULONG              arraySize)
 {
   // check if therer is still some space left
   if (mParamNumber >= mMaxParamNumber) {

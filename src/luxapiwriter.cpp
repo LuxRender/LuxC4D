@@ -539,7 +539,7 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
   // These are the type identifiers used in the Lux file format.
   // NOTE: Changes in LuxParamType must be applied here too.
   static const struct {
-    CHAR* nameStr;
+    const CHAR* nameStr;
     ULONG nameStrLen;
   } cTokenType[LUX_TYPE_NUMBER] =
     { {"bool ", 5},
@@ -595,7 +595,7 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
 
     // write token name and type
     success &= file.WriteBytes((void*)" \"", 2);
-    success &= file.WriteBytes(cTokenType[tokenType].nameStr, cTokenType[tokenType].nameStrLen);
+    success &= file.WriteBytes((void*)cTokenType[tokenType].nameStr, cTokenType[tokenType].nameStrLen);
     success &= file.WriteBytes(tokenName, (VLONG)strlen(tokenName));
     success &= file.WriteChar('"');
 

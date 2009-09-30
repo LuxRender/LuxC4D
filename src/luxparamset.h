@@ -49,10 +49,10 @@ public:
   LuxParamSet(LuxParamNumber maxParamNumber);
   ~LuxParamSet();
 
-  Bool addParam(LuxParamType type,
+  Bool addParam(LuxParamType       type,
                 LuxParamName name,
-                LuxParamRef  value,
-                ULONG        arraySize=1);
+                LuxParamRef        value,
+                ULONG              arraySize=1);
   void clear();
 
   inline LuxParamNumber      ParamNumber() const  { return mParamNumber; }
