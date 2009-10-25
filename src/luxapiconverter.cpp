@@ -2024,7 +2024,7 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
                            normals.arrayAddress(), normals.size());
   }
   if (uvs.size()) {
-    mTempParamSet.addParam(LUX_UV, "UV",
+    mTempParamSet.addParam(LUX_UV, "uv",
                            uvs.arrayAddress(), uvs.size());
   }
   mTempParamSet.addParam(LUX_TRIANGLE, "triindices",

@@ -28,6 +28,7 @@
 
 
 
+#include "fixarray1d.h"
 #include "luxc4dexporter.h"
 
 
@@ -46,6 +47,12 @@ public:
 
   Bool registerPlugin(void);
   virtual Bool Execute(BaseDocument* doc);
+  
+  
+private:
+  
+  Bool executeProgram(const Filename& programFileName,
+                      const Filename& sceneFileName);
 };
 
 

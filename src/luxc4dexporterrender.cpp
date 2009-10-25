@@ -62,7 +62,14 @@ Bool LuxC4DExporterRender::Execute(BaseDocument* document)
     GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_EMPTY), GEMB_OK);
     return FALSE;
   }
-  if (!GeFExist(luxPath)) {
+#ifdef __MAC
+  if (GeFExist(luxPath, TRUE)) {
+    luxPath += "Contents";
+    luxPath += "MacOS";
+    luxPath += "LuxRender";
+  }
+#endif
+  if (!GeFExist(luxPath, FALSE)) {
     GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_DOESNT_EXIST, luxPath.GetString()), GEMB_OK);
     return FALSE;
   }
@@ -73,10 +80,78 @@ Bool LuxC4DExporterRender::Execute(BaseDocument* document)
   }
 
   // call Lux
-  if (!GeExecuteProgram(luxPath, mExportedFile)) {
+  if (!executeProgram(luxPath, mExportedFile)) {
     GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_EXECUTE, luxPath.GetString()), GEMB_OK);
     return FALSE;
   }
 
+  return TRUE;
+}
+
+
+
+/*****************************************************************************
+ * Implementation of private member functions of class LuxC4DExporterRender.
+ *****************************************************************************/
+
+///
+Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
+                                          const Filename& sceneFileName)
+{
+#ifdef __PC
+  const String cLaunchScriptName("launch.bat");
+  const String cCommandLinePrefix;
+  const String cCommandLineSuffix;
+#else
+  const String cLaunchScriptName("launch.sh");
+  const String cCommandLinePrefix;
+  const String cCommandLineSuffix(" &");
+#endif
+  
+  // open new script file
+  Filename scriptFileName(GeGetPluginPath());
+  scriptFileName += cLaunchScriptName;
+  AutoAlloc<BaseFile> scriptFile;
+  if (!scriptFile->Open(scriptFileName, GE_WRITE, FILE_NODIALOG)) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxC4DExporterRender::executeProgram(): could not open launch script '" + scriptFileName.GetString() + "'" );
+  }
+  
+  // build command line
+  String commandLine;
+  commandLine = cCommandLinePrefix
+                + "\"" + programFileName.GetString() + "\""
+                + " \"" + sceneFileName.GetString() + "\""
+                + cCommandLineSuffix + "\n";
+  
+  // copy command line into CHAR buffer
+  SizeT bufferSize = commandLine.GetCStringLen() + 1;
+  CHAR* buffer = gNewNC CHAR[bufferSize];
+  if (!buffer) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxC4DExporterRender::executeProgram(): not enough memory for output buffer");
+  }
+  LONG commandLineLen = commandLine.GetCString(buffer, bufferSize);
+                         
+  // write CHAR buffer
+  scriptFile->WriteBytes(buffer, commandLineLen);
+  
+  // close script file and set attributes to make it an executable
+  scriptFile->Close();
+  GeFSetAttributes(scriptFileName,
+                   GE_FILE_ATTRIBUTE_OWNER_R |
+                   GE_FILE_ATTRIBUTE_OWNER_W |
+                   GE_FILE_ATTRIBUTE_OWNER_X |
+                   GE_FILE_ATTRIBUTE_GROUP_R |
+                   GE_FILE_ATTRIBUTE_GROUP_W |
+                   GE_FILE_ATTRIBUTE_GROUP_X |
+                   GE_FILE_ATTRIBUTE_PUBLIC_R |
+                   GE_FILE_ATTRIBUTE_PUBLIC_W |
+                   GE_FILE_ATTRIBUTE_PUBLIC_X);
+
+  // runs script
+  if (!GeExecuteProgram(scriptFileName, Filename())) {
+    GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_EXECUTE, scriptFileName.GetString()), GEMB_OK);
+    return FALSE;
+  }
+    
   return TRUE;
 }
