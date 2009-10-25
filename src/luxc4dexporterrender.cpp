@@ -62,7 +62,9 @@ Bool LuxC4DExporterRender::Execute(BaseDocument* document)
     GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_EMPTY), GEMB_OK);
     return FALSE;
   }
+
 #ifdef __MAC
+  // on MacOS, LuxRender is stored in a bundle 
   if (GeFExist(luxPath, TRUE)) {
     luxPath += "Contents";
     luxPath += "MacOS";
@@ -94,21 +96,38 @@ Bool LuxC4DExporterRender::Execute(BaseDocument* document)
  * Implementation of private member functions of class LuxC4DExporterRender.
  *****************************************************************************/
 
+/// This helper launches a progam using a script. There are 2 reasons for this
+/// workaround:
+///   1. You can't pass more than one parameter to the application if you use
+///      GeExecuteProgram().
+///   2. GeExecuteProgram() didn't work on MacOS, while trying to launch
+///      LuxRender with an .lxs scene file.
+/// So what we do now, is to create a launch script (launch.bat on Windows and
+/// launch.sh on MacOS) that is then executed.
 ///
+/// At the moment we pass in the scene file name directly, but I will probably
+/// extent this function so that you pass in an array of arguments, which can
+/// then include a scene file and other stuff (e.g. "--noopengl").
+///
+/// @param[in]  programFileName
+///   The full path of the application to launch.
+/// @param[in]  sceneFileName
+///   The full path of the scene file to open.
+/// @return
+///   TRUE if executed successfully (the application was launched), FALSE
+///   otherwise.
 Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
                                           const Filename& sceneFileName)
 {
 #ifdef __PC
   const String cLaunchScriptName("launch.bat");
-  const String cCommandLinePrefix;
   const String cCommandLineSuffix;
 #else
   const String cLaunchScriptName("launch.sh");
-  const String cCommandLinePrefix;
   const String cCommandLineSuffix(" &");
 #endif
   
-  // open new script file
+  // open new script file, which will be stored in the plugin directory
   Filename scriptFileName(GeGetPluginPath());
   scriptFileName += cLaunchScriptName;
   AutoAlloc<BaseFile> scriptFile;
@@ -118,21 +137,21 @@ Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
   
   // build command line
   String commandLine;
-  commandLine = cCommandLinePrefix
-                + "\"" + programFileName.GetString() + "\""
-                + " \"" + sceneFileName.GetString() + "\""
-                + cCommandLineSuffix + "\n";
+  commandLine = "\"" + programFileName.GetString() + "\"" +
+                " \"" + sceneFileName.GetString() + "\"" +
+                cCommandLineSuffix + "\n";
   
   // copy command line into CHAR buffer
   SizeT bufferSize = commandLine.GetCStringLen() + 1;
-  CHAR* buffer = gNewNC CHAR[bufferSize];
+  CHAR* buffer = bNewNC CHAR[bufferSize];
   if (!buffer) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxC4DExporterRender::executeProgram(): not enough memory for output buffer");
   }
   LONG commandLineLen = commandLine.GetCString(buffer, bufferSize);
                          
-  // write CHAR buffer
+  // write CHAR buffer and free buffer again
   scriptFile->WriteBytes(buffer, commandLineLen);
+  bDelete(buffer);
   
   // close script file and set attributes to make it an executable
   scriptFile->Close();
