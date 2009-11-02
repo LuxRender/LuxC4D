@@ -223,6 +223,8 @@ private:
   BaseContainer*  mC4DRenderSettings;
   LuxC4DSettings* mLuxC4DSettings;
   LReal           mC4D2LuxScale;
+  Real            mBumpSampleDistance;
+  Real            mTextureGamma;
 
   // temporary data stored during the conversion and shared between
   // several functions

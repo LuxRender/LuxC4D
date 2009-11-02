@@ -75,7 +75,9 @@ public:
   void getExportFilename(BaseDocument& document,
                          Filename&     path,
                          Bool&         overwritingAllowed);
-  LReal getC4D2LuxScale(void);
+  Real getC4D2LuxScale(void);
+  Real getBumpSampleDistance(void);
+  Real getTextureGamma(void);
 
 
 private:

@@ -35,7 +35,8 @@
 ///   The info structure that describes the properties/channels of the
 ///   material.
 LuxMaterialData::LuxMaterialData(const LuxMaterialInfo& info)
-: mInfo(&info)
+: mInfo(&info),
+  mBumpSampleDistance(0.0)
 {
   if (!mChannels.init(mInfo->mChannelCount)) {
     ERRLOG(String("LuxMaterialData::LuxMaterialData(): could not initialise channels for material '")
@@ -115,6 +116,12 @@ Bool LuxMaterialData::hasEmissionChannel(void)
 }
 
 
+void LuxMaterialData::setBumpSampleDistance(LuxFloat bumpSampleDistance)
+{
+  mBumpSampleDistance = bumpSampleDistance;
+}
+
+
 /// Sends the complete material and its textures to a Lux API receiver.
 ///
 /// @param[in]  receiver
@@ -122,18 +129,27 @@ Bool LuxMaterialData::hasEmissionChannel(void)
 /// @param[in]  name
 ///   The name under which the material will be exported. It can then later be
 ///   referenced by it.
+/// @param[in]  addParams
+///   Pointer to an additional set of parameters for the material (can be NULL).
 /// @return
 ///   TRUE if successful, FALSE otherwise.
-Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
-                                const LuxString& name)
+Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
+                                const LuxString&   name,
+                                const LuxParamSet* addParams)
 {
   // initialise parameter set (the maximum possible number of parameters is
   // channel count + 1 (for the material type))
-  LuxParamSet paramSet(mInfo->mChannelCount + 1);
+  LuxParamSet paramSet(mInfo->mChannelCount + 1 +
+                       (addParams ? addParams->paramNumber() : 0));
 
   // add material type to parameter set
   LuxString type(mInfo->mName);
   paramSet.addParam(LUX_STRING, "type", &type);
+
+  // add additional parameters
+  if (addParams) {
+    paramSet.add(*addParams);
+  }
 
   // loop over active channels, export their textures and add them to parameter
   // set
@@ -166,6 +182,11 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
     if (!mEmissionChannel.mTexture->sendToAPI(receiver, name + ".L")) {
       ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::sendToAPI(): texture export failed");
     }
+  }
+
+  // set bump sample distance, if it's not 0.0
+  if (mBumpSampleDistance > 0.000000000001) {
+    paramSet.addParam(LUX_FLOAT, "bumpmapsampledistance", &mBumpSampleDistance);
   }
 
   // write materials

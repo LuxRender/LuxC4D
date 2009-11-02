@@ -218,5 +218,7 @@ STRINGTABLE VPluxc4dsettings
       IDD_DEFINE_EXPORT_FILENAME          "Define Filename Here";
 
     IDD_SCALE_FACTOR                    "C4D -> Lux Scale Factor";
-
+    IDD_EXPORT_BUMP_SAMPLE_DISTANCE     "Export Bump Sample Distance";
+    IDD_BUMP_SAMPLE_DISTANCE            "Bump Sample Distance";
+    IDD_TEXTURE_GAMMA_CORRECTION        "Texture Gamma Correction";
 }

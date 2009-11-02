@@ -147,11 +147,11 @@ Bool LuxAPIWriter::endScene(void)
   success &= writeLine(*mSceneFile, "WorldBegin\n");
   ( String("Include \"")
     + mMaterialsFilename.GetFileString() 
-    + String("\"") ).GetCString(buffer, cBufferSize, StUTF8);
+    + String("\"") ).GetCString(buffer, cBufferSize, StXbit);
   success &= writeLine(*mSceneFile, buffer);
   ( String("Include \"")
     + mObjectsFilename.GetFileString() 
-    + String("\"") ).GetCString(buffer, cBufferSize, StUTF8);
+    + String("\"") ).GetCString(buffer, cBufferSize, StXbit);
   success &= writeLine(*mSceneFile, buffer);
   success &= writeLine(*mSceneFile, "\nWorldEnd");
 
@@ -579,19 +579,19 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
   }
 
   // write parameters
-  CHAR          valueString[128];
-  VLONG         valueStringLen;
+  CHAR         valueString[128];
+  VLONG        valueStringLen;
   LuxParamType tokenType;
   LuxParamName tokenName;
   LuxParamRef  tokenValue;
-  ULONG         tokenArraySize;
-  for (LuxParamNumber c=0; c<paramSet.ParamNumber(); ++c) {
+  ULONG        tokenArraySize;
+  for (LuxParamNumber c=0; c<paramSet.paramNumber(); ++c) {
 
     // for convenience store token data in local variables
-    tokenType      = paramSet.ParamTypes()[c];
-    tokenName      = paramSet.ParamNames()[c];
-    tokenValue     = paramSet.ParamValues()[c];
-    tokenArraySize = paramSet.ParamArraySizes()[c];
+    tokenType      = paramSet.paramTypes()[c];
+    tokenName      = paramSet.paramNames()[c];
+    tokenValue     = paramSet.paramValues()[c];
+    tokenArraySize = paramSet.paramArraySizes()[c];
 
     // write token name and type
     success &= file.WriteBytes((void*)" \"", 2);

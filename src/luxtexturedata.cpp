@@ -66,7 +66,6 @@ Bool LuxTextureData::sendToAPIAndAddToParamSet(LuxAPI&                receiver,
 void LuxTextureData::add2DMapping(LuxParamSet& paramSet)
 {
   paramSet.addParam(LUX_STRING, "mapping", &mMapping.mMappingType);
-  if (mMapping.mHasDefaultParams) { return; }
   paramSet.addParam(LUX_FLOAT,  "uscale", &mMapping.mUScale);
   paramSet.addParam(LUX_FLOAT,  "vscale", &mMapping.mVScale);
   paramSet.addParam(LUX_FLOAT,  "udelta", &mMapping.mUShift);
@@ -99,14 +98,14 @@ Bool LuxTextureData::isConstant() const
 
 const LuxFloat& LuxTextureData::constantFloat()
 {
-  static const LuxFloat cDummy(0.0f);
+  static const LuxFloat cDummy(0.0);
   return cDummy;
 }
 
 
 const LuxColor& LuxTextureData::constantColor()
 {
-  static const LuxColor cDummy(0.0f);
+  static const LuxColor cDummy(0.0);
   return cDummy;
 }
 
@@ -196,7 +195,7 @@ const LuxFloat& LuxMixTextureData::constantFloat()
   GeAssert(mTexture1);
   GeAssert(mTexture2);
 
-  mConstantFloat = mTexture1->constantFloat() * (1.0f - mAmount) +
+  mConstantFloat = mTexture1->constantFloat() * (1.0 - mAmount) +
                    mTexture2->constantFloat() * mAmount;
   return mConstantFloat;
 }
@@ -207,7 +206,7 @@ const LuxColor& LuxMixTextureData::constantColor()
   GeAssert(mTexture1);
   GeAssert(mTexture2);
 
-  mConstantColor = mTexture1->constantColor() * (1.0f - mAmount) +
+  mConstantColor = mTexture1->constantColor() * (1.0 - mAmount) +
                    mTexture2->constantColor() * mAmount;
   return mConstantColor;
 }
@@ -282,9 +281,9 @@ Bool LuxConstantTextureData::sendToAPI(LuxAPI&          receiver,
   LuxParamSet paramSet(1);
 
   if (mType == LUX_FLOAT_TEXTURE) {
-    paramSet.addParam(LUX_FLOAT, "value", (void*)&mFloat);
+    paramSet.addParam(LUX_FLOAT, "value", &mFloat);
   } else {
-    paramSet.addParam(LUX_COLOR, "value", (void*)&mColor);
+    paramSet.addParam(LUX_COLOR, "value", &mColor);
   }
   return sendToAPIHelper(receiver, name, "constant", paramSet);
 }
@@ -296,15 +295,18 @@ Bool LuxConstantTextureData::sendToAPI(LuxAPI&          receiver,
  *****************************************************************************/
 
 LuxImageMapData::LuxImageMapData(LuxTextureType type)
-: LuxTextureData(type)
+: LuxTextureData(type),
+  mGamma(1.0)
 {}
 
 
 LuxImageMapData::LuxImageMapData(LuxTextureType        type,
                                  const TextureMapping& mapping,
-                                 const Filename&       path)
+                                 const Filename&       path,
+                                 LuxFloat              gamma)
 : LuxTextureData(type),
-  mPath(path)
+  mPath(path),
+  mGamma(gamma)
 {
   mMapping = mapping;
 }
@@ -313,11 +315,14 @@ LuxImageMapData::LuxImageMapData(LuxTextureType        type,
 Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
                                 const LuxString& name)
 {
-  LuxParamSet paramSet(9);
+  LuxParamSet paramSet(10);
   LuxString   imagePath;
 
   convert2LuxString(mPath, imagePath);
   paramSet.addParam(LUX_STRING, "filename", &imagePath);
+  if (abs(mGamma-1.0) > 0.001) {
+    paramSet.addParam(LUX_FLOAT, "gamma", &mGamma);
+  }
   add2DMapping(paramSet);
   return sendToAPIHelper(receiver, name, "imagemap", paramSet);
 }

@@ -82,6 +82,7 @@ Bool LuxC4DExporterRender::Execute(BaseDocument* document)
   }
 
   // call Lux
+  //if (!GeExecuteProgram(luxPath, mExportedFile)) {
   if (!executeProgram(luxPath, mExportedFile)) {
     GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_EXECUTE, luxPath.GetString()), GEMB_OK);
     return FALSE;
@@ -96,18 +97,12 @@ Bool LuxC4DExporterRender::Execute(BaseDocument* document)
  * Implementation of private member functions of class LuxC4DExporterRender.
  *****************************************************************************/
 
-/// This helper launches a progam using a script. There are 2 reasons for this
-/// workaround:
-///   1. You can't pass more than one parameter to the application if you use
-///      GeExecuteProgram().
-///   2. GeExecuteProgram() didn't work on MacOS, while trying to launch
-///      LuxRender with an .lxs scene file.
-/// So what we do now, is to create a launch script (launch.bat on Windows and
-/// launch.sh on MacOS) that is then executed.
-///
-/// At the moment we pass in the scene file name directly, but I will probably
-/// extent this function so that you pass in an array of arguments, which can
-/// then include a scene file and other stuff (e.g. "--noopengl").
+#ifdef __PC
+
+#include <process.h>
+
+/// This helper launches a progam using a direct OS call. This way we can pass
+/// more than only one argument and other stuff (e.g. "--noopengl") in the future.
 ///
 /// @param[in]  programFileName
 ///   The full path of the application to launch.
@@ -119,58 +114,56 @@ Bool LuxC4DExporterRender::Execute(BaseDocument* document)
 Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
                                           const Filename& sceneFileName)
 {
-#ifdef __PC
-  const String cLaunchScriptName("launch.bat");
-  const String cCommandLineSuffix;
-#else
-  const String cLaunchScriptName("launch.sh");
-  const String cCommandLineSuffix(" &");
-#endif
-  
-  // open new script file, which will be stored in the plugin directory
-  Filename scriptFileName(GeGetPluginPath());
-  scriptFileName += cLaunchScriptName;
-  AutoAlloc<BaseFile> scriptFile;
-  if (!scriptFile->Open(scriptFileName, GE_WRITE, FILE_NODIALOG)) {
-    ERRLOG_RETURN_VALUE(FALSE, "LuxC4DExporterRender::executeProgram(): could not open launch script '" + scriptFileName.GetString() + "'" );
-  }
-  
-  // build command line
-  String commandLine;
-  commandLine = "\"" + programFileName.GetString() + "\"" +
-                " \"" + sceneFileName.GetString() + "\"" +
-                cCommandLineSuffix + "\n";
-  
-  // copy command line into CHAR buffer
-  SizeT bufferSize = commandLine.GetCStringLen() + 1;
-  CHAR* buffer = bNewNC CHAR[bufferSize];
-  if (!buffer) {
-    ERRLOG_RETURN_VALUE(FALSE, "LuxC4DExporterRender::executeProgram(): not enough memory for output buffer");
-  }
-  LONG commandLineLen = commandLine.GetCString(buffer, bufferSize);
-                         
-  // write CHAR buffer and free buffer again
-  scriptFile->WriteBytes(buffer, commandLineLen);
-  bDelete(buffer);
-  
-  // close script file and set attributes to make it an executable
-  scriptFile->Close();
-  GeFSetAttributes(scriptFileName,
-                   GE_FILE_ATTRIBUTE_OWNER_R |
-                   GE_FILE_ATTRIBUTE_OWNER_W |
-                   GE_FILE_ATTRIBUTE_OWNER_X |
-                   GE_FILE_ATTRIBUTE_GROUP_R |
-                   GE_FILE_ATTRIBUTE_GROUP_W |
-                   GE_FILE_ATTRIBUTE_GROUP_X |
-                   GE_FILE_ATTRIBUTE_PUBLIC_R |
-                   GE_FILE_ATTRIBUTE_PUBLIC_W |
-                   GE_FILE_ATTRIBUTE_PUBLIC_X);
+  static const SizeT cStrBufferSize = 2048;
 
-  // runs script
-  if (!GeExecuteProgram(scriptFileName, Filename())) {
-    GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_EXECUTE, scriptFileName.GetString()), GEMB_OK);
-    return FALSE;
-  }
-    
-  return TRUE;
+  String  programFileNameStr, sceneFileNameStr;
+  wchar_t programFileNameCStr[cStrBufferSize];
+  wchar_t programFileNameCStr2[cStrBufferSize];
+  wchar_t sceneFileNameCStr[cStrBufferSize];
+
+  // make sure that the assumption is correct that wchar_t == UWORD
+  GeAssert( sizeof(wchar_t) == sizeof(UWORD) );
+
+  // copy UNICODE filenames into C strings
+  programFileNameStr = programFileName.GetString();
+  programFileNameStr.GetUcBlockNull((UWORD*)programFileNameCStr,
+                                    cStrBufferSize);
+  programFileNameStr = "\"" + programFileNameStr + "\"";
+  programFileNameStr.GetUcBlockNull((UWORD*)programFileNameCStr2,
+                                    cStrBufferSize);
+  sceneFileNameStr = "\"" + sceneFileName.GetString() + "\"";
+  sceneFileNameStr.GetUcBlockNull((UWORD*)sceneFileNameCStr,
+                                  cStrBufferSize);
+
+  // start new process
+  return _wspawnl(_P_NOWAITO,
+                  programFileNameCStr,
+                  programFileNameCStr2,
+                  sceneFileNameCStr,
+                  0)
+                  >= 0 ? TRUE : FALSE;
 }
+
+#else
+
+/// This helper launches a progam using a direct OS call. This way we can pass
+/// more than only one argument and other stuff (e.g. "--noopengl") in the future.
+///
+/// On Mac OS we do this also to make LuxRender actually open the scene file
+/// which is not working using GeExecuteProgram(). In builds for C4D R9.6, we
+/// also convert the filenames from HFS style to POSIX.
+///
+/// @param[in]  programFileName
+///   The full path of the application to launch.
+/// @param[in]  sceneFileName
+///   The full path of the scene file to open.
+/// @return
+///   TRUE if executed successfully (the application was launched), FALSE
+///   otherwise.
+Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
+                                          const Filename& sceneFileName)
+{
+  return GeExecuteProgram(programFileName, sceneFileName);
+}
+
+#endif  // #ifdef __PC

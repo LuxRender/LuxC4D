@@ -78,6 +78,19 @@ Bool LuxC4DSettings::Init(GeListNode* node)
     }
   }
 
+  // get render gamma
+  Real renderGamma;
+  if (c4dRenderSettings) {
+    renderGamma = c4dRenderSettings->GetReal(RDATA_RENDERGAMMA);
+  } else {
+#ifdef __MAC
+    renderGamma = 1.8;
+#else
+    renderGamma = 2.2;
+#endif
+  }
+
+
   // obtain container from node
   BaseContainer* data = getData();
   if (!data)  return FALSE;
@@ -147,15 +160,7 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   // set film parameters
   data->SetLong(IDD_FILM,                             IDD_FILM_FLEXIMAGE);
   data->SetLong(IDD_FLEXIMAGE_HALT_SPP,               0);
-  if (c4dRenderSettings) {
-    data->SetReal(IDD_FLEXIMAGE_GAMMA,                  c4dRenderSettings->GetReal(RDATA_RENDERGAMMA));
-  } else {
-#ifdef __MAC
-    data->SetReal(IDD_FLEXIMAGE_GAMMA,                  1.8);
-#else
-    data->SetReal(IDD_FLEXIMAGE_GAMMA,                  2.2);
-#endif
-  }
+  data->SetReal(IDD_FLEXIMAGE_GAMMA,                  renderGamma);
   data->SetBool(IDD_FLEXIMAGE_PREMULTIPLY,            FALSE);
   data->SetReal(IDD_FLEXIMAGE_DISPLAY_INTERVAL,       12);
   data->SetReal(IDD_FLEXIMAGE_WRITE_INTERVAL,         120);
@@ -187,9 +192,12 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetBool(IDD_FLEXIMAGE_TGA_GAMUT_CLAMP,        TRUE);
 
   // set export defaults
-  data->SetLong(IDD_WHICH_EXPORT_FILENAME, IDD_ASK_FOR_EXPORT_FILENAME);
-  data->SetBool(IDD_ALLOW_OVERWRITING,     FALSE);
-  data->SetReal(IDD_SCALE_FACTOR,          0.01);
+  data->SetLong(IDD_WHICH_EXPORT_FILENAME,       IDD_ASK_FOR_EXPORT_FILENAME);
+  data->SetBool(IDD_ALLOW_OVERWRITING,           FALSE);
+  data->SetReal(IDD_SCALE_FACTOR,                0.01);
+  data->SetBool(IDD_EXPORT_BUMP_SAMPLE_DISTANCE, TRUE);
+  data->SetReal(IDD_BUMP_SAMPLE_DISTANCE,        0.001);
+  data->SetReal(IDD_TEXTURE_GAMMA_CORRECTION,    renderGamma);
 
   return TRUE;
 }
@@ -315,13 +323,13 @@ Bool LuxC4DSettings::SetDParameter(GeListNode*   node,
       !data->GetBool(IDD_ADVANCED_SAMPLER))
   {
     // convert the strength to a large mutation probability
-    data->SetReal(IDD_METROPOLIS_LARGE_MUTATION_PROB, 1.0f - value.GetReal());
+    data->SetReal(IDD_METROPOLIS_LARGE_MUTATION_PROB, 1.0 - value.GetReal());
   // Metropolis + advanced:
   } else if ((id == DescID(IDD_METROPOLIS_LARGE_MUTATION_PROB)) &&
              data->GetBool(IDD_ADVANCED_SAMPLER))
   {
     // convert the large mutation probability to strength
-    data->SetReal(IDD_METROPOLIS_STRENGTH, 1.0f - value.GetReal());
+    data->SetReal(IDD_METROPOLIS_STRENGTH, 1.0 - value.GetReal());
   }
 
   // Bidirectional + not advanced:
@@ -874,12 +882,34 @@ void LuxC4DSettings::getExportFilename(BaseDocument& document,
 
 
 /// Returns the global scale from the settings object.
-LReal LuxC4DSettings::getC4D2LuxScale(void)
+Real LuxC4DSettings::getC4D2LuxScale(void)
 {
   // get base container and return the scale factor from it
   BaseContainer* data = getData();
-  if (!data)  return 0.01;
+  if (!data) { return 0.01; }
   return data->GetReal(IDD_SCALE_FACTOR);
+}
+
+/// Returns the bump sample distance, that should be used for bump mapping or
+/// 0.0 if the bump sample distance shouldn't be exported.
+Real LuxC4DSettings::getBumpSampleDistance(void)
+{
+  // get base container and return the bump sample distance from it
+  BaseContainer* data = getData();
+  if (!data || !data->GetBool(IDD_EXPORT_BUMP_SAMPLE_DISTANCE)) {
+    return 0.0;
+  }
+  return data->GetReal(IDD_BUMP_SAMPLE_DISTANCE);
+}
+
+
+/// Returns the gamma correction that should be used for bitmap textures.
+Real LuxC4DSettings::getTextureGamma(void)
+{
+  // get base container and return the texture gamma from it
+  BaseContainer* data = getData();
+  if (!data) { return 0.0; }
+  return data->GetReal(IDD_TEXTURE_GAMMA_CORRECTION, 1.0);
 }
 
 

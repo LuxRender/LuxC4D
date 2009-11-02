@@ -106,9 +106,11 @@ class LuxMaterialData
                     LuxTextureDataH texture);
     Bool setEmissionChannel(LuxTextureDataH texture);
     Bool hasEmissionChannel(void);
+    void setBumpSampleDistance(LuxFloat bumpSampleDistance);
 
-    Bool sendToAPI(LuxAPI&          receiver,
-                   const LuxString& name);
+    Bool sendToAPI(LuxAPI&            receiver,
+                   const LuxString&   name,
+                   const LuxParamSet* addParams);
 
 
   protected:
@@ -116,6 +118,7 @@ class LuxMaterialData
     const LuxMaterialInfo*         mInfo;
     FixArray1D<LuxMaterialChannel> mChannels;
     LuxMaterialChannel             mEmissionChannel;
+    LuxFloat                       mBumpSampleDistance;
 
 
   private:

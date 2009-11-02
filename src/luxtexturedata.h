@@ -209,13 +209,15 @@ class LuxImageMapData : public LuxTextureData
 {
   public:
 
-    Filename       mPath;
+    Filename mPath;
+    LuxFloat mGamma;
 
 
     LuxImageMapData(LuxTextureType type);
     LuxImageMapData(LuxTextureType        type,
                     const TextureMapping& mapping,
-                    const Filename&       path );
+                    const Filename&       path,
+                    LuxFloat              gamma);
 
 
   protected:

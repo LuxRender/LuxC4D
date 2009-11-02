@@ -49,17 +49,18 @@ public:
   LuxParamSet(LuxParamNumber maxParamNumber);
   ~LuxParamSet();
 
-  Bool addParam(LuxParamType       type,
+  Bool addParam(LuxParamType type,
                 LuxParamName name,
-                LuxParamRef        value,
-                ULONG              arraySize=1);
+                LuxParamRef  value,
+                ULONG        arraySize=1);
+  Bool add(const LuxParamSet& other);
   void clear();
 
-  inline LuxParamNumber      ParamNumber() const  { return mParamNumber; }
-  inline const LuxParamType* ParamTypes() const  { return mParamTypes; }
-  inline const LuxParamName* ParamNames() const  { return mParamNames; }
-  inline const LuxParamRef*  ParamValues() const  { return mParamValues; }
-  inline const ULONG*        ParamArraySizes() const  { return mParamArraySizes; }
+  inline LuxParamNumber      paramNumber() const  { return mParamNumber; }
+  inline const LuxParamType* paramTypes() const  { return mParamTypes; }
+  inline const LuxParamName* paramNames() const  { return mParamNames; }
+  inline const LuxParamRef*  paramValues() const  { return mParamValues; }
+  inline const ULONG*        paramArraySizes() const  { return mParamArraySizes; }
 
 
 private:

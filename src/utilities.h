@@ -73,11 +73,13 @@ void debugLog(const CHAR* format, ...);
 
 void debugLog(const String& msg);
 
-void convert2LuxString(const String& c4dString,
-                       LuxString&    luxString);
+void convert2LuxString(const String&  c4dString,
+                       LuxString&     luxString,
+                       StringEncoding encoding=StXbit);
 
 void convert2LuxString(const Filename& c4dPath,
-                       LuxString&      luxString);
+                       LuxString&      luxString,
+                       StringEncoding  encoding=StXbit);
 
 void showParameter(Description* description,
                    LONG         paramID,

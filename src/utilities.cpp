@@ -62,11 +62,12 @@ void debugLog(const String& msg)
 ///   The C4D String object to convert.
 /// @param[out]  luxString
 ///   The LuxString where the content of the C4D String will be stored.
-void convert2LuxString(const String& c4dString,
-                       LuxString&    luxString)
+void convert2LuxString(const String&  c4dString,
+                       LuxString&     luxString,
+                       StringEncoding encoding)
 {
   CHAR buffer[2048];
-  c4dString.GetCString(buffer, sizeof(buffer));
+  c4dString.GetCString(buffer, sizeof(buffer), encoding);
   buffer[sizeof(buffer)-1] = '\0';
   luxString = buffer;
 }
@@ -79,10 +80,11 @@ void convert2LuxString(const String& c4dString,
 /// @param[out]  luxString
 ///   The LuxString where the content of the C4D Filename will be stored.
 void convert2LuxString(const Filename& c4dPath,
-                       LuxString&      luxString)
+                       LuxString&      luxString,
+                       StringEncoding  encoding)
 {
   CHAR buffer[2048];
-  c4dPath.GetString().GetCString(buffer, sizeof(buffer));
+  c4dPath.GetString().GetCString(buffer, sizeof(buffer), encoding);
   buffer[sizeof(buffer)-1] = '\0';
 
   for (CHAR* c=buffer; *c!='\0'; ++c) {

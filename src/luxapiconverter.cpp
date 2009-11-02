@@ -280,8 +280,13 @@ Bool LuxAPIConverter::obtainGlobalSceneData(void)
   // obtain global scene scale which is applied to everything
   if (mLuxC4DSettings) {
     mC4D2LuxScale = mLuxC4DSettings->getC4D2LuxScale();
+    mBumpSampleDistance = mLuxC4DSettings->getBumpSampleDistance() *
+                          mC4D2LuxScale;
+    mTextureGamma = mLuxC4DSettings->getTextureGamma();
   } else {
     mC4D2LuxScale = 0.01;
+    mBumpSampleDistance = 0.001 * mC4D2LuxScale;
+    mTextureGamma = mC4DRenderSettings->GetReal(RDATA_RENDERGAMMA);
   }
 
   // obtain stage object if there is one
@@ -476,8 +481,8 @@ Bool LuxAPIConverter::exportPixelFilter(void)
   // if no settings object found, use defaults
   mTempParamSet.clear();
   if (!mLuxC4DSettings) {
-    LuxFloat xWidth = 1.3f;
-    LuxFloat yWidth = 1.3f;
+    LuxFloat xWidth = 1.3;
+    LuxFloat yWidth = 1.3;
     mTempParamSet.addParam(LUX_FLOAT, "xwidth", &xWidth);
     mTempParamSet.addParam(LUX_FLOAT, "ywidth", &yWidth);
     return mReceiver->pixelFilter("gaussian", mTempParamSet);
@@ -654,7 +659,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_POINT:
       {
         PointLightData data;
-        data.mColor = parameters.mColor * 0.1f;
+        data.mColor = parameters.mColor * 0.1;
         data.mGain  = parameters.mBrightness;
         data.mFrom  = scaledPosition;
         ++mLightCount;
@@ -666,11 +671,11 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         SpotLightData data;
         data.mColor          = parameters.mColor;
-        data.mGain           = parameters.mBrightness * 0.1f;
+        data.mGain           = parameters.mBrightness * 0.1;
         data.mFrom           = scaledPosition;
         data.mTo             = scaledPosition + direction;
         data.mConeAngle      = Deg(parameters.mOuterAngle) * 0.5;
-        data.mConeDeltaAngle = data.mConeAngle - Deg(parameters.mInnerAngle) * 0.5f;
+        data.mConeDeltaAngle = data.mConeAngle - Deg(parameters.mInnerAngle) * 0.5;
         ++mLightCount;
         if (!exportSpotLight(data))  return FALSE;
         break;
@@ -680,7 +685,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         DistantLightData data;
         data.mColor = parameters.mColor;
-        data.mGain  = parameters.mBrightness * 0.1f;
+        data.mGain  = parameters.mBrightness * 0.1;
         data.mFrom  = scaledPosition;
         data.mTo    = scaledPosition + direction;
         ++mLightCount;
@@ -692,7 +697,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         AreaLightData data;
         data.mColor          = parameters.mColor;
-        data.mGain           = parameters.mBrightness * 50.0f;
+        data.mGain           = parameters.mBrightness * 50.0;
         data.mFlippedNormals = (parameters.mFlippedNormals != 0);
         data.mSamples        = parameters.mSamples;
         data.mLightMatrix    = lightObject.GetMg();
@@ -715,7 +720,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_SUN:
       {
         SunLightData data;
-        data.mGain      = parameters.mBrightness * 0.1f;
+        data.mGain      = parameters.mBrightness * 0.1;
         data.mSamples   = parameters.mSamples;
         data.mSunDir    = -direction;
         data.mTurbidity = parameters.mTurbidity;
@@ -728,7 +733,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_SKY:
       {
         SkyLightData data;
-        data.mGain      = parameters.mBrightness * 0.1f;
+        data.mGain      = parameters.mBrightness * 0.1;
         data.mSamples   = parameters.mSamples;
         data.mSunDir    = -direction;
         data.mTurbidity = parameters.mTurbidity;
@@ -746,7 +751,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_SUNSKY:
       {
         SunSkyLightData data;
-        data.mGain      = parameters.mBrightness * 0.1f;
+        data.mGain      = parameters.mBrightness * 0.1;
         data.mSamples   = parameters.mSamples;
         data.mSunDir    = -direction;
         data.mTurbidity = parameters.mTurbidity;
@@ -1080,8 +1085,8 @@ Bool LuxAPIConverter::exportStandardMaterial(void)
 {
   LuxMaterialData materialData(gLuxMatteInfo);
   materialData.setChannel(LUX_MATTE_DIFFUSE,
-                          gNewNC LuxConstantTextureData(LuxColor(0.8f, 0.8f, 0.8f)));
-  return materialData.sendToAPI(*mReceiver, "_default");
+                          gNewNC LuxConstantTextureData(LuxColor(0.8, 0.8, 0.8)));
+  return materialData.sendToAPI(*mReceiver, "_default", 0);
 }
 
 
@@ -1207,7 +1212,7 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
     if (hierarchyData.mMaterialIsEmissive) {
       LuxParamSet areaParamSet(3);
       LuxString   textureName = hierarchyData.mMaterialName + ".L";
-      LuxFloat    gain = 50.0f;
+      LuxFloat    gain = 50.0;
       areaParamSet.addParam(LUX_TEXTURE, "L",    &textureName);
       areaParamSet.addParam(LUX_FLOAT,   "gain", &gain);
       if (!mReceiver->areaLightSource("area", areaParamSet))  return FALSE;
@@ -1253,15 +1258,19 @@ Bool LuxAPIConverter::convertTextureMapping(TextureTag&     textureTag,
   luxTexMapping.mVShift *= -luxTexMapping.mVScale;
 
   // if there is almost no shift or scale, don't export it
-  if ((fabsf(luxTexMapping.mUShift) < 0.001f) &&
-      (fabsf(luxTexMapping.mVShift) < 0.001f) &&
-      (fabsf(luxTexMapping.mUScale - 1.0f) < 0.001f) &&
-      (fabsf(luxTexMapping.mVScale - 1.0f) < 0.001f))
+  if ((abs(luxTexMapping.mUShift) < 0.001) &&
+      (abs(luxTexMapping.mVShift) < 0.001) &&
+      (abs(luxTexMapping.mUScale - 1.0) < 0.001) &&
+      (abs(luxTexMapping.mVScale - 1.0) < 0.001))
   {
     luxTexMapping.mHasDefaultParams = TRUE;
   } else {
     luxTexMapping.mHasDefaultParams = FALSE;
   }
+
+  // now we have to invert the V scale as we will do the same with the UV coordinates
+  // (this is to avoid a problem in bump shading - don't ask me why ...)
+  luxTexMapping.mVScale = -luxTexMapping.mVScale;
 
   return TRUE;
 }
@@ -1428,7 +1437,7 @@ Bool LuxAPIConverter::exportDummyMaterial(BaseMaterial& material,
   LuxMaterialData materialData(gLuxMatteInfo);
   materialData.setChannel(LUX_MATTE_DIFFUSE,
                           gNewNC LuxConstantTextureData(material.GetAverageColor()));
-  return materialData.sendToAPI(*mReceiver, materialName.c_str());
+  return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
 }
 
 
@@ -1470,7 +1479,7 @@ Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
     LuxFloat roughness = getParameterReal(material, MATERIAL_ILLUMINATION_ROUGHNESS);
     if (roughness > 0.001) {
       materialData.setChannel(LUX_MATTE_SIGMA,
-                              gNewNC LuxConstantTextureData(roughness * 180.0f));
+                              gNewNC LuxConstantTextureData(roughness * 180.0));
     }
   }
 
@@ -1478,7 +1487,7 @@ Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
   addBumpChannel(mapping, material, materialData, LUX_MATTE_BUMP);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-  return materialData.sendToAPI(*mReceiver, materialName.c_str());
+  return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
 }
 
 
@@ -1524,7 +1533,7 @@ Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
                                                 MATERIAL_REFLECTION_TEXTURESTRENGTH));
     LuxFloat roughness = getParameterReal(material,
                                           MATERIAL_REFLECTION_DISPERSION,
-                                          0.0f);
+                                          0.0);
     roughness = c4dDispersionToLuxRoughness(roughness);
     materialData.setChannel(LUX_GLOSSY_UROUGHNESS,
                             gNewNC LuxConstantTextureData(roughness));
@@ -1536,7 +1545,7 @@ Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
   addBumpChannel(mapping, material, materialData, LUX_GLOSSY_BUMP);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-  return materialData.sendToAPI(*mReceiver, materialName.c_str());
+  return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
 }
 
 
@@ -1560,15 +1569,15 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
                                                Bool&                 hasEmissionChannel)
 {
   // get dispersion
-  LuxFloat roughness = 0.0f;
+  LuxFloat roughness = 0.0;
   if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
     roughness = getParameterReal(material,
                                  MATERIAL_REFLECTION_DISPERSION,
-                                 0.0f);
+                                 0.0);
   }
 
   // if roughness nearly or equal 0, we convert to a mirror material
-  if (roughness < 0.001f) {
+  if (roughness < 0.001) {
 
     LuxMaterialData materialData(gLuxMirrorInfo);
 
@@ -1587,7 +1596,7 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
     addBumpChannel(mapping, material, materialData, LUX_MIRROR_BUMP);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-    return materialData.sendToAPI(*mReceiver, materialName.c_str());
+    return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
 
   // if roughness is not nearly or equal 0, we convert to a shiny metal material
   } else {
@@ -1596,7 +1605,7 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
 
     // set reflection channel to 0
     if (!materialData.setChannel(LUX_SHINY_METAL_REFLECTION,
-                                 gNewNC LuxConstantTextureData(LuxColor(0.0f))))
+                                 gNewNC LuxConstantTextureData(LuxColor(0.0))))
     {
       ERRLOG_RETURN_VALUE(FALSE, ("LuxAPIConverter::exportShinyMetalMaterial(): could not set reflection channel for material "
                                   + materialName).c_str());
@@ -1622,7 +1631,7 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
     addBumpChannel(mapping, material, materialData, LUX_SHINY_METAL_BUMP);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-    return materialData.sendToAPI(*mReceiver, materialName.c_str());
+    return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
   }
 }
 
@@ -1647,15 +1656,31 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                 Bool&                 hasEmissionChannel)
 {
   // get dispersion
-  LuxFloat roughness = 0.0f;
+  LuxFloat roughness = 0.0;
   if (getParameterLong(material, MATERIAL_USE_TRANSPARENCY)) {
     roughness = getParameterReal(material,
                                  MATERIAL_TRANSPARENCY_DISPERSION,
-                                 0.0f);
+                                 0.0);
   }
 
-  // if roughness nearly or equal 0, we convert to a mirror material
-  if (roughness < 0.001f) {
+  // setup set for additional parameters (e.g. "architectural")
+  LuxParamSet addParams(1);
+
+  // get index of refraction, snap it to 1.0 and check if we should use
+  // architectural glass
+  Real ior = getParameterReal(material,
+                              MATERIAL_TRANSPARENCY_REFRACTION,
+                              1.0);
+  LuxBool architectural = false;
+  if (abs(ior - 1.0) < 0.0001) {
+    ior = 1.0;
+    architectural = true;
+    addParams.addParam(LUX_BOOL, "architectural", &architectural);
+  }
+
+
+  // if roughness nearly or equal 0, we convert to a glass material
+  if (roughness < 0.001) {
 
     LuxMaterialData materialData(gLuxGlassInfo);
 
@@ -1670,7 +1695,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                   MATERIAL_REFLECTION_TEXTURESTRENGTH));
     } else {
       materialData.setChannel(LUX_GLASS_REFLECTION,
-                              gNewNC LuxConstantTextureData(LuxColor(0.0f)));
+                              gNewNC LuxConstantTextureData(LuxColor(0.0)));
     }
 
     // obtain transparency channel + IOR
@@ -1682,17 +1707,19 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                   MATERIAL_TRANSPARENCY_COLOR,
                                                   MATERIAL_TRANSPARENCY_BRIGHTNESS,
                                                   MATERIAL_TRANSPARENCY_TEXTURESTRENGTH));
-      materialData.setChannel(LUX_GLASS_IOR,
-                              gNewNC LuxConstantTextureData(getParameterReal(material,
-                                                                             MATERIAL_TRANSPARENCY_REFRACTION,
-                                                                             1.0f)));
+      if (!architectural) {
+        materialData.setChannel(LUX_GLASS_IOR,
+                                gNewNC LuxConstantTextureData(getParameterReal(material,
+                                                                               MATERIAL_TRANSPARENCY_REFRACTION,
+                                                                               1.0)));
+      }
     }
 
     // obtain bump and emission channels
     addBumpChannel(mapping, material, materialData, LUX_GLASS_BUMP);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-    return materialData.sendToAPI(*mReceiver, materialName.c_str());
+    return materialData.sendToAPI(*mReceiver, materialName.c_str(), &addParams);
 
   // if roughness is not nearly or equal 0, we convert to a rough glass material
   } else {
@@ -1722,10 +1749,12 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                   MATERIAL_TRANSPARENCY_COLOR,
                                                   MATERIAL_TRANSPARENCY_BRIGHTNESS,
                                                   MATERIAL_TRANSPARENCY_TEXTURESTRENGTH));
-      materialData.setChannel(LUX_ROUGH_GLASS_IOR,
-                              gNewNC LuxConstantTextureData(getParameterReal(material,
-                                                                             MATERIAL_TRANSPARENCY_REFRACTION,
-                                                                             1.0f)));
+      if (!architectural) {
+        materialData.setChannel(LUX_ROUGH_GLASS_IOR,
+                                gNewNC LuxConstantTextureData(getParameterReal(material,
+                                                                               MATERIAL_TRANSPARENCY_REFRACTION,
+                                                                               1.0)));
+      }
       roughness = c4dDispersionToLuxRoughness(roughness);
       materialData.setChannel(LUX_ROUGH_GLASS_UROUGHNESS,
                               gNewNC LuxConstantTextureData(roughness));
@@ -1737,7 +1766,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
     addBumpChannel(mapping, material, materialData, LUX_GLASS_BUMP);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-    return materialData.sendToAPI(*mReceiver, materialName.c_str());
+    return materialData.sendToAPI(*mReceiver, materialName.c_str(), &addParams);
   }
 }
 
@@ -1791,7 +1820,7 @@ Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
     LuxFloat roughness = getParameterReal(material, MATERIAL_ILLUMINATION_ROUGHNESS);
     if (roughness > 0.001) {
       materialData.setChannel(LUX_MATTE_SIGMA,
-                              gNewNC LuxConstantTextureData(roughness * 180.0f));
+                              gNewNC LuxConstantTextureData(roughness * 180.0));
     }
   }
 
@@ -1799,7 +1828,7 @@ Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
   addBumpChannel(mapping, material, materialData, LUX_MATTE_BUMP);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-  return materialData.sendToAPI(*mReceiver, materialName.c_str());
+  return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
 }
 
 
@@ -1822,6 +1851,7 @@ Bool LuxAPIConverter::addBumpChannel(const TextureMapping& mapping,
                                      ULONG                 channelId)
 {
   if (getParameterLong(material, MATERIAL_USE_BUMP)) {
+    materialData.setBumpSampleDistance(mBumpSampleDistance);
     return materialData.setChannel(channelId,
                                    convertFloatChannel(mapping,
                                                        material,
@@ -1894,23 +1924,26 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mappi
   BaseList2D* bitmapLink = getParameterLink(material, shaderId, Xbitmap);
 
   // get texture strength
-  LuxFloat strength = getParameterReal(material, strengthId, 1.0f);
+  LuxFloat strength = getParameterReal(material, strengthId, 1.0);
 
   // if the material channel doesn't have a bitmap shader or the texture
   // strength is too small, just create a constant texture of the value 0.0
-  if ((strength < 0.001f) || !bitmapLink) {
-    return gNewNC LuxConstantTextureData(0.0f);
+  if ((abs(strength) < 0.001) || !bitmapLink) {
+    return gNewNC LuxConstantTextureData(0.0);
   }
 
   // if we are here, we've got a bitmap shader -> let's create an imagemap texture
   Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
   Filename fullPath;
   GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
-  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE, mapping, fullPath);
+  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE,
+                                                   mapping,
+                                                   fullPath,
+                                                   mTextureGamma);
 
   // if strength is not ~1.0, scale texture
   strength *= strengthScale;
-  if ((strength < 0.999f) || (strength > 1.001f)) {
+  if (abs(strength - 1.0) > 0.001) {
     LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_FLOAT_TEXTURE);
     scaledTexture->mTexture1 = gNewNC LuxConstantTextureData(strength);
     scaledTexture->mTexture2 = texture;
@@ -1950,14 +1983,14 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(const TextureMapping& mappi
   BaseList2D* bitmapLink = getParameterLink(material, shaderId, Xbitmap);
 
   // get texture strength and base colour
-  LuxFloat strength = getParameterReal(material, mixerId, 1.0f);
+  LuxFloat strength = getParameterReal(material, mixerId, 1.0);
   LuxColor color = getParameterVector(material, colorId) *
-                   getParameterReal(material, brightnessId, 1.0f);
+                   getParameterReal(material, brightnessId, 1.0);
 
   // if the material channel doesn't have a bitmap shader or the texture
   // strength is too small, just create a constant texture of the colour which
   // is also specified in the channel
-  if ((strength < 0.001f) || !bitmapLink) {
+  if ((strength < 0.001) || !bitmapLink) {
     return gNewNC LuxConstantTextureData(color);
   }
 
@@ -1965,10 +1998,13 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(const TextureMapping& mappi
   Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
   Filename fullPath;
   GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
-  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_COLOR_TEXTURE, mapping, fullPath);
+  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_COLOR_TEXTURE,
+                                                   mapping,
+                                                   fullPath,
+                                                   mTextureGamma);
 
   // if the texture strength is < 100%, we mix the colour with the texture
-  if (strength < 0.999f) {
+  if (strength < 0.999) {
     LuxMixTextureDataH mixTexture = gNewNC LuxMixTextureData(LUX_COLOR_TEXTURE);
     mixTexture->mTexture1 = gNewNC LuxConstantTextureData(color);
     mixTexture->mTexture2 = texture;
@@ -2017,6 +2053,8 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
 
   // export geometry/shape + normals + UVs (if given)
   mTempParamSet.clear();
+  mTempParamSet.addParam(LUX_TRIANGLE, "triindices",
+                         triangles.arrayAddress(), triangles.size());
   mTempParamSet.addParam(LUX_POINT, "P",
                          points.arrayAddress(), points.size());
   if (normals.size()) {
@@ -2027,8 +2065,6 @@ Bool LuxAPIConverter::exportPolygonObject(PolygonObject& object,
     mTempParamSet.addParam(LUX_UV, "uv",
                            uvs.arrayAddress(), uvs.size());
   }
-  mTempParamSet.addParam(LUX_TRIANGLE, "triindices",
-                         triangles.arrayAddress(), triangles.size());
   if (!mReceiver->shape("mesh", mTempParamSet))  return FALSE;
 
   return TRUE;
@@ -2056,7 +2092,7 @@ Bool LuxAPIConverter::exportPortalObject(PolygonObject& object,
                                          BaseTag&       tag,
                                          Bool&          exportObject)
 {
-  static const Real cThicknessExtension = 1.1f;
+  static const Real cThicknessExtension = 1.1;
 
   // in the beginning we set exportObject to TRUE and only set it to FALSE,
   // when we really have exported the portal and the user doesn't want us to
@@ -2245,7 +2281,7 @@ Bool LuxAPIConverter::convertGeometry(PolygonObject&  object,
     for (ULONG uvIx=0; uvIx<mUVCache.size(); ++uvIx) {
       uv = &(mUVCache[uvIx]);
       (*uvs)[ uvIx << 1   ] = uv->x;
-      (*uvs)[(uvIx << 1)+1] = uv->y;
+      (*uvs)[(uvIx << 1)+1] = 1.0 - uv->y;
     }
   }
 

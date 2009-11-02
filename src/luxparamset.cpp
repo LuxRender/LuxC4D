@@ -50,8 +50,7 @@ LuxParamSet::LuxParamSet(LuxParamNumber maxParamNumber)
     mParamNames      = 0;
     mParamValues     = 0;
     mParamArraySizes = 0;
-    ERRLOG("LuxParamSet::LuxParamSet(): maxParamNumber was <= 0!");
-    return;
+    ERRLOG_RETURN("LuxParamSet::LuxParamSet(): maxParamNumber was <= 0!");
   }
 
   // allocated arrays for the parameter attributes and values
@@ -95,21 +94,19 @@ LuxParamSet::~LuxParamSet()
 ///   still owns the memory.
 /// @param[in]  arraySize
 ///   The size of te parameter array (default: 1) (must not be NULL).
-Bool LuxParamSet::addParam(LuxParamType       type,
+Bool LuxParamSet::addParam(LuxParamType type,
                            LuxParamName name,
-                           LuxParamRef        value,
-                           ULONG              arraySize)
+                           LuxParamRef  value,
+                           ULONG        arraySize)
 {
   // check if therer is still some space left
   if (mParamNumber >= mMaxParamNumber) {
-    ERRLOG("LuxParamSet::addParam(): no more space left");
-    return FALSE;
+    ERRLOG_RETURN_VALUE(FALSE, "LuxParamSet::addParam(): no more space left");
   }
 
   // check if the passed parameters are valid
   if (!name || !value || !arraySize) {
-    ERRLOG("LuxParamSet::addParam(): 0 is not allowed for token name, token pointer or token number");
-    return FALSE;
+    ERRLOG_RETURN_VALUE(FALSE, "LuxParamSet::addParam(): 0 is not allowed for token name, token pointer or token number");
   }
 
   // store the parameter in the arrays
@@ -119,6 +116,32 @@ Bool LuxParamSet::addParam(LuxParamType       type,
   mParamArraySizes[mParamNumber] = arraySize;
   ++mParamNumber;
   return TRUE;
+}
+
+
+/// Appends all parameters of another parameter set.
+///
+/// @param[in]  other
+///   The orher parameter set.
+/// @return
+///   TRUE if executed successfully, FALSE otherwise.
+Bool LuxParamSet::add(const LuxParamSet& other)
+{
+  // check if there is enough space in set
+  if (mParamNumber+other.mParamNumber > mMaxParamNumber) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxParamSet::add(): not enough space to add all parameters from other set");
+  }
+
+  // copy parameters
+  for (LuxParamNumber c=0; c<other.mParamNumber; ++c) {
+    mParamTypes[mParamNumber]      = other.mParamTypes[c];
+    mParamNames[mParamNumber]      = other.mParamNames[c];
+    mParamValues[mParamNumber]     = other.mParamValues[c];
+    mParamArraySizes[mParamNumber] = other.mParamArraySizes[c];
+    ++mParamNumber;
+  }
+
+  return FALSE;
 }
 
 
