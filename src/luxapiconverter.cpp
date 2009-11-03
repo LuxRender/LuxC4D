@@ -93,7 +93,12 @@ LuxAPIConverter::~LuxAPIConverter(void)
 ///   TRUE if the scene could be exported, otherwise FALSE
 Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
 {
-  Bool returnValue = FALSE;
+  Bool        returnValue = FALSE;
+  tagDateTime time;
+  CHAR        buffer[256];
+
+  // show hourglass as mouse pointer
+  SetMousePointer(MOUSE_BUSY);
 
   // init internal data
   mDocument = &document;
@@ -101,17 +106,19 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
   clearTemporaryData();
 
   // get global scene data like camera, environment, render settings...
-  if (!obtainGlobalSceneData()) { return FALSE; }
+  if (!obtainGlobalSceneData()) {
+    goto CLEANUP_AND_RETURN;
+  }
 
   // create file head (only important for file export)
-  tagDateTime time;
   DateTimeNow(time);
-  CHAR buffer[256];
   sprintf(buffer, "# LuxRender scene file\n# Exported by LuxC4D on %d/%d/%d",
                   (int)time.lDay, (int)time.lDay, (int)time.lYear);
 
   // start the scene
-  if (!mReceiver->startScene(buffer)) { return FALSE; }
+  if (!mReceiver->startScene(buffer)) { 
+    goto CLEANUP_AND_RETURN;
+  }
 
   // export global data
   if (!exportFilm() ||
@@ -136,7 +143,9 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
   }
 
   // close scene
-  if (!mReceiver->endScene())  goto CLEANUP_AND_RETURN;
+  if (!mReceiver->endScene()) {
+    goto CLEANUP_AND_RETURN;
+  }
 
   // everything was fine ...
   returnValue = TRUE;
@@ -144,6 +153,7 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
 CLEANUP_AND_RETURN:
 
   clearTemporaryData();
+  SetMousePointer(MOUSE_NORMAL);
   return returnValue;
 }
 

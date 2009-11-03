@@ -67,8 +67,7 @@ LuxParamSet::LuxParamSet(LuxParamNumber maxParamNumber)
     bDelete(mParamValues);
     bDelete(mParamArraySizes);
     mMaxParamNumber = 0;
-    ERRLOG("LuxParamSet::LuxParamSet(): not enough memory");
-    return;
+    ERRLOG_RETURN("LuxParamSet::LuxParamSet(): not enough memory");
   }
 }
 

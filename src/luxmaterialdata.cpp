@@ -139,7 +139,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
 {
   // initialise parameter set (the maximum possible number of parameters is
   // channel count + 1 (for the material type))
-  LuxParamSet paramSet(mInfo->mChannelCount + 1 +
+  LuxParamSet paramSet(mInfo->mChannelCount + 2 +
                        (addParams ? addParams->paramNumber() : 0));
 
   // add material type to parameter set
