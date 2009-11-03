@@ -596,7 +596,7 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
     // write token name and type
     success &= file.WriteBytes((void*)" \"", 2);
     success &= file.WriteBytes((void*)cTokenType[tokenType].nameStr, cTokenType[tokenType].nameStrLen);
-    success &= file.WriteBytes(tokenName, (VLONG)strlen(tokenName));
+    success &= file.WriteBytes((void*)tokenName, (VLONG)strlen(tokenName));
     success &= file.WriteChar('"');
 
     // write token values

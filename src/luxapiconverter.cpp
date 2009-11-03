@@ -1258,10 +1258,10 @@ Bool LuxAPIConverter::convertTextureMapping(TextureTag&     textureTag,
   luxTexMapping.mVShift *= -luxTexMapping.mVScale;
 
   // if there is almost no shift or scale, don't export it
-  if ((abs(luxTexMapping.mUShift) < 0.001) &&
-      (abs(luxTexMapping.mVShift) < 0.001) &&
-      (abs(luxTexMapping.mUScale - 1.0) < 0.001) &&
-      (abs(luxTexMapping.mVScale - 1.0) < 0.001))
+  if ((fabsf(luxTexMapping.mUShift) < 0.001) &&
+      (fabsf(luxTexMapping.mVShift) < 0.001) &&
+      (fabsf(luxTexMapping.mUScale - 1.0) < 0.001) &&
+      (fabsf(luxTexMapping.mVScale - 1.0) < 0.001))
   {
     luxTexMapping.mHasDefaultParams = TRUE;
   } else {
@@ -1672,7 +1672,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                               MATERIAL_TRANSPARENCY_REFRACTION,
                               1.0);
   LuxBool architectural = false;
-  if (abs(ior - 1.0) < 0.0001) {
+  if (fabsf(ior - 1.0) < 0.0001) {
     ior = 1.0;
     architectural = true;
     addParams.addParam(LUX_BOOL, "architectural", &architectural);
@@ -1928,7 +1928,7 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mappi
 
   // if the material channel doesn't have a bitmap shader or the texture
   // strength is too small, just create a constant texture of the value 0.0
-  if ((abs(strength) < 0.001) || !bitmapLink) {
+  if ((fabsf(strength) < 0.001) || !bitmapLink) {
     return gNewNC LuxConstantTextureData(0.0);
   }
 
@@ -1943,7 +1943,7 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mappi
 
   // if strength is not ~1.0, scale texture
   strength *= strengthScale;
-  if (abs(strength - 1.0) > 0.001) {
+  if (fabsf(strength - 1.0) > 0.001) {
     LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_FLOAT_TEXTURE);
     scaledTexture->mTexture1 = gNewNC LuxConstantTextureData(strength);
     scaledTexture->mTexture2 = texture;

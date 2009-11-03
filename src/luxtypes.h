@@ -58,7 +58,7 @@ enum LuxParamType {
 };
 
 ///
-typedef CHAR* LuxParamName;
+typedef const CHAR* LuxParamName;
 
 ///
 typedef void* LuxParamRef;

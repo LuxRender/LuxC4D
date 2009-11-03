@@ -51,6 +51,7 @@
 		2CE79AC40EBF7F9600995C2F /* luxc4dpreferences.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79ABC0EBF7F9600995C2F /* luxc4dpreferences.h */; };
 		2CE79AC50EBF7F9600995C2F /* utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2CE79ABD0EBF7F9600995C2F /* utilities.cpp */; };
 		2CE79AC80EBF7FCF00995C2F /* tluxc4dlighttag.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79AC60EBF7FCF00995C2F /* tluxc4dlighttag.h */; };
+		B28A7000109F691700AE738C /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B28A6FFF109F691700AE738C /* CoreFoundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -127,6 +128,7 @@
 		2CE79ACB0EBF801100995C2F /* tluxc4dlighttag.str */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = tluxc4dlighttag.str; path = description/tluxc4dlighttag.str; sourceTree = "<group>"; };
 		2CE79ACC0EBF802600995C2F /* dlg_luxc4d_preferences.str */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = dlg_luxc4d_preferences.str; path = dialogs/dlg_luxc4d_preferences.str; sourceTree = "<group>"; };
 		65E51693083D10D0005BFD9A /* LuxC4D.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = LuxC4D.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		B28A6FFF109F691700AE738C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +136,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B28A7000109F691700AE738C /* CoreFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -156,45 +159,45 @@
 		2CCB77C50E6C174600D45D8E /* src */ = {
 			isa = PBXGroup;
 			children = (
-				2C46BEC110186E6100CC2CB9 /* luxc4dportaltag.cpp */,
-				2C46BEC210186E6100CC2CB9 /* luxc4dportaltag.h */,
-				2C2884D20FDC4F1D00E93447 /* luxc4dcameratag.cpp */,
-				2C2884D30FDC4F1D00E93447 /* luxc4dcameratag.h */,
-				2C171FB70FAEF50200D0D116 /* dynarray1d_impl.h */,
+				2C1C0E790FC951990049FF31 /* autoref.h */,
 				2C171FB80FAEF50200D0D116 /* dynarray1d.h */,
-				2CDE963C0ED43135006B1412 /* rbtreeset_impl.h */,
-				2CDE963D0ED43135006B1412 /* rbtreeset.h */,
-				2CE79AB60EBF7F9600995C2F /* luxc4d.h */,
-				2CE79AB70EBF7F9600995C2F /* luxc4dexporterrender.cpp */,
-				2CE79AB80EBF7F9600995C2F /* luxc4dexporterrender.h */,
-				2CE79AB90EBF7F9600995C2F /* luxc4dlighttag.cpp */,
-				2CE79ABA0EBF7F9600995C2F /* luxc4dlighttag.h */,
-				2CE79ABB0EBF7F9600995C2F /* luxc4dpreferences.cpp */,
-				2CE79ABC0EBF7F9600995C2F /* luxc4dpreferences.h */,
-				2CE79ABD0EBF7F9600995C2F /* utilities.cpp */,
-				2CE1C1CE0EABB60500AF4D13 /* luxapiconverter.cpp */,
-				2CE1C1CF0EABB60500AF4D13 /* luxapiconverter.h */,
-				2CE1C1D00EABB60500AF4D13 /* luxc4dexporter.cpp */,
-				2CE1C1D10EABB60500AF4D13 /* luxc4dexporter.h */,
-				2CE1C1D20EABB60500AF4D13 /* luxc4dsettings.cpp */,
-				2CE1C1D30EABB60500AF4D13 /* luxc4dsettings.h */,
-				2CE1C1D40EABB60500AF4D13 /* utilities.h */,
+				2C171FB70FAEF50200D0D116 /* dynarray1d_impl.h */,
 				2CCB77C60E6C174600D45D8E /* fixarray1d.h */,
 				2CCB77C70E6C174600D45D8E /* fixarray1d_impl.h */,
-				2C1C0E790FC951990049FF31 /* autoref.h */,
-				2C1C0E7A0FC951990049FF31 /* luxmaterialdata.cpp */,
-				2C1C0E7B0FC951990049FF31 /* luxmaterialdata.h */,
-				2C1C0E7C0FC951990049FF31 /* luxtexturedata.cpp */,
-				2C1C0E7D0FC951990049FF31 /* luxtexturedata.h */,
-				2C1C0E7E0FC951990049FF31 /* rbtreemap_impl.h */,
-				2C1C0E7F0FC951990049FF31 /* rbtreemap.h */,
 				2CCB77C80E6C174600D45D8E /* luxapi.h */,
+				2CE1C1CE0EABB60500AF4D13 /* luxapiconverter.cpp */,
+				2CE1C1CF0EABB60500AF4D13 /* luxapiconverter.h */,
 				2CCB77CA0E6C174600D45D8E /* luxapiwriter.cpp */,
 				2CCB77CB0E6C174600D45D8E /* luxapiwriter.h */,
+				2CE79AB60EBF7F9600995C2F /* luxc4d.h */,
+				2C2884D20FDC4F1D00E93447 /* luxc4dcameratag.cpp */,
+				2C2884D30FDC4F1D00E93447 /* luxc4dcameratag.h */,
+				2CE1C1D00EABB60500AF4D13 /* luxc4dexporter.cpp */,
+				2CE1C1D10EABB60500AF4D13 /* luxc4dexporter.h */,
+				2CE79AB70EBF7F9600995C2F /* luxc4dexporterrender.cpp */,
+				2CE79AB80EBF7F9600995C2F /* luxc4dexporterrender.h */,
 				2CCB77CE0E6C174600D45D8E /* luxc4dinit.cpp */,
+				2CE79AB90EBF7F9600995C2F /* luxc4dlighttag.cpp */,
+				2CE79ABA0EBF7F9600995C2F /* luxc4dlighttag.h */,
+				2C46BEC110186E6100CC2CB9 /* luxc4dportaltag.cpp */,
+				2C46BEC210186E6100CC2CB9 /* luxc4dportaltag.h */,
+				2CE79ABB0EBF7F9600995C2F /* luxc4dpreferences.cpp */,
+				2CE79ABC0EBF7F9600995C2F /* luxc4dpreferences.h */,
+				2CE1C1D20EABB60500AF4D13 /* luxc4dsettings.cpp */,
+				2CE1C1D30EABB60500AF4D13 /* luxc4dsettings.h */,
+				2C1C0E7A0FC951990049FF31 /* luxmaterialdata.cpp */,
+				2C1C0E7B0FC951990049FF31 /* luxmaterialdata.h */,
 				2CCB77D10E6C174600D45D8E /* luxparamset.cpp */,
 				2CCB77D20E6C174600D45D8E /* luxparamset.h */,
+				2C1C0E7C0FC951990049FF31 /* luxtexturedata.cpp */,
+				2C1C0E7D0FC951990049FF31 /* luxtexturedata.h */,
 				2CCB77D30E6C174600D45D8E /* luxtypes.h */,
+				2C1C0E7F0FC951990049FF31 /* rbtreemap.h */,
+				2C1C0E7E0FC951990049FF31 /* rbtreemap_impl.h */,
+				2CDE963D0ED43135006B1412 /* rbtreeset.h */,
+				2CDE963C0ED43135006B1412 /* rbtreeset_impl.h */,
+				2CE79ABD0EBF7F9600995C2F /* utilities.cpp */,
+				2CE1C1D40EABB60500AF4D13 /* utilities.h */,
 			);
 			name = src;
 			path = ../../src;
@@ -252,6 +255,7 @@
 		65E51686083D10D0005BFD9A = {
 			isa = PBXGroup;
 			children = (
+				B28A6FFF109F691700AE738C /* CoreFoundation.framework */,
 				2CCB77C50E6C174600D45D8E /* src */,
 				2CCB77E20E6C176700D45D8E /* res */,
 				65E51693083D10D0005BFD9A /* LuxC4D.dylib */,
@@ -632,7 +636,7 @@
 					x86_64,
 					i386,
 				);
-				C4D_ROOT = ../../../C4D_R11.5;
+				C4D_ROOT = ../../../C4D_R11.0;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)";
 				CONFIGURATION_TEMP_DIR = "$(BUILD_DIR)";
 				COPY_PHASE_STRIP = NO;

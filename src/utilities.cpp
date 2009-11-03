@@ -295,3 +295,49 @@ BaseTag* findTagForParamObject(BaseObject* object,
 //    if (pathDirStr
 //  }
 //}
+
+
+
+#if defined(__MAC) && (_C4D_VERSION<100)
+#include <CoreFoundation/CoreFoundation.h>
+
+/// This function converts a filename of C4D R9.x, which is 
+String convertToPosixPath(const Filename& path)
+{
+  static const SizeT cCStrBufferSize = 4096;
+  
+  // convert Filename to a plain C string in UTF-8
+  String filenameStr = path.GetString();
+  CHAR   filenameCStr[cCStrBufferSize];
+  filenameStr.GetCString(filenameCStr, cCStrBufferSize-2, StUTF8);
+  filenameCStr[cCStrBufferSize-1] = '\0';
+  
+  // convert plain C string to CoreFoundation CFString
+  CFStringRef filenameCFString = CFStringCreateWithCString(NULL,
+                                                           filenameCStr,
+                                                           kCFStringEncodingUTF8);
+  
+  // convert CFString to CFURL and release CFString
+  CFURLRef url = CFURLCreateWithFileSystemPath(NULL,
+                                               filenameCFString,
+                                               kCFURLHFSPathStyle,
+                                               FALSE);
+  CFRelease(filenameCFString);
+  
+  // convert CFURL back to a CFString using the POSIX path style and release CFURL
+  filenameCFString = CFURLCopyFileSystemPath(url, kCFURLPOSIXPathStyle);
+  CFRelease(url);
+  
+  // convert CFString back to plain C string and release CFString
+  CFStringGetCString(filenameCFString,
+                     filenameCStr,
+                     cCStrBufferSize,
+                     kCFStringEncodingUTF8);
+  CFRelease(filenameCFString);
+  filenameCStr[cCStrBufferSize-1] = '\0';
+  
+  // return a String created from the C string
+  return String(filenameCStr, StUTF8);
+}
+
+#endif  // #if defined(__MAC) && (_C4D_VERSION<100)

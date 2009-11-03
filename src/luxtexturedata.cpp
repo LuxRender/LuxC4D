@@ -320,7 +320,7 @@ Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
 
   convert2LuxString(mPath, imagePath);
   paramSet.addParam(LUX_STRING, "filename", &imagePath);
-  if (abs(mGamma-1.0) > 0.001) {
+  if (fabsf(mGamma-1.0) > 0.001) {
     paramSet.addParam(LUX_FLOAT, "gamma", &mGamma);
   }
   add2DMapping(paramSet);

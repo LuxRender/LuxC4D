@@ -146,6 +146,8 @@ Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
 
 #else
 
+#include <unistd.h>
+
 /// This helper launches a progam using a direct OS call. This way we can pass
 /// more than only one argument and other stuff (e.g. "--noopengl") in the future.
 ///
@@ -163,7 +165,36 @@ Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
 Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
                                           const Filename& sceneFileName)
 {
-  return GeExecuteProgram(programFileName, sceneFileName);
+  static const SizeT cStrBufferSize = 2048;
+  
+  String programFileNameStr, sceneFileNameStr;
+  char   programFileNameCStr[cStrBufferSize];
+  char   programFileNameCStr2[cStrBufferSize];
+  char   sceneFileNameCStr[cStrBufferSize];
+  
+  // make sure that the assumption is correct that wchar_t == UWORD
+  GeAssert( sizeof(char) == sizeof(CHAR) );
+  
+  // copy UNICODE filenames into C strings
+  programFileNameStr = programFileName.GetString();
+  programFileNameStr.GetCString(programFileNameCStr, cStrBufferSize, StUTF8);
+  programFileNameStr = "\"" + programFileNameStr + "\"";
+  programFileNameStr.GetCString(programFileNameCStr2, cStrBufferSize, StUTF8);
+  sceneFileNameStr = "\"" + sceneFileName.GetString() + "\"";
+  sceneFileNameStr.GetCString(sceneFileNameCStr, cStrBufferSize, StUTF8);
+  
+  switch (fork()) {
+    case -1:
+      ERRLOG_RETURN_VALUE(FALSE, "fork() failed");
+    case 0:
+      // this is the child process
+      execl(programFileNameCStr, programFileNameCStr2, sceneFileNameCStr, 0);
+      puts("Uh oh! If this prints, execl() must have failed");
+      exit(EXIT_FAILURE);
+    default:
+      // this is the parent process
+      return TRUE;
+  }
 }
 
 #endif  // #ifdef __PC

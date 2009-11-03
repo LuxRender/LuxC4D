@@ -111,6 +111,11 @@ BaseTag* findTagForParamObject(BaseObject* object,
 //Filename getRelativePath(const Filename& path,
 //                         const Filename& startPath);
 
+#if defined(__MAC) && (_C4D_VERSION<100)
+String convertToPosixPath(const Filename& path);
+#endif
+
+
 
 /*****************************************************************************
  * Inlined functions
