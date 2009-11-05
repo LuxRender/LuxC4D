@@ -75,11 +75,11 @@ void debugLog(const String& msg);
 
 void convert2LuxString(const String&  c4dString,
                        LuxString&     luxString,
-                       StringEncoding encoding=StXbit);
+                       StringEncoding encoding=StUTF8);
 
 void convert2LuxString(const Filename& c4dPath,
                        LuxString&      luxString,
-                       StringEncoding  encoding=StXbit);
+                       StringEncoding  encoding=StUTF8);
 
 void showParameter(Description* description,
                    LONG         paramID,

@@ -140,7 +140,7 @@ Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
                   programFileNameCStr,
                   programFileNameCStr2,
                   sceneFileNameCStr,
-                  0)
+                  NULL)
                   >= 0 ? TRUE : FALSE;
 }
 
@@ -183,12 +183,13 @@ Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
   sceneFileNameStr = "\"" + sceneFileName.GetString() + "\"";
   sceneFileNameStr.GetCString(sceneFileNameCStr, cStrBufferSize, StUTF8);
   
+  // fork to new process and run LuxRender in new process
   switch (fork()) {
     case -1:
       ERRLOG_RETURN_VALUE(FALSE, "fork() failed");
     case 0:
       // this is the child process
-      execl(programFileNameCStr, programFileNameCStr2, sceneFileNameCStr, 0);
+      execl(programFileNameCStr, programFileNameCStr2, sceneFileNameCStr, NULL);
       puts("Uh oh! If this prints, execl() must have failed");
       exit(EXIT_FAILURE);
     default:

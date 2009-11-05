@@ -147,11 +147,13 @@ Bool LuxAPIWriter::endScene(void)
   success &= writeLine(*mSceneFile, "WorldBegin\n");
   ( String("Include \"")
     + mMaterialsFilename.GetFileString() 
-    + String("\"") ).GetCString(buffer, cBufferSize, StXbit);
+//    + String("\"") ).GetCString(buffer, cBufferSize, StXbit);
+    + String("\"") ).GetCString(buffer, cBufferSize, StUTF8);
   success &= writeLine(*mSceneFile, buffer);
   ( String("Include \"")
     + mObjectsFilename.GetFileString() 
-    + String("\"") ).GetCString(buffer, cBufferSize, StXbit);
+//    + String("\"") ).GetCString(buffer, cBufferSize, StXbit);
+    + String("\"") ).GetCString(buffer, cBufferSize, StUTF8);
   success &= writeLine(*mSceneFile, buffer);
   success &= writeLine(*mSceneFile, "\nWorldEnd");
 
