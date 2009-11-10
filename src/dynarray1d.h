@@ -56,13 +56,15 @@ class DynArray1D
 {
   public:
 
-    DynArray1D(SizeT size=0, SizeT capacity=0);
+    DynArray1D(SizeT size=0,
+               SizeT capacity=0);
     ~DynArray1D(void);
 
     DynArray1D(const DynArray1D& other);
     DynArray1D& operator=(const DynArray1D& other);
 
-    Bool init(SizeT size=0, SizeT capacity=0);
+    Bool init(SizeT size=0,
+              SizeT capacity=0);
     Bool reserve(SizeT capacity);
     Bool adaptCapacity(void);
 

@@ -57,9 +57,10 @@ STRINGTABLE VPluxc4dsettings
     IDD_METROPOLIS_USE_VARIANCE         "Utiliser la Variance";
     IDD_METROPOLIS_STRENGTH             "Puissance";
 
-    IDD_ERPT_INIT_SAMPLES               "Echantillons Initiaux";
     IDD_ERPT_CHAINLENGTH                "Longueur de Chaine";
     IDD_ERPT_MICRO_MUTATION_PROB        "Probabilité de petite Mutation";
+    IDD_ERPT_PIXELSAMPLER               "Echantillonneur de Pixel";
+    IDD_ERPT_PIXELSAMPLES               "Pixels";
 
 
     IDG_INTEGRATION                     "INTEGRATION";
@@ -218,5 +219,8 @@ STRINGTABLE VPluxc4dsettings
       IDD_DEFINE_EXPORT_FILENAME          "Definir le nom du fichier";
 
     IDD_SCALE_FACTOR                    "Facteur d'Echelle C4D -> LuxRender";
+    IDD_EXPORT_BUMP_SAMPLE_DISTANCE     "Export Bump Sample Distance";
+    IDD_BUMP_SAMPLE_DISTANCE            "Bump Sample Distance";
+    IDD_TEXTURE_GAMMA_CORRECTION        "Texture Gamma Correction";
 
 }

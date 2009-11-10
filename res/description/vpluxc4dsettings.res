@@ -88,9 +88,19 @@ CONTAINER VPluxc4dsettings
       }
       
       GROUP IDG_ERPT {
-        LONG IDD_ERPT_INIT_SAMPLES        { ANIM OFF;  MIN 100;  STEP 100; }
         LONG IDD_ERPT_CHAINLENGTH         { ANIM OFF;  MIN 1; }
         REAL IDD_ERPT_MICRO_MUTATION_PROB { ANIM OFF;  MIN 0.0;  MAX 1.0; }
+        LONG IDD_ERPT_PIXELSAMPLER {
+          ANIM OFF;
+          CYCLE {
+            IDD_PIXELSAMPLER_LOWDISCREPANCY;
+            IDD_PIXELSAMPLER_HILBERT;
+            IDD_PIXELSAMPLER_VEGAS;
+            IDD_PIXELSAMPLER_LINEAR;
+            IDD_PIXELSAMPLER_TILE;
+          }
+        }
+        LONG IDD_ERPT_PIXELSAMPLES        { ANIM OFF;  MIN 1; }
       }
     
     } // GROUP IDG_SAMPLING

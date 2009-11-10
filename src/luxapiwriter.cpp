@@ -140,21 +140,16 @@ Bool LuxAPIWriter::endScene(void)
   if (!mFilesOpen)  return TRUE;
 
   // write the inclusion of the the materials and objects files into the scene
-  static const ULONG cBufferSize = 1024;
-  CHAR buffer[cBufferSize];
   Bool success = TRUE;
   success &= writeLine(*mSceneFile, "\n# The Scene");
   success &= writeLine(*mSceneFile, "WorldBegin\n");
-  ( String("Include \"")
-    + mMaterialsFilename.GetFileString() 
-//    + String("\"") ).GetCString(buffer, cBufferSize, StXbit);
-    + String("\"") ).GetCString(buffer, cBufferSize, StUTF8);
-  success &= writeLine(*mSceneFile, buffer);
-  ( String("Include \"")
-    + mObjectsFilename.GetFileString() 
-//    + String("\"") ).GetCString(buffer, cBufferSize, StXbit);
-    + String("\"") ).GetCString(buffer, cBufferSize, StUTF8);
-  success &= writeLine(*mSceneFile, buffer);
+  LuxString tempLuxStr;
+  convert2LuxString(mMaterialsFilename.GetFileString(), tempLuxStr);
+  tempLuxStr = "Include \"" + tempLuxStr + "\"";
+  success &= writeLine(*mSceneFile, tempLuxStr.c_str());
+  convert2LuxString(mObjectsFilename.GetFileString(), tempLuxStr);
+  tempLuxStr = "Include \"" + tempLuxStr + "\"";
+  success &= writeLine(*mSceneFile, tempLuxStr.c_str());
   success &= writeLine(*mSceneFile, "\nWorldEnd");
 
   // close the files
@@ -170,6 +165,14 @@ Bool LuxAPIWriter::endScene(void)
 
   mFilesOpen = FALSE;
   return TRUE;
+}
+
+
+/// Processes a scene file related filename, i.e. makes it relative to the 
+/// scene file path.
+void LuxAPIWriter::processFilename(Filename& filename)
+{
+  filename = getRelativePath(filename, mSceneFilename);
 }
 
 

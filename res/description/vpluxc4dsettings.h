@@ -84,10 +84,12 @@ enum
 
     // ERPT sampler parameters
     IDG_ERPT = 10500,
-    IDD_ERPT_INIT_SAMPLES,
+    __IDD_ERPT_INIT_SAMPLES,            // deprecated
     IDD_ERPT_CHAINLENGTH,
     IDD_ERPT_MICRO_MUTATION_PROB,
     __IDD_ERPT_MUTATION_RANGE,          // deprecated
+    IDD_ERPT_PIXELSAMPLER,
+    IDD_ERPT_PIXELSAMPLES,
 
 
     // ----------------------------------

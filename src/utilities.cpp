@@ -26,7 +26,16 @@
 #include <cstdarg>
 #include <cstdio>
 
+#include "dlist.h"
 #include "utilities.h"
+
+
+
+#ifdef __PC
+  static const CHAR gPathDelimiter = '\\';
+#else
+  static const CHAR gPathDelimiter = '/';
+#endif
 
 
 
@@ -63,10 +72,15 @@ void debugLog(const String& msg)
 /// @param[out]  luxString
 ///   The LuxString where the content of the C4D String will be stored.
 void convert2LuxString(const String&  c4dString,
-                       LuxString&     luxString,
-                       StringEncoding encoding)
+                       LuxString&     luxString)
 {
+#ifdef __PC
+  const StringEncoding encoding = StXbit;
+#else
+  const StringEncoding encoding = StUTF8;
+#endif
   CHAR buffer[2048];
+
   c4dString.GetCString(buffer, sizeof(buffer), encoding);
   buffer[sizeof(buffer)-1] = '\0';
   luxString = buffer;
@@ -80,20 +94,20 @@ void convert2LuxString(const String&  c4dString,
 /// @param[out]  luxString
 ///   The LuxString where the content of the C4D Filename will be stored.
 void convert2LuxString(const Filename& c4dPath,
-                       LuxString&      luxString,
-                       StringEncoding  encoding)
+                       LuxString&      luxString)
 {
-  CHAR buffer[2048];
-  c4dPath.GetString().GetCString(buffer, sizeof(buffer), encoding);
-  buffer[sizeof(buffer)-1] = '\0';
-
-  for (CHAR* c=buffer; *c!='\0'; ++c) {
-    if (*c == '\\') {
-      *c = '/';
-    }
+#if defined(__PC)
+  String c4dString = c4dPath.GetString();
+  for (LONG pos=-1; c4dString.FindFirst('\\', &pos, pos+1); ) {
+    c4dString[pos] = '/';
   }
+#elif defined(__MAC) && (_C4D_VERSION<100)
+  String c4dString = convertToPosixPath(const Filename& path);
+#else
+  String c4dString = c4dPath.GetString();
+#endif
 
-  luxString = buffer;
+  convert2LuxString(c4dString, luxString);
 }
 
 
@@ -283,18 +297,107 @@ BaseTag* findTagForParamObject(BaseObject* object,
 
 
 ///
-//Filename getRelativePath(const Filename& path,
-//                         const Filename& startPath)
-//{
-//  String pathDirStr = path.GetDirectory().GetString().ToLower();
-//  if (pathDir
-//  String startDirStr = startPath.GetDirectory().GetString().ToLower();
-//
-//  LONG startDirLength = startDirStr.GetLength();
-//  for (LONG pos=0; pos<startDirLength; ++pos) {
-//    if (pathDirStr
-//  }
-//}
+Bool isAbsolutePathString(const String& pathStr)
+{
+#ifdef __PC
+  if ((pathStr.GetLength() > 1) && (pathStr[1] == ':')) {
+    return TRUE;
+  }
+  const CHAR cDelimiter = '\\';
+#else
+  const CHAR cDelimiter = '/';
+#endif
+  if ((pathStr.GetLength() > 0) && (pathStr[0] == cDelimiter)) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+
+///
+String cleanupFilenameString(const String& str)
+{
+  typedef DList<String> TokensT;
+
+  // do nothing of string is empty
+  if (!str.Content()) { return str; }
+
+  // check if string starts with delimiter
+  Bool startsWithDelimiter=FALSE;
+  if ((str[0] == '\\') || (str[0] == '/')) {
+    startsWithDelimiter = TRUE;
+  }
+
+  // split string into tokens
+  TokensT tokens;
+  LONG    pos, tokenStart=1;
+  for (tokenStart=-1, pos=0; pos<str.GetLength(); ++pos) {
+    if ((str[pos] == '\\') || (str[pos] == '/')) {
+      if (pos > tokenStart+1) {
+        tokens.pushBack(str.SubStr(tokenStart+1, pos-tokenStart-1));
+      }
+      tokenStart = pos;
+    }
+  }
+  if (pos > tokenStart+1) {
+    tokens.pushBack(str.SubStr(tokenStart+1, pos-tokenStart-1));
+  }
+
+  // loop over tokens and fix "." and ".."
+  for (TokensT::IteratorT iter=tokens.begin(); iter.isValid();) {
+    if (*iter == ".") {
+      tokens.remove(iter);
+    } else if ((*iter == "..") && (!iter.isFront())) {
+      --iter;
+      tokens.remove(iter);
+      tokens.remove(iter);
+    } else {
+      ++iter;
+    }
+  }
+
+  // rebuild clean string out of tokens
+  String result;
+  if (startsWithDelimiter) {
+    result = String(1, gPathDelimiter);
+  }
+  for (TokensT::IteratorT iter=tokens.begin(); iter.isValid(); ++iter) {
+    result += *iter;
+    if (!iter.isBack()) { result += String(1, gPathDelimiter); }
+  }
+
+  return result;
+}
+
+
+///
+Filename joinFilenames(const Filename& first,
+                       const Filename& second)
+{
+  // join the strings of both paths and store them as a new Filename
+  String joinedStr(first.GetString() +
+                   String(1, gPathDelimiter) +
+                   second.GetString());
+
+  return Filename(cleanupFilenameString(joinedStr));
+}
+
+
+///
+Filename getRelativePath(const Filename& path,
+                         const Filename& basePath)
+{
+  //String pathDirStr = path.GetDirectory().GetString().ToLower();
+  //if (pathDir
+  //String startDirStr = startPath.GetDirectory().GetString().ToLower();
+
+  //LONG startDirLength = startDirStr.GetLength();
+  //for (LONG pos=0; pos<startDirLength; ++pos) {
+  //  if (pathDirStr
+  //}
+
+  return path;
+}
 
 
 

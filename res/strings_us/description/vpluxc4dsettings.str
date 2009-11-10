@@ -57,9 +57,10 @@ STRINGTABLE VPluxc4dsettings
     IDD_METROPOLIS_USE_VARIANCE         "Use Variance";
     IDD_METROPOLIS_STRENGTH             "Strength";
 
-    IDD_ERPT_INIT_SAMPLES               "Initial Samples";
     IDD_ERPT_CHAINLENGTH                "Chain Length";
     IDD_ERPT_MICRO_MUTATION_PROB        "Small Mutation Probability";
+    IDD_ERPT_PIXELSAMPLER               "Pixel Sampler";
+    IDD_ERPT_PIXELSAMPLES               "Pixel Samples";
 
 
     IDG_INTEGRATION                     "Integration";
@@ -221,4 +222,5 @@ STRINGTABLE VPluxc4dsettings
     IDD_EXPORT_BUMP_SAMPLE_DISTANCE     "Export Bump Sample Distance";
     IDD_BUMP_SAMPLE_DISTANCE            "Bump Sample Distance";
     IDD_TEXTURE_GAMMA_CORRECTION        "Texture Gamma Correction";
+    
 }

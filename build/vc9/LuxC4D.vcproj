@@ -4125,6 +4125,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\dlist.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\dlist_impl.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\dynarray1d.h"
 			>
 		</File>

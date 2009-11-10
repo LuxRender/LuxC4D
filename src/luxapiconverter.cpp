@@ -91,7 +91,8 @@ LuxAPIConverter::~LuxAPIConverter(void)
 ///   The LuxAPI implementation which will consume the converted scene.
 /// @return
 ///   TRUE if the scene could be exported, otherwise FALSE
-Bool LuxAPIConverter::convertScene(BaseDocument& document, LuxAPI& receiver)
+Bool LuxAPIConverter::convertScene(BaseDocument& document,
+                                   LuxAPI&       receiver)
 {
   Bool        returnValue = FALSE;
   tagDateTime time;
@@ -355,11 +356,8 @@ Bool LuxAPIConverter::exportFilm(void)
     docFilename.ClearSuffix();
     filenameC4D = docFilename.GetString();
   }
-  CHAR filenameCString[128];
-  filenameC4D.GetCString(filenameCString,
-                         sizeof(filenameCString)/sizeof(filenameCString[0]),
-                         St7bit);
-  LuxString filename(filenameCString);
+  LuxString filename;
+  convert2LuxString(filenameC4D, filename);
 
   // fill parameter set with parameters not coming from the settings object
   mTempParamSet.clear();
@@ -369,8 +367,8 @@ Bool LuxAPIConverter::exportFilm(void)
 
   // if no settings object found, use defaults
   if (!mLuxC4DSettings) {
-    LuxBool writeTonemappedTGA = TRUE;
-    mTempParamSet.addParam(LUX_BOOL, "write_tonemapped_tga ", &writeTonemappedTGA);
+    LuxBool writePNG = TRUE;
+    mTempParamSet.addParam(LUX_BOOL, "write_png", &writePNG);
     return mReceiver->film("fleximage", mTempParamSet);
   }
   
@@ -855,7 +853,7 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
 {
   LuxParamSet shapeParams(8);
   const char* shapeName;
-  LuxFloat    radius, width, height, zMin, zMax;
+  LuxFloat    radius, zMin, zMax;
   Real        xRad, yRad, zRad;
   Bool        flipYZ;
   PointsT     points;
@@ -875,12 +873,22 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       break;
     // rectangle area light
     case IDD_AREA_LIGHT_SHAPE_RECTANGLE:
-      width  = data.mSize.x * mC4D2LuxScale;
-      height = data.mSize.y * mC4D2LuxScale;
-      flipYZ = TRUE;
-      shapeParams.addParam(LUX_FLOAT, "width",  &width);
-      shapeParams.addParam(LUX_FLOAT, "height", &height);
-      shapeName = "quad";
+      xRad = data.mSize.x * 0.5 * mC4D2LuxScale;
+      yRad = data.mSize.y * 0.5 * mC4D2LuxScale;
+      points.init(4);
+      points[0] = Vector(-xRad, -yRad, 0);
+      points[1] = Vector( xRad, -yRad, 0);
+      points[2] = Vector( xRad,  yRad, 0);
+      points[3] = Vector(-xRad,  yRad, 0);
+      triangles.init(2*3);
+      triangles[ 0] = 0;  triangles[ 1] = 1;  triangles[ 2] = 2;  
+      triangles[ 3] = 0;  triangles[ 4] = 2;  triangles[ 5] = 3;  
+      flipYZ = FALSE;
+      shapeParams.addParam(LUX_POINT, "P",
+                           &points.front(), points.size());
+      shapeParams.addParam(LUX_TRIANGLE, "triindices",
+                           &triangles.front(), triangles.size());
+      shapeName = "mesh";
       break;
     // sphere area light
     case IDD_AREA_LIGHT_SHAPE_SPHERE:
@@ -958,7 +966,7 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       return TRUE;
   }
 
-  // export transformation matrix of  area light
+  // export transformation matrix of area light
   if (flipYZ) {
     Vector temp = data.mLightMatrix.v2;
     data.mLightMatrix.v2 = data.mLightMatrix.v3;
@@ -1944,11 +1952,15 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mappi
 
   // if we are here, we've got a bitmap shader -> let's create an imagemap texture
   Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
-  Filename fullPath;
-  GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
+  Filename fullBitmapPath;
+  GenerateTexturePath(mDocument->GetDocumentPath(),
+                      bitmapPath,
+                      Filename(),
+                      &fullBitmapPath);
+  mReceiver->processFilename(fullBitmapPath);
   LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE,
                                                    mapping,
-                                                   fullPath,
+                                                   fullBitmapPath,
                                                    mTextureGamma);
 
   // if strength is not ~1.0, scale texture
@@ -2006,11 +2018,15 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(const TextureMapping& mappi
 
   // if we are here, we've got a bitmap shader -> let's create an imagemap texture
   Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
-  Filename fullPath;
-  GenerateTexturePath(mDocument->GetDocumentPath(), bitmapPath, Filename(), &fullPath);
+  Filename fullBitmapPath;
+  GenerateTexturePath(mDocument->GetDocumentPath(),
+                      bitmapPath,
+                      Filename(),
+                      &fullBitmapPath);
+  mReceiver->processFilename(fullBitmapPath);
   LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_COLOR_TEXTURE,
                                                    mapping,
-                                                   fullPath,
+                                                   fullBitmapPath,
                                                    mTextureGamma);
 
   // if the texture strength is < 100%, we mix the colour with the texture

@@ -65,6 +65,10 @@ public:
   virtual Bool endScene(void) =0;
 
 
+  /// Should return TRUE, if paths should be relative
+  virtual void processFilename(Filename& filename) =0;
+
+
   /// Specifies the comment for the next Lux API command. This should be used
   /// by an exporter implementation that writes Lux scene files and should be
   /// ignored by an integration of Lux into C4D.

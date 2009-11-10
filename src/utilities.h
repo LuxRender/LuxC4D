@@ -74,12 +74,10 @@ void debugLog(const CHAR* format, ...);
 void debugLog(const String& msg);
 
 void convert2LuxString(const String&  c4dString,
-                       LuxString&     luxString,
-                       StringEncoding encoding=StUTF8);
+                       LuxString&     luxString);
 
 void convert2LuxString(const Filename& c4dPath,
-                       LuxString&      luxString,
-                       StringEncoding  encoding=StUTF8);
+                       LuxString&      luxString);
 
 void showParameter(Description* description,
                    LONG         paramID,
@@ -108,8 +106,13 @@ BaseList2D* getParameterLink(GeListNode& node,
 BaseTag* findTagForParamObject(BaseObject* object,
                                LONG        tagId);
 
-//Filename getRelativePath(const Filename& path,
-//                         const Filename& startPath);
+Filename joinFilenames(const Filename& first,
+                       const Filename& second);
+
+Bool isAbsolutePathString(const String& pathStr);
+
+Filename getRelativePath(const Filename& path,
+                         const Filename& basePath);
 
 #if defined(__MAC) && (_C4D_VERSION<100)
 String convertToPosixPath(const Filename& path);

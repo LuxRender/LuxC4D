@@ -80,6 +80,14 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
   mExportedFile = Filename();
   if (settingsNode) {
     settingsNode->getExportFilename(*document, mExportedFile, overwritingAllowed);
+    // if the scene file name is not absolute, make it absolute by "attaching"
+    // it to the document path
+    if (!isAbsolutePathString(mExportedFile.GetString())) {
+      GePrint(document->GetDocumentPath().GetString());
+      GePrint(mExportedFile.GetString());
+      mExportedFile = joinFilenames(document->GetDocumentPath(), mExportedFile);
+      GePrint(mExportedFile.GetString());
+    }
   }
 
   // if the file already exists and overwriting is not allowed, ask the user

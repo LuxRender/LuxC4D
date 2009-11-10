@@ -51,6 +51,8 @@ public:
   virtual Bool startScene(const char* head);
   virtual Bool endScene(void);
 
+  virtual void processFilename(Filename& filename);
+
   virtual Bool setComment(const char* text);
   virtual Bool setComment(const String& text);
 

@@ -107,9 +107,10 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetReal(IDD_METROPOLIS_MICRO_MUTATION_PROB, 0.0);
   data->SetBool(IDD_METROPOLIS_USE_VARIANCE,        FALSE);
   data->SetReal(IDD_METROPOLIS_STRENGTH,            0.6);
-  data->SetLong(IDD_ERPT_INIT_SAMPLES,              100000);
   data->SetLong(IDD_ERPT_CHAINLENGTH,               512);
   data->SetReal(IDD_ERPT_MICRO_MUTATION_PROB,       0.5);
+  data->SetLong(IDD_ERPT_PIXELSAMPLER,              IDD_PIXELSAMPLER_VEGAS);
+  data->SetLong(IDD_ERPT_PIXELSAMPLES,              4);
 
   // set integrator defaults
   data->SetLong(IDD_INTEGRATOR,                                     IDD_INTEGRATOR_BIDIRECTIONAL);
@@ -648,9 +649,10 @@ void LuxC4DSettings::getSampler(const char*& name,
   static Descr2Param<LuxBool>    sMetroUseVariance      (IDD_METROPOLIS_USE_VARIANCE,        "usevariance");
 
   // parameters for ERPT sampler
-  static Descr2Param<LuxInteger> sERPTInitSamples      (IDD_ERPT_INIT_SAMPLES,        "initsamples");
   static Descr2Param<LuxInteger> sERPTChainLength      (IDD_ERPT_CHAINLENGTH,         "chainlength");
   static Descr2Param<LuxFloat>   sERPTMicroMutationProb(IDD_ERPT_MICRO_MUTATION_PROB, "micromutationprob");
+  static Descr2Param<LuxString>  sERPTPixelSampler     (IDD_ERPT_PIXELSAMPLER,        "pixelsampler");
+  static Descr2Param<LuxInteger> sERPTPixelSamples     (IDD_ERPT_PIXELSAMPLES,        "pixelsamples");
 
 
   // set default sampler
@@ -689,9 +691,11 @@ void LuxC4DSettings::getSampler(const char*& name,
       break;
     // ERPT sampler
     case IDD_SAMPLER_ERPT:
-      copyParam(sERPTInitSamples,       paramSet);
       copyParam(sERPTChainLength,       paramSet);
       copyParam(sERPTMicroMutationProb, paramSet);
+      copyParam(sERPTPixelSampler,      paramSet,
+                sPixelSamplerNames,     IDD_PIXELSAMPLER_NUMBER);
+      copyParam(sERPTPixelSamples,      paramSet);
       break;
     // invalid sampler -> error and return
     default:
