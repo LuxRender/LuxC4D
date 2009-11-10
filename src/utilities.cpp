@@ -315,7 +315,7 @@ Bool isAbsolutePathString(const String& pathStr)
 
 
 ///
-String cleanupFilenameString(const String& str)
+static String cleanupFilenameString(const String& str)
 {
   typedef DList<String> TokensT;
 

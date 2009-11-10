@@ -881,8 +881,8 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       points[2] = Vector( xRad,  yRad, 0);
       points[3] = Vector(-xRad,  yRad, 0);
       triangles.init(2*3);
-      triangles[ 0] = 0;  triangles[ 1] = 1;  triangles[ 2] = 2;  
-      triangles[ 3] = 0;  triangles[ 4] = 2;  triangles[ 5] = 3;  
+      triangles[ 0] = 0;  triangles[ 1] = 2;  triangles[ 2] = 1;  
+      triangles[ 3] = 0;  triangles[ 4] = 3;  triangles[ 5] = 2;  
       flipYZ = FALSE;
       shapeParams.addParam(LUX_POINT, "P",
                            &points.front(), points.size());

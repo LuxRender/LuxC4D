@@ -51,6 +51,8 @@
 		2CE79AC40EBF7F9600995C2F /* luxc4dpreferences.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79ABC0EBF7F9600995C2F /* luxc4dpreferences.h */; };
 		2CE79AC50EBF7F9600995C2F /* utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2CE79ABD0EBF7F9600995C2F /* utilities.cpp */; };
 		2CE79AC80EBF7FCF00995C2F /* tluxc4dlighttag.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79AC60EBF7FCF00995C2F /* tluxc4dlighttag.h */; };
+		B275CAAA10A9F2C600C9DF77 /* dlist_impl.h in Headers */ = {isa = PBXBuildFile; fileRef = B275CAA810A9F2C600C9DF77 /* dlist_impl.h */; };
+		B275CAAB10A9F2C600C9DF77 /* dlist.h in Headers */ = {isa = PBXBuildFile; fileRef = B275CAA910A9F2C600C9DF77 /* dlist.h */; };
 		B28A7000109F691700AE738C /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B28A6FFF109F691700AE738C /* CoreFoundation.framework */; };
 /* End PBXBuildFile section */
 
@@ -128,6 +130,8 @@
 		2CE79ACB0EBF801100995C2F /* tluxc4dlighttag.str */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = tluxc4dlighttag.str; path = description/tluxc4dlighttag.str; sourceTree = "<group>"; };
 		2CE79ACC0EBF802600995C2F /* dlg_luxc4d_preferences.str */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = dlg_luxc4d_preferences.str; path = dialogs/dlg_luxc4d_preferences.str; sourceTree = "<group>"; };
 		65E51693083D10D0005BFD9A /* LuxC4D.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = LuxC4D.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		B275CAA810A9F2C600C9DF77 /* dlist_impl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dlist_impl.h; sourceTree = "<group>"; };
+		B275CAA910A9F2C600C9DF77 /* dlist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dlist.h; sourceTree = "<group>"; };
 		B28A6FFF109F691700AE738C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
@@ -147,11 +151,11 @@
 			isa = PBXGroup;
 			children = (
 				2C46BEB910186E2500CC2CB9 /* c4d_strings.str */,
+				2C46BEC010186E2500CC2CB9 /* dlg_luxc4d_preferences.str */,
 				2C46BEBB10186E2500CC2CB9 /* tluxc4dcameratag.str */,
 				2C46BEBC10186E2500CC2CB9 /* tluxc4dlighttag.str */,
 				2C46BEBD10186E2500CC2CB9 /* tluxc4dportaltag.str */,
 				2C46BEBE10186E2500CC2CB9 /* vpluxc4dsettings.str */,
-				2C46BEC010186E2500CC2CB9 /* dlg_luxc4d_preferences.str */,
 			);
 			path = strings_fr;
 			sourceTree = "<group>";
@@ -160,6 +164,8 @@
 			isa = PBXGroup;
 			children = (
 				2C1C0E790FC951990049FF31 /* autoref.h */,
+				B275CAA910A9F2C600C9DF77 /* dlist.h */,
+				B275CAA810A9F2C600C9DF77 /* dlist_impl.h */,
 				2C171FB80FAEF50200D0D116 /* dynarray1d.h */,
 				2C171FB70FAEF50200D0D116 /* dynarray1d_impl.h */,
 				2CCB77C60E6C174600D45D8E /* fixarray1d.h */,
@@ -219,12 +225,12 @@
 		2CCB77E40E6C176700D45D8E /* strings_us */ = {
 			isa = PBXGroup;
 			children = (
-				2C46BEB710186E0400CC2CB9 /* tluxc4dportaltag.str */,
-				2C2884D90FDC4F5A00E93447 /* tluxc4dcameratag.str */,
-				2CE79ACC0EBF802600995C2F /* dlg_luxc4d_preferences.str */,
-				2CE79ACB0EBF801100995C2F /* tluxc4dlighttag.str */,
-				2CE1C1E00EABB68C00AF4D13 /* vpluxc4dsettings.str */,
 				2CCB77E50E6C176700D45D8E /* c4d_strings.str */,
+				2CE79ACC0EBF802600995C2F /* dlg_luxc4d_preferences.str */,
+				2C2884D90FDC4F5A00E93447 /* tluxc4dcameratag.str */,
+				2CE79ACB0EBF801100995C2F /* tluxc4dlighttag.str */,
+				2C46BEB710186E0400CC2CB9 /* tluxc4dportaltag.str */,
+				2CE1C1E00EABB68C00AF4D13 /* vpluxc4dsettings.str */,
 			);
 			path = strings_us;
 			sourceTree = "<group>";
@@ -232,12 +238,12 @@
 		2CE1C1DC0EABB63200AF4D13 /* description */ = {
 			isa = PBXGroup;
 			children = (
-				2C46BEB410186DD600CC2CB9 /* tluxc4dportaltag.h */,
-				2C46BEB510186DD600CC2CB9 /* tluxc4dportaltag.res */,
 				2C2884D60FDC4F3F00E93447 /* tluxc4dcameratag.h */,
 				2C2884D70FDC4F3F00E93447 /* tluxc4dcameratag.res */,
 				2CE79AC60EBF7FCF00995C2F /* tluxc4dlighttag.h */,
 				2CE79AC70EBF7FCF00995C2F /* tluxc4dlighttag.res */,
+				2C46BEB410186DD600CC2CB9 /* tluxc4dportaltag.h */,
+				2C46BEB510186DD600CC2CB9 /* tluxc4dportaltag.res */,
 				2CE1C1DD0EABB67600AF4D13 /* vpluxc4dsettings.h */,
 				2CE1C1DE0EABB67600AF4D13 /* vpluxc4dsettings.res */,
 			);
@@ -299,6 +305,8 @@
 				2C2884D80FDC4F3F00E93447 /* tluxc4dcameratag.h in Headers */,
 				2C46BEB610186DD600CC2CB9 /* tluxc4dportaltag.h in Headers */,
 				2C46BEC410186E6100CC2CB9 /* luxc4dportaltag.h in Headers */,
+				B275CAAA10A9F2C600C9DF77 /* dlist_impl.h in Headers */,
+				B275CAAB10A9F2C600C9DF77 /* dlist.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
