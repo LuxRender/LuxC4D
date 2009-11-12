@@ -69,16 +69,8 @@ typedef VULONG  SizeT;
  * Common constants
  *****************************************************************************/
 
-#ifdef __PC
-  static const CHAR  gPathDelimiter = '\\';
-  static const CHAR* gPathDelimiterStr = "\\";
-#elif defined(__MAC) && (_C4D_VERSION<100)
-  static const CHAR gPathDelimiter = ':';
-  static const CHAR* gPathDelimiterStr = ":";
-#else
-  static const CHAR gPathDelimiter = '/';
-  static const CHAR* gPathDelimiterStr = "/";
-#endif
+extern const CHAR  gPathDelimiter;
+extern const CHAR* gPathDelimiterStr;
 
 
 

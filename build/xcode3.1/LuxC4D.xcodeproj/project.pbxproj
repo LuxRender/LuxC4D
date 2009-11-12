@@ -53,6 +53,8 @@
 		2CE79AC80EBF7FCF00995C2F /* tluxc4dlighttag.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79AC60EBF7FCF00995C2F /* tluxc4dlighttag.h */; };
 		B275CAAA10A9F2C600C9DF77 /* dlist_impl.h in Headers */ = {isa = PBXBuildFile; fileRef = B275CAA810A9F2C600C9DF77 /* dlist_impl.h */; };
 		B275CAAB10A9F2C600C9DF77 /* dlist.h in Headers */ = {isa = PBXBuildFile; fileRef = B275CAA910A9F2C600C9DF77 /* dlist.h */; };
+		B27EF62010AC9855009B607E /* filepath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B27EF61E10AC9855009B607E /* filepath.cpp */; };
+		B27EF62110AC9855009B607E /* filepath.h in Headers */ = {isa = PBXBuildFile; fileRef = B27EF61F10AC9855009B607E /* filepath.h */; };
 		B28A7000109F691700AE738C /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B28A6FFF109F691700AE738C /* CoreFoundation.framework */; };
 /* End PBXBuildFile section */
 
@@ -132,6 +134,8 @@
 		65E51693083D10D0005BFD9A /* LuxC4D.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = LuxC4D.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		B275CAA810A9F2C600C9DF77 /* dlist_impl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dlist_impl.h; sourceTree = "<group>"; };
 		B275CAA910A9F2C600C9DF77 /* dlist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dlist.h; sourceTree = "<group>"; };
+		B27EF61E10AC9855009B607E /* filepath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = filepath.cpp; sourceTree = "<group>"; };
+		B27EF61F10AC9855009B607E /* filepath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = filepath.h; sourceTree = "<group>"; };
 		B28A6FFF109F691700AE738C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
@@ -168,6 +172,8 @@
 				B275CAA810A9F2C600C9DF77 /* dlist_impl.h */,
 				2C171FB80FAEF50200D0D116 /* dynarray1d.h */,
 				2C171FB70FAEF50200D0D116 /* dynarray1d_impl.h */,
+				B27EF61E10AC9855009B607E /* filepath.cpp */,
+				B27EF61F10AC9855009B607E /* filepath.h */,
 				2CCB77C60E6C174600D45D8E /* fixarray1d.h */,
 				2CCB77C70E6C174600D45D8E /* fixarray1d_impl.h */,
 				2CCB77C80E6C174600D45D8E /* luxapi.h */,
@@ -307,6 +313,7 @@
 				2C46BEC410186E6100CC2CB9 /* luxc4dportaltag.h in Headers */,
 				B275CAAA10A9F2C600C9DF77 /* dlist_impl.h in Headers */,
 				B275CAAB10A9F2C600C9DF77 /* dlist.h in Headers */,
+				B27EF62110AC9855009B607E /* filepath.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -385,6 +392,7 @@
 				2C1C0E830FC951990049FF31 /* luxtexturedata.cpp in Sources */,
 				2C2884D40FDC4F1D00E93447 /* luxc4dcameratag.cpp in Sources */,
 				2C46BEC310186E6100CC2CB9 /* luxc4dportaltag.cpp in Sources */,
+				B27EF62010AC9855009B607E /* filepath.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
