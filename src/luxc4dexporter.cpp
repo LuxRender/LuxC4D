@@ -23,6 +23,7 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
+#include "filepath.h"
 #include "luxapi.h"
 #include "luxapiconverter.h"
 #include "luxapiwriter.h"
@@ -80,13 +81,11 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
   mExportedFile = Filename();
   if (settingsNode) {
     settingsNode->getExportFilename(*document, mExportedFile, overwritingAllowed);
+    FilePath path(mExportedFile);
     // if the scene file name is not absolute, make it absolute by "attaching"
     // it to the document path
-    if (!isAbsolutePathString(mExportedFile.GetString())) {
-      GePrint(document->GetDocumentPath().GetString());
-      GePrint(mExportedFile.GetString());
-      mExportedFile = joinFilenames(document->GetDocumentPath(), mExportedFile);
-      GePrint(mExportedFile.GetString());
+    if (!path.isAbsolute()) {
+      mExportedFile = (FilePath(document->GetDocumentPath()) + path).getFilename();
     }
   }
 

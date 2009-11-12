@@ -1957,7 +1957,6 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mappi
                       bitmapPath,
                       Filename(),
                       &fullBitmapPath);
-  mReceiver->processFilename(fullBitmapPath);
   LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE,
                                                    mapping,
                                                    fullBitmapPath,
@@ -2023,7 +2022,6 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(const TextureMapping& mappi
                       bitmapPath,
                       Filename(),
                       &fullBitmapPath);
-  mReceiver->processFilename(fullBitmapPath);
   LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_COLOR_TEXTURE,
                                                    mapping,
                                                    fullBitmapPath,

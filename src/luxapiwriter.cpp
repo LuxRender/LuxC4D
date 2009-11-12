@@ -168,14 +168,6 @@ Bool LuxAPIWriter::endScene(void)
 }
 
 
-/// Processes a scene file related filename, i.e. makes it relative to the 
-/// scene file path.
-void LuxAPIWriter::processFilename(Filename& filename)
-{
-  filename = getRelativePath(filename, mSceneFilename);
-}
-
-
 /// Specifies the comment for the next command - see
 /// LuxAPI::setComment(const char*).
 Bool LuxAPIWriter::setComment(const char* text)

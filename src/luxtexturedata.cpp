@@ -23,6 +23,7 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
+#include "filepath.h"
 #include "luxtexturedata.h"
 
 
@@ -316,9 +317,8 @@ Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
                                 const LuxString& name)
 {
   LuxParamSet paramSet(10);
-  LuxString   imagePath;
+  LuxString   imagePath = FilePath(mPath).getLuxString();
 
-  convert2LuxString(mPath, imagePath);
   paramSet.addParam(LUX_STRING, "filename", &imagePath);
   if (fabsf(mGamma-1.0) > 0.001) {
     paramSet.addParam(LUX_FLOAT, "gamma", &mGamma);

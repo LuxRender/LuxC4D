@@ -4141,6 +4141,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\filepath.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\filepath.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\fixarray1d.h"
 			>
 		</File>
