@@ -54,13 +54,15 @@ public:
   inline Bool isEmpty(void) const;
   inline Bool isAbsolute(void) const;
 
+  FilePath getDirectoryPath(void) const;
+
   String getString(void) const;
-  String getDirectoryString(void) const;
   String getFileString(void) const;
+  String getDirectoryString(void) const;
 
   LuxString getLuxString(void) const;
-  LuxString getLuxDirectoryString(void) const;
   LuxString getLuxFileString(void) const;
+  LuxString getLuxDirectoryString(void) const;
 
   Filename getFilename(void) const;
 

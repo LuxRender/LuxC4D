@@ -67,7 +67,8 @@ LuxAPIWriter::~LuxAPIWriter(void)
 ///   The file name of the next scene file to export into.
 /// @return
 ///   TRUE if successful, otherwise FALSE.
-Bool LuxAPIWriter::init(const Filename &sceneFile)
+Bool LuxAPIWriter::init(const Filename &sceneFile,
+                        Bool           useRelativePaths)
 {
   // if there is already an open file, finish it and close it
   if (mFilesOpen) {
@@ -80,6 +81,7 @@ Bool LuxAPIWriter::init(const Filename &sceneFile)
 
   // just store the filenames - they will be opened later
   mSceneFilename = sceneFile;
+  mSceneFileDirectory = FilePath(sceneFile).getDirectoryPath();
   mWorldStarted = FALSE;
   mErrorStringID = 0;
   mCommentLen = 0;
@@ -165,6 +167,16 @@ Bool LuxAPIWriter::endScene(void)
 
   mFilesOpen = FALSE;
   return TRUE;
+}
+
+
+/// Makes the passed in path relative to the scene file directory, if the
+/// according option is enabled - see LuxAPI::processFilePath(FilePath&).
+void LuxAPIWriter::processFilePath(FilePath& path)
+{
+  if (mUseRelativePaths) {
+    path.makeRelativeTo(mSceneFileDirectory);
+  }
 }
 
 

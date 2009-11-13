@@ -199,6 +199,8 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetBool(IDD_EXPORT_BUMP_SAMPLE_DISTANCE, TRUE);
   data->SetReal(IDD_BUMP_SAMPLE_DISTANCE,        0.001);
   data->SetReal(IDD_TEXTURE_GAMMA_CORRECTION,    renderGamma);
+  data->SetBool(IDD_USE_RELATIVE_PATHS,          TRUE);
+
 
   return TRUE;
 }
@@ -914,6 +916,17 @@ Real LuxC4DSettings::getTextureGamma(void)
   BaseContainer* data = getData();
   if (!data) { return 0.0; }
   return data->GetReal(IDD_TEXTURE_GAMMA_CORRECTION, 1.0);
+}
+
+
+/// Returns TRUE if file paths (e.g. for textures) should be stored relative to
+/// the scene file.
+Bool LuxC4DSettings::useRelativePaths(void)
+{
+  // get base container and return setting of relative path option
+  BaseContainer* data = getData();
+  if (!data) { return TRUE; }
+  return data->GetBool(IDD_USE_RELATIVE_PATHS, TRUE);
 }
 
 

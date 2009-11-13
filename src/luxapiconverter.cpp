@@ -26,6 +26,7 @@
 #include <customgui_datetime.h>
 #include <olight.h>
 
+#include "filepath.h"
 #include "luxapiconverter.h"
 #include "luxc4dcameratag.h"
 #include "luxc4dlighttag.h"
@@ -1957,9 +1958,11 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mappi
                       bitmapPath,
                       Filename(),
                       &fullBitmapPath);
+  FilePath processedBitmapPath(fullBitmapPath);
+  mReceiver->processFilePath(processedBitmapPath);
   LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE,
                                                    mapping,
-                                                   fullBitmapPath,
+                                                   processedBitmapPath,
                                                    mTextureGamma);
 
   // if strength is not ~1.0, scale texture
@@ -2022,9 +2025,11 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(const TextureMapping& mappi
                       bitmapPath,
                       Filename(),
                       &fullBitmapPath);
+  FilePath processedBitmapPath(fullBitmapPath);
+  mReceiver->processFilePath(processedBitmapPath);
   LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_COLOR_TEXTURE,
                                                    mapping,
-                                                   fullBitmapPath,
+                                                   processedBitmapPath,
                                                    mTextureGamma);
 
   // if the texture strength is < 100%, we mix the colour with the texture

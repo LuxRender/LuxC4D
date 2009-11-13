@@ -30,6 +30,7 @@
 
 #include <c4d.h>
 
+#include "filepath.h"
 #include "luxtypes.h"
 #include "luxparamset.h"
 
@@ -55,7 +56,7 @@ public:
   ///   be interesting for the LuxAPI implementation (e.g. a file writer).
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
-  virtual Bool startScene(const char* head) =0;
+  virtual Bool startScene(const char* head = NULL) =0;
 
   /// Should be called after the last LuxAPI call of the current scene. It
   /// allows the implementation to do some cleanup if needed.
@@ -63,6 +64,13 @@ public:
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool endScene(void) =0;
+
+
+  /// Processes a file path, e.g. makes it relative to the scene file.
+  ///
+  /// @param[in,out]  path
+  ///   The path that should be processed.
+  virtual void processFilePath(FilePath& path) =0;
 
 
   /// Specifies the comment for the next Lux API command. This should be used

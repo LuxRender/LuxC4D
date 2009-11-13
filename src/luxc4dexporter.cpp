@@ -78,6 +78,7 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
   // if we have found a LuxC4DSettings object, get the export filename
   // chosen by the user
   Bool overwritingAllowed = FALSE;
+  Bool useRelativePaths = TRUE;
   mExportedFile = Filename();
   if (settingsNode) {
     settingsNode->getExportFilename(*document, mExportedFile, overwritingAllowed);
@@ -87,6 +88,8 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
     if (!path.isAbsolute()) {
       mExportedFile = (FilePath(document->GetDocumentPath()) + path).getFilename();
     }
+    // determine if texture paths should be relative
+    useRelativePaths = settingsNode->useRelativePaths();
   }
 
   // if the file already exists and overwriting is not allowed, ask the user
@@ -121,7 +124,7 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
 
   // initialise file writer
   LuxAPIWriter apiWriter;
-  if (!apiWriter.init(mExportedFile)) {
+  if (!apiWriter.init(mExportedFile, useRelativePaths)) {
     GeOutString(GeLoadString(IDS_ERROR_INITIALISE_LUXAPIWRITER, mExportedFile.GetString()), GEMB_OK);
     return FALSE;
   }

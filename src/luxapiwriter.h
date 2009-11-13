@@ -45,11 +45,14 @@ public:
   LuxAPIWriter(void);
   ~LuxAPIWriter(void);
 
-  Bool init(const Filename& sceneFile);
+  Bool init(const Filename& sceneFile,
+            Bool            useRelativePaths);
   inline LONG errorStringID(void) const;
 
   virtual Bool startScene(const char* head);
   virtual Bool endScene(void);
+
+  virtual void processFilePath(FilePath& path);
 
   virtual Bool setComment(const char* text);
   virtual Bool setComment(const String& text);
@@ -116,6 +119,8 @@ private:
 
   Bool                mFilesOpen;
   Filename            mSceneFilename;
+  FilePath            mSceneFileDirectory;
+  Bool                mUseRelativePaths;
   AutoAlloc<BaseFile> mSceneFile;
   Filename            mMaterialsFilename;
   AutoAlloc<BaseFile> mMaterialsFile;

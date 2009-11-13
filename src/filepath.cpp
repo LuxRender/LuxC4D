@@ -116,8 +116,8 @@ FilePath& FilePath::operator=(const String& pathStr)
             mTokens.pushBack(token);
           }
         }
-        if (pos >= pathStrLen) { break; }
       }
+      if (pos >= pathStrLen) { break; }
       tokenStart = pos;
     }
   }
@@ -134,9 +134,27 @@ void FilePath::clear(void)
 }
 
 
+FilePath FilePath::getDirectoryPath(void) const
+{
+  FilePath result(*this);
+  result.mTokens.removeBack();
+  return result;
+}
+
+
 String FilePath::getString(void) const
 {
   return getDirectoryString() + getFileString();
+}
+
+
+String FilePath::getFileString(void) const
+{
+  if (mTokens.size()) {
+    return mTokens.back();
+  } else {
+    return String();
+  }
 }
 
 
@@ -152,7 +170,10 @@ String FilePath::getDirectoryString(void) const
   }
 #endif
 
+  // if path is absolute add a leading delimiter
   if (mIsAbsolute) { result += gPathDelimiterStr; }
+
+  // build the rest of the string by concatenating tokens
   for (TokensT::ConstIteratorT iter=mTokens.begin(); !iter.isBack(); ++iter) {
     result += *iter;
     result += gPathDelimiterStr;
@@ -162,50 +183,18 @@ String FilePath::getDirectoryString(void) const
 }
 
 
-String FilePath::getFileString(void) const
-{
-  if (mTokens.size()) {
-    return mTokens.back();
-  } else {
-    return String();
-  }
-}
-
-
 LuxString FilePath::getLuxString(void) const
 {
 #if defined(__MAC) && (_C4D_VERSION<100)
+
+  // special case for C4D R9.6: do a HFS-to-POSIX conversion of the standard
+  //                            path string
   return convertToPosixPath(getString());
+
 #else
+
   return getLuxDirectoryString() + getLuxFileString();
-#endif  // defined(__MAC) && (_C4D_VERSION<100)
-}
 
-
-LuxString FilePath::getLuxDirectoryString(void) const
-{
-#if defined(__MAC) && (_C4D_VERSION<100)
-  return convertToPosixPath(getDirectoryString());
-#else
-
-  LuxString token, result;
-
-#ifdef __PC
-  // on PC add drive, if available
-  if (mDrive) {
-    result += mDrive;
-    result += ":";
-  }
-#endif
-
-  if (mIsAbsolute) { result += "/"; }
-  for (TokensT::ConstIteratorT iter=mTokens.begin(); !iter.isBack(); ++iter) {
-    convert2LuxString(*iter, token);
-    result += token;
-    result += "/";
-  }
-
-  return result;
 #endif  // defined(__MAC) && (_C4D_VERSION<100)
 }
 
@@ -218,6 +207,42 @@ LuxString FilePath::getLuxFileString(void) const
 }
 
 
+LuxString FilePath::getLuxDirectoryString(void) const
+{
+#if defined(__MAC) && (_C4D_VERSION<100)
+
+  // special case for C4D R9.6: do a HFS-to-POSIX conversion of the standard
+  //                            directory string
+  return convertToPosixPath(getDirectoryString());
+
+#else
+
+  LuxString token, result;
+
+#ifdef __PC
+  // on PC add drive, if available
+  if (mDrive) {
+    result += mDrive;
+    result += ":";
+  }
+#endif
+
+  // if path is absolute add a leading delimiter
+  if (mIsAbsolute) { result += "/"; }
+
+  // build the rest of the string by concatenating tokens
+  for (TokensT::ConstIteratorT iter=mTokens.begin(); !iter.isBack(); ++iter) {
+    convert2LuxString(*iter, token);
+    result += token;
+    result += "/";
+  }
+
+  return result;
+
+#endif  // defined(__MAC) && (_C4D_VERSION<100)
+}
+
+
 Filename FilePath::getFilename(void) const
 {
   return Filename(getString());
@@ -226,13 +251,34 @@ Filename FilePath::getFilename(void) const
 
 void FilePath::makeRelativeTo(const FilePath& basePath)
 {
+  // we can't determine the relation between the two paths if they are not both
+  // absolute or both relative or have different drives
   if ((mIsAbsolute != basePath.mIsAbsolute) || (mDrive != basePath.mDrive)) {
     return;
   }
 
+  // relative paths don't have drives and well are not absolute
   mDrive = 0;
   mIsAbsolute = FALSE;
+  
+  // now determine how much of the start of the token chains are equal
+  TokensT::IteratorT myToken;
+  TokensT::ConstIteratorT otherToken;
+  for (myToken=mTokens.begin(), otherToken=basePath.mTokens.begin();
+       myToken.isValid() && otherToken.isValid();
+       ++otherToken)
+  {
+    if (myToken->LexCompare(*otherToken) == 0) {
+      mTokens.remove(myToken);
+    } else {
+      break;
+    }
+  }
 
+  // now add for every left entry of the other token list an ".." at the start
+  for (; otherToken.isValid(); ++otherToken) {
+    mTokens.pushFront("..");
+  }
 }
 
 

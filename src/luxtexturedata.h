@@ -29,6 +29,7 @@
 
 
 #include "autoref.h"
+#include "filepath.h"
 #include "luxapi.h"
 
 
@@ -209,14 +210,14 @@ class LuxImageMapData : public LuxTextureData
 {
   public:
 
-    Filename mPath;
-    LuxFloat mGamma;
+    LuxString mImagePath;
+    LuxFloat  mGamma;
 
 
     LuxImageMapData(LuxTextureType type);
     LuxImageMapData(LuxTextureType        type,
                     const TextureMapping& mapping,
-                    const Filename&       path,
+                    const FilePath&       imagePath,
                     LuxFloat              gamma);
 
 
