@@ -81,7 +81,7 @@ private:
 
 
 #if defined(__MAC) && (_C4D_VERSION<100)
-  LuxString convertToPosixPath(const String& c4dPathStr);
+  static LuxString convertToPosixPath(const String& c4dPathStr);
 #endif
 };
 
