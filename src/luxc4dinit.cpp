@@ -25,12 +25,13 @@
 
 #include <c4d.h>
 
+#include "luxc4dcameratag.h"
 #include "luxc4dexporter.h"
 #include "luxc4dexporterrender.h"
-#include "luxc4dpreferences.h"
-#include "luxc4dcameratag.h"
 #include "luxc4dlighttag.h"
+#include "luxc4dmaterial.h"
 #include "luxc4dportaltag.h"
+#include "luxc4dpreferences.h"
 #include "luxc4dsettings.h"
 #include "utilities.h"
 
@@ -109,17 +110,11 @@ Bool PluginStart(void)
     return FALSE;
   }
 
-  // register LuxC4DMaterialGlossy
-  //if (!LuxC4DMaterialGlossy::registerPlugin()) {
-  //  ERRLOG("Could not register LuxC4DMaterialGlossy plugin.");
-  //  return FALSE;
-  //}
-
-  // register LuxC4DMaterialMatte
-  //if (!LuxC4DMaterialMatte::registerPlugin()) {
-  //  ERRLOG("Could not register LuxC4DMaterialMatte plugin.");
-  //  return FALSE;
-  //}
+  // register LuxC4DMaterial
+  if (!LuxC4DMaterial::registerPlugin()) {
+    ERRLOG("Could not register LuxC4DMaterial plugin.");
+    return FALSE;
+  }
 
   return TRUE;
 }

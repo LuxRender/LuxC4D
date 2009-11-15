@@ -41,8 +41,7 @@ STRINGTABLE
   
   IDS_LUXC4D_PORTAL_TAG       "LuxC4D Portal Tag";
   
-  IDS_LUXC4D_MATERIAL_MATTE   "Matte";
-  IDS_LUXC4D_MATERIAL_GLOSSY  "Glossy";
+  IDS_LUXC4D_MATERIAL         "LuxC4D Material";
   
   IDS_LUXC4D_PREFERENCES              "LuxC4D Preferences ...";
   IDS_LUXC4D_PREFERENCES_DESCR        "Opens a dialog where you can set global LuxC4D options";
