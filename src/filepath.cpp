@@ -72,8 +72,15 @@ FilePath& FilePath::operator=(const Filename& filename)
 }
 
 
-FilePath& FilePath::operator=(const String& pathStr)
+FilePath& FilePath::operator=(const String& _pathStr)
 {
+#if defined(__MAC) && (_C4D_VERSION<100)
+  String posixPathStr(convertToPosixPath(_pathStr));
+  const String& pathStr(posixPathStr);
+#else
+  const String& pathStr(_pathStr);
+#endif
+  
   // clear current file path content
   clear();
 
@@ -185,17 +192,7 @@ String FilePath::getDirectoryString(void) const
 
 LuxString FilePath::getLuxString(void) const
 {
-#if defined(__MAC) && (_C4D_VERSION<100)
-
-  // special case for C4D R9.6: do a HFS-to-POSIX conversion of the standard
-  //                            path string
-  return convertToPosixPath(getString());
-
-#else
-
   return getLuxDirectoryString() + getLuxFileString();
-
-#endif  // defined(__MAC) && (_C4D_VERSION<100)
 }
 
 
@@ -209,14 +206,6 @@ LuxString FilePath::getLuxFileString(void) const
 
 LuxString FilePath::getLuxDirectoryString(void) const
 {
-#if defined(__MAC) && (_C4D_VERSION<100)
-
-  // special case for C4D R9.6: do a HFS-to-POSIX conversion of the standard
-  //                            directory string
-  return convertToPosixPath(getDirectoryString());
-
-#else
-
   LuxString token, result;
 
 #ifdef __PC
@@ -238,14 +227,16 @@ LuxString FilePath::getLuxDirectoryString(void) const
   }
 
   return result;
-
-#endif  // defined(__MAC) && (_C4D_VERSION<100)
 }
 
 
 Filename FilePath::getFilename(void) const
 {
+#if defined(__MAC) && (_C4D_VERSION<100)
+  return Filename(convertToHSFPath(getString()));
+#else
   return Filename(getString());
+#endif
 }
 
 
@@ -303,13 +294,13 @@ FilePath FilePath::operator+(const FilePath& other) const
 #if defined(__MAC) && (_C4D_VERSION<100)
 #include <CoreFoundation/CoreFoundation.h>
 
-LuxString FilePath::convertToPosixPath(const String& c4dPathStr)
+String FilePath::convertToPosixPath(const String& hfsPathStr)
 {
   static const SizeT cCStrBufferSize = 4096;
   
   // convert Filename to a plain C string in UTF-8
   CHAR pathCStr[cCStrBufferSize];
-  c4dPathStr.GetCString(pathCStr, cCStrBufferSize, StUTF8);
+  hfsPathStr.GetCString(pathCStr, cCStrBufferSize, StUTF8);
   pathCStr[cCStrBufferSize-1] = '\0';
   
   // convert plain C string to CoreFoundation CFString
@@ -337,6 +328,45 @@ LuxString FilePath::convertToPosixPath(const String& c4dPathStr)
   pathCStr[cCStrBufferSize-1] = '\0';
   
   // return a LuxString created from the C string
-  return LuxString(pathCStr);
+  return String(pathCStr, StUTF8);
 }
+
+
+String FilePath::convertToHSFPath(const String& posixPathStr)
+{
+  static const SizeT cCStrBufferSize = 4096;
+  
+  // convert Filename to a plain C string in UTF-8
+  CHAR pathCStr[cCStrBufferSize];
+  posixPathStr.GetCString(pathCStr, cCStrBufferSize, StUTF8);
+  pathCStr[cCStrBufferSize-1] = '\0';
+  
+  // convert plain C string to CoreFoundation CFString
+  CFStringRef pathCFString = CFStringCreateWithCString(NULL,
+                                                       pathCStr,
+                                                       kCFStringEncodingUTF8);
+  
+  // convert CFString to CFURL and release CFString
+  CFURLRef url = CFURLCreateWithFileSystemPath(NULL,
+                                               pathCFString,
+                                               kCFURLPOSIXPathStyle,
+                                               FALSE);
+  CFRelease(pathCFString);
+  
+  // convert CFURL back to a CFString using the POSIX path style and release CFURL
+  pathCFString = CFURLCopyFileSystemPath(url, kCFURLHFSPathStyle);
+  CFRelease(url);
+  
+  // convert CFString back to plain C string and release CFString
+  CFStringGetCString(pathCFString,
+                     pathCStr,
+                     cCStrBufferSize,
+                     kCFStringEncodingUTF8);
+  CFRelease(pathCFString);
+  pathCStr[cCStrBufferSize-1] = '\0';
+  
+  // return a LuxString created from the C string
+  return String(pathCStr, StUTF8);
+}
+
 #endif  // #if defined(__MAC) && (_C4D_VERSION<100)

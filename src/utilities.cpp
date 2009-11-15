@@ -35,9 +35,6 @@
 #ifdef __PC
 const CHAR  gPathDelimiter = '\\';
 const CHAR* gPathDelimiterStr = "\\";
-#elif defined(__MAC) && (_C4D_VERSION<100)
-const CHAR gPathDelimiter = ':';
-const CHAR* gPathDelimiterStr = ":";
 #else
 const CHAR gPathDelimiter = '/';
 const CHAR* gPathDelimiterStr = "/";

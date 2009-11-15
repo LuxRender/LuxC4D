@@ -23,6 +23,7 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
+#include "filepath.h"
 #include "luxc4dexporterrender.h"
 #include "luxc4dpreferences.h"
 #include "utilities.h"
@@ -165,23 +166,14 @@ Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
 Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
                                           const Filename& sceneFileName)
 {
-  static const SizeT cStrBufferSize = 2048;
+  // create std::strings in POSIX format
+  LuxString programFilePathStr(FilePath(programFileName).getLuxString());
+  LuxString programFilePathStr2("\"" + programFilePathStr + "\"");
+  LuxString sceneFilePathStr("\"" + FilePath(sceneFileName).getLuxString() + "\"");
   
-  String programFileNameStr, sceneFileNameStr;
-  char   programFileNameCStr[cStrBufferSize];
-  char   programFileNameCStr2[cStrBufferSize];
-  char   sceneFileNameCStr[cStrBufferSize];
-  
-  // make sure that the assumption is correct that wchar_t == UWORD
-  GeAssert( sizeof(char) == sizeof(CHAR) );
-  
-  // copy UNICODE filenames into C strings
-  programFileNameStr = programFileName.GetString();
-  programFileNameStr.GetCString(programFileNameCStr, cStrBufferSize, StUTF8);
-  programFileNameStr = "\"" + programFileNameStr + "\"";
-  programFileNameStr.GetCString(programFileNameCStr2, cStrBufferSize, StUTF8);
-  sceneFileNameStr = "\"" + sceneFileName.GetString() + "\"";
-  sceneFileNameStr.GetCString(sceneFileNameCStr, cStrBufferSize, StUTF8);
+  GePrint(String(programFilePathStr.c_str(), StUTF8));
+  GePrint(String(programFilePathStr2.c_str(), StUTF8));
+  GePrint(String(sceneFilePathStr.c_str(), StUTF8));
   
   // fork to new process and run LuxRender in new process
   switch (fork()) {
@@ -189,8 +181,10 @@ Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
       ERRLOG_RETURN_VALUE(FALSE, "fork() failed");
     case 0:
       // this is the child process
-      execl(programFileNameCStr, programFileNameCStr2, sceneFileNameCStr, NULL);
-      puts("Uh oh! If this prints, execl() must have failed");
+      execl(programFilePathStr.c_str(),
+            programFilePathStr2.c_str(),
+            sceneFilePathStr.c_str(),
+            NULL);
       exit(EXIT_FAILURE);
     default:
       // this is the parent process
