@@ -82,11 +82,13 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
   mExportedFile = Filename();
   if (settingsNode) {
     settingsNode->getExportFilename(*document, mExportedFile, overwritingAllowed);
-    FilePath path(mExportedFile);
-    // if the scene file name is not absolute, make it absolute by "attaching"
-    // it to the document path
-    if (!path.isAbsolute()) {
-      mExportedFile = (FilePath(document->GetDocumentPath()) + path).getFilename();
+    if (mExportedFile.Content()) {
+      FilePath path(mExportedFile);
+      // if the scene file name is not absolute, make it absolute by "attaching"
+      // it to the document path
+      if (!path.isAbsolute()) {
+        mExportedFile = (FilePath(document->GetDocumentPath()) + path).getFilename();
+      }
     }
     // determine if texture paths should be relative
     useRelativePaths = settingsNode->useRelativePaths();

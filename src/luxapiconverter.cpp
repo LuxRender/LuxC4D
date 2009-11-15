@@ -1381,9 +1381,11 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
     Bool hasDiffuse = getParameterLong(material, MATERIAL_USE_COLOR);
     Bool hasTransparency = getParameterLong(material, MATERIAL_USE_TRANSPARENCY);
     Bool hasReflection = getParameterLong(material, MATERIAL_USE_REFLECTION);
+    Bool hasEmission = getParameterLong(material, MATERIAL_USE_LUMINANCE);
 
-    // D    -> diffuse
-    if (hasDiffuse && !hasTransparency && !hasReflection) {
+    // D -> diffuse
+    // E -> diffuse
+    if ((hasDiffuse || hasEmission) && !hasTransparency && !hasReflection) {
       success = exportDiffuseMaterial(mapping,
                                       (Material&)material,
                                       materialName,
