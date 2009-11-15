@@ -1682,26 +1682,17 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                  0.0);
   }
 
-  // setup set for additional parameters (e.g. "architectural")
-  LuxParamSet addParams(1);
-
-  // get index of refraction, snap it to 1.0 and check if we should use
-  // architectural glass
+  // get index of refraction (IOR)
   Real ior = getParameterReal(material,
                               MATERIAL_TRANSPARENCY_REFRACTION,
                               1.0);
-  LuxBool architectural = false;
-  if (fabsf(ior - 1.0) < 0.0001) {
-    ior = 1.0;
-    architectural = true;
-    addParams.addParam(LUX_BOOL, "architectural", &architectural);
-  }
-
 
   // if roughness nearly or equal 0, we convert to a glass material
   if (roughness < 0.001) {
 
     LuxMaterialData materialData(gLuxGlassInfo);
+    LuxParamSet     addParams(1);
+    Bool            architectural = TRUE;
 
     // obtain reflection channel
     if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
@@ -1717,7 +1708,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                               gNewNC LuxConstantTextureData(LuxColor(0.0)));
     }
 
-    // obtain transparency channel + IOR
+    // obtain transparency channel
     if (getParameterLong(material, MATERIAL_USE_TRANSPARENCY)) {
       materialData.setChannel(LUX_GLASS_TRANSMISSION,
                               convertColorChannel(mapping,
@@ -1726,12 +1717,17 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                   MATERIAL_TRANSPARENCY_COLOR,
                                                   MATERIAL_TRANSPARENCY_BRIGHTNESS,
                                                   MATERIAL_TRANSPARENCY_TEXTURESTRENGTH));
-      if (!architectural) {
-        materialData.setChannel(LUX_GLASS_IOR,
-                                gNewNC LuxConstantTextureData(getParameterReal(material,
-                                                                               MATERIAL_TRANSPARENCY_REFRACTION,
-                                                                               1.0)));
-      }
+    }
+
+    // setup IOR texture: if IOR=1.0 we enable the architectural glass option,
+    // but still export with an IOR of 1.5, to get some reflections at least
+    if (fabsf(ior - 1.0) < 0.0001) {
+      addParams.addParam(LUX_BOOL, "architectural", &architectural);
+      materialData.setChannel(LUX_GLASS_IOR,
+                              gNewNC LuxConstantTextureData(1.5));
+    } else {
+      materialData.setChannel(LUX_GLASS_IOR,
+                              gNewNC LuxConstantTextureData(ior));
     }
 
     // obtain bump and emission channels
@@ -1759,7 +1755,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                               gNewNC LuxConstantTextureData(LuxColor(0.0f)));
     }
 
-    // obtain transparency channel + IOR + roughness
+    // obtain transparency channel + roughness
     if (getParameterLong(material, MATERIAL_USE_TRANSPARENCY)) {
       materialData.setChannel(LUX_ROUGH_GLASS_TRANSMISSION,
                               convertColorChannel(mapping,
@@ -1768,12 +1764,6 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                   MATERIAL_TRANSPARENCY_COLOR,
                                                   MATERIAL_TRANSPARENCY_BRIGHTNESS,
                                                   MATERIAL_TRANSPARENCY_TEXTURESTRENGTH));
-      if (!architectural) {
-        materialData.setChannel(LUX_ROUGH_GLASS_IOR,
-                                gNewNC LuxConstantTextureData(getParameterReal(material,
-                                                                               MATERIAL_TRANSPARENCY_REFRACTION,
-                                                                               1.0)));
-      }
       roughness = c4dDispersionToLuxRoughness(roughness);
       materialData.setChannel(LUX_ROUGH_GLASS_UROUGHNESS,
                               gNewNC LuxConstantTextureData(roughness));
@@ -1781,11 +1771,15 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                               gNewNC LuxConstantTextureData(roughness));
     }
 
+    // setup IOR texture
+    materialData.setChannel(LUX_ROUGH_GLASS_IOR,
+                            gNewNC LuxConstantTextureData(ior));
+
     // obtain bump and emission channel
     addBumpChannel(mapping, material, materialData, LUX_GLASS_BUMP);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-    return materialData.sendToAPI(*mReceiver, materialName.c_str(), &addParams);
+    return materialData.sendToAPI(*mReceiver, materialName.c_str(), NULL);
   }
 }
 
@@ -1962,8 +1956,7 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mappi
   mReceiver->processFilePath(processedBitmapPath);
   LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE,
                                                    mapping,
-                                                   processedBitmapPath,
-                                                   mTextureGamma);
+                                                   processedBitmapPath);
 
   // if strength is not ~1.0, scale texture
   strength *= strengthScale;

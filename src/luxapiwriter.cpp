@@ -82,6 +82,7 @@ Bool LuxAPIWriter::init(const Filename &sceneFile,
   // just store the filenames - they will be opened later
   mSceneFilename = sceneFile;
   mSceneFileDirectory = FilePath(sceneFile).getDirectoryPath();
+  mUseRelativePaths = useRelativePaths;
   mWorldStarted = FALSE;
   mErrorStringID = 0;
   mCommentLen = 0;

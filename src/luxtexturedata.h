@@ -218,7 +218,7 @@ class LuxImageMapData : public LuxTextureData
     LuxImageMapData(LuxTextureType        type,
                     const TextureMapping& mapping,
                     const FilePath&       imagePath,
-                    LuxFloat              gamma);
+                    LuxFloat              gamma = 1.0);
 
 
   protected:
