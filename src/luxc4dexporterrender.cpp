@@ -72,6 +72,8 @@ Bool LuxC4DExporterRender::Execute(BaseDocument* document)
     luxPath += "LuxRender";
   }
 #endif
+  
+  // check if the LuxRender application path is valid
   if (!GeFExist(luxPath, FALSE)) {
     GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_DOESNT_EXIST, luxPath.GetString()), GEMB_OK);
     return FALSE;
@@ -82,8 +84,7 @@ Bool LuxC4DExporterRender::Execute(BaseDocument* document)
     return FALSE;
   }
 
-  // call Lux
-  //if (!GeExecuteProgram(luxPath, mExportedFile)) {
+  // call LuxRender
   if (!executeProgram(luxPath, mExportedFile)) {
     GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_EXECUTE, luxPath.GetString()), GEMB_OK);
     return FALSE;
@@ -166,30 +167,12 @@ Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
 Bool LuxC4DExporterRender::executeProgram(const Filename& programFileName,
                                           const Filename& sceneFileName)
 {
-  // create std::strings in POSIX format
-  LuxString programFilePathStr(FilePath(programFileName).getLuxString());
-  LuxString programFilePathStr2("\"" + programFilePathStr + "\"");
-  LuxString sceneFilePathStr("\"" + FilePath(sceneFileName).getLuxString() + "\"");
-  
-  GePrint(String(programFilePathStr.c_str(), StUTF8));
-  GePrint(String(programFilePathStr2.c_str(), StUTF8));
-  GePrint(String(sceneFilePathStr.c_str(), StUTF8));
-  
-  // fork to new process and run LuxRender in new process
-  switch (fork()) {
-    case -1:
-      ERRLOG_RETURN_VALUE(FALSE, "fork() failed");
-    case 0:
-      // this is the child process
-      execl(programFilePathStr.c_str(),
-            programFilePathStr2.c_str(),
-            sceneFilePathStr.c_str(),
-            NULL);
-      exit(EXIT_FAILURE);
-    default:
-      // this is the parent process
-      return TRUE;
-  }
+  LuxString cmdStr = "\"" +
+                     FilePath(programFileName).getLuxString() +
+                     "\" \"" +
+                     FilePath(sceneFileName).getLuxString() +
+                     "\" &";
+  return ( system(cmdStr.c_str()) >= 0 );
 }
 
 #endif  // #ifdef __PC
