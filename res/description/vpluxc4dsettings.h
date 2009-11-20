@@ -200,25 +200,44 @@ enum
 
 
     // ----------------------------------
-    // FILTERING GROUP
+    // ACCELERATION GROUP
     IDG_ACCELERATION = 15000,
-    IDD_ACCELERATION,
-    IDD_ADVANCED_ACCELERATION,
-
-      // tabreckdtree acceleration
-      IDG_ACCELERATION_TABRECKDTREE = 15100,
-
-      // bvh acceleration
-      IDG_ACCELERATION_BVH = 14200,
-
-      // qbvh acceleration
-      IDG_ACCELERATION_QBVH = 14300,
+    IDD_ACCELERATION_TYPE,
+    IDD_ACCELERATION_ADVANCED,
 
       // acceleration types
       IDD_ACCELERATION_TABRECKDTREE = 0,
       IDD_ACCELERATION_BVH,
       IDD_ACCELERATION_QBVH,
       IDD_ACCELERATION_NUMBER,
+
+    // tabreckdtree acceleration
+    IDG_ACCELERATION_TABRECKDTREE = 15100,
+    IDD_TABRECKDTREE_INTERSECTION_COST,
+    IDD_TABRECKDTREE_TRAVERSAL_COST,
+    IDD_TABRECKDTREE_EMPTY_BONUS,
+    IDD_TABRECKDTREE_MAX_PRIMITIVES,
+    IDD_TABRECKDTREE_MAX_DEPTH,
+
+    // bvh acceleration
+    IDG_ACCELERATION_BVH = 15200,
+    IDD_BVH_TREE_TYPE,
+    IDD_BVH_COST_SAMPLES,
+    IDD_BVH_INTERSECTION_COST,
+    IDD_BVH_TRAVERSAL_COST,
+    IDD_BVH_EMPTY_BONUS,
+
+      // bvh tree types
+      IDD_BVH_BINARY_TREE = 2,
+      IDD_BVH_QUAD_TREE   = 4,
+      IDD_BVH_OCT_TREE    = 8,
+
+    // qbvh acceleration
+    IDG_ACCELERATION_QBVH = 15300,
+    IDD_QBVH_MAX_PRIMITIVES,
+    IDD_QBVH_FULL_SWEEP_THRESHOLD,
+    IDD_QBVH_SKIP_FACTOR,
+
 
 
   // ----------------------------------
@@ -293,39 +312,49 @@ enum
       IDD_FLEXIMAGE_TGA_CHANNELS,
       IDD_FLEXIMAGE_TGA_GAMUT_CLAMP,
 
-      // clamp methods
-      IDD_CLAMP_METHOD_LUM = 0,
-      IDD_CLAMP_METHOD_HUE,
-      IDD_CLAMP_METHOD_CUT,
-      IDD_CLAMP_METHOD_NUMBER,
+        // clamp methods
+        IDD_CLAMP_METHOD_LUM = 0,
+        IDD_CLAMP_METHOD_HUE,
+        IDD_CLAMP_METHOD_CUT,
+        IDD_CLAMP_METHOD_NUMBER,
 
-      // tonemap kernels
-      IDD_TONEMAP_KERNEL_REINHARD = 0,
-      IDD_TONEMAP_KERNEL_LINEAR,
-      IDD_TONEMAP_KERNEL_CONTRAST,
-      IDD_TONEMAP_KERNEL_MAXWHITE,
-      IDD_TONEMAP_KERNEL_NUMBER,
+        // tonemap kernels
+        IDD_TONEMAP_KERNEL_REINHARD = 0,
+        IDD_TONEMAP_KERNEL_LINEAR,
+        IDD_TONEMAP_KERNEL_CONTRAST,
+        IDD_TONEMAP_KERNEL_MAXWHITE,
+        IDD_TONEMAP_KERNEL_NUMBER,
 
-      // image channels
-      IDD_WRITE_CHANNELS_Y = 0,
-      IDD_WRITE_CHANNELS_YA,
-      IDD_WRITE_CHANNELS_RGB,
-      IDD_WRITE_CHANNELS_RGBA,
-      IDD_WRITE_CHANNELS_NUMBER,
+        // image channels
+        IDD_WRITE_CHANNELS_Y = 0,
+        IDD_WRITE_CHANNELS_YA,
+        IDD_WRITE_CHANNELS_RGB,
+        IDD_WRITE_CHANNELS_RGBA,
+        IDD_WRITE_CHANNELS_NUMBER,
 
-      // Z-buffer normalistation types
-      IDD_ZBUF_NORM_TYPE_NONE = 0,
-      IDD_ZBUF_NORM_TYPE_CAMERA,
-      IDD_ZBUF_NORM_TYPE_SCENE,
-      IDD_ZBUF_NORM_TYPE_NUMBER,
+        // Z-buffer normalistation types
+        IDD_ZBUF_NORM_TYPE_NONE = 0,
+        IDD_ZBUF_NORM_TYPE_CAMERA,
+        IDD_ZBUF_NORM_TYPE_SCENE,
+        IDD_ZBUF_NORM_TYPE_NUMBER,
 
-      // exr compression types
-      IDD_EXR_COMPRESSION_RLE = 0,
-      IDD_EXR_COMPRESSION_PIZ,
-      IDD_EXR_COMPRESSION_ZIP,
-      IDD_EXR_COMPRESSION_PXR24,
-      IDD_EXR_COMPRESSION_NONE,
-      IDD_EXR_COMPRESSION_NUMBER,
+        // exr compression types
+        IDD_EXR_COMPRESSION_RLE = 0,
+        IDD_EXR_COMPRESSION_PIZ,
+        IDD_EXR_COMPRESSION_ZIP,
+        IDD_EXR_COMPRESSION_PXR24,
+        IDD_EXR_COMPRESSION_NONE,
+        IDD_EXR_COMPRESSION_NUMBER,
+
+      // the way how the filename is determined
+      IDD_FLEXIMAGE_FILENAME_TYPE = 22020,
+      IDD_FLEXIMAGE_OUTPUT_FILENAME,
+
+        // the different methods to determine the output filename
+        IDD_FLEXIMAGE_FILENAME_AS_SCENE_FILE = 0,
+        IDD_FLEXIMAGE_FILENAME_AS_C4D_OUTPUT_FILE,
+        IDD_FLEXIMAGE_FILENAME_DEFINE_HERE,
+
 
 
   // ----------------------------------

@@ -101,13 +101,14 @@ private:
   BaseContainer* getData(void);
 
   void copyParam(Descr2Param<LuxBool>& descr2Param,
-                 LuxParamSet&           paramSet);
+                 LuxParamSet&          paramSet);
 
   void copyParam(Descr2Param<LuxInteger>& descr2Param,
-                 LuxParamSet&              paramSet);
+                 LuxParamSet&             paramSet);
 
   void copyParam(Descr2Param<LuxFloat>& descr2Param,
-                 LuxParamSet&            paramSet);
+                 LuxParamSet&           paramSet,
+                 LuxFloat               scaleFactor = 1.0);
 
   void copyParam(Descr2Param<LuxString>& descr2Param,
                  LuxParamSet&            paramSet,
