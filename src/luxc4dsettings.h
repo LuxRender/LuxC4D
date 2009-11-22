@@ -66,12 +66,15 @@ public:
 
   void getFilm(const char*& name,
                LuxParamSet& paramSet);
+  LONG getOutputFilePathSettings(Filename& userDefined);
   void getPixelFilter(const char*& name,
                       LuxParamSet& paramSet);
   void getSampler(const char*& name,
                   LuxParamSet& paramSet);
   void getSurfaceIntegrator(const char*& name,
                             LuxParamSet& paramSet);
+  void getAccelerator(const char*& name,
+                      LuxParamSet& paramSet);
   void getExportFilename(BaseDocument& document,
                          Filename&     path,
                          Bool&         overwritingAllowed);

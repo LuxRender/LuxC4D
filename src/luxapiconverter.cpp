@@ -36,6 +36,7 @@
 #include "tluxc4dlighttag.h"
 #include "tluxc4dportaltag.h"
 #include "utilities.h"
+#include "vpluxc4dsettings.h"
 
 
 
@@ -350,21 +351,35 @@ Bool LuxAPIConverter::exportFilm(void)
   LuxInteger xResolution = (LuxInteger)mC4DRenderSettings->GetLong(RDATA_XRES);
   LuxInteger yResolution = (LuxInteger)mC4DRenderSettings->GetLong(RDATA_YRES);
 
-  // obtain output filename
-  String filenameC4D = mC4DRenderSettings->GetString(RDATA_PATH);
-  if (!filenameC4D.Content()) {
-    Filename docFilename = mDocument->GetDocumentName();
-    docFilename.ClearSuffix();
-    filenameC4D = docFilename.GetString();
+  // determine output filename
+  Filename outputFilename;
+  if (mLuxC4DSettings) {
+    LONG outputFilenameMethod = mLuxC4DSettings->getOutputFilePathSettings(outputFilename);
+    GePrint("'" + outputFilename.GetString() + "'");
+    if (outputFilenameMethod == IDD_FLEXIMAGE_FILENAME_AS_SCENE_FILE) {
+      outputFilename = mReceiver->getSceneFilename();
+    }
   }
-  LuxString filename;
-  convert2LuxString(filenameC4D, filename);
+  if (!outputFilename.Content()) {
+    outputFilename = mC4DRenderSettings->GetFilename(RDATA_PATH);
+    if (!outputFilename.Content()) {
+      outputFilename = mDocument->GetDocumentName();
+    }
+  }
+  GePrint("'" + outputFilename.GetString() + "'");
+  FilePath outputFilePath(outputFilename);
+  GePrint("'" + outputFilePath.getString() + "'");
+  outputFilePath.setSuffix("");
+  GePrint("'" + outputFilePath.getString() + "'");
+  mReceiver->processFilePath(outputFilePath);
+  GePrint("'" + outputFilePath.getString() + "'");
+  LuxString outputFileStr(outputFilePath.getLuxString());
 
   // fill parameter set with parameters not coming from the settings object
   mTempParamSet.clear();
   mTempParamSet.addParam(LUX_INTEGER, "xresolution", &xResolution);
   mTempParamSet.addParam(LUX_INTEGER, "yresolution", &yResolution);
-  mTempParamSet.addParam(LUX_STRING,  "filename",    &filename);
+  mTempParamSet.addParam(LUX_STRING,  "filename",    &outputFileStr);
 
   // if no settings object found, use defaults
   if (!mLuxC4DSettings) {
@@ -566,8 +581,16 @@ Bool LuxAPIConverter::exportAccelerator(void)
   GeAssert(mDocument);
   GeAssert(mReceiver);
 
+  // if no settings object found, use defaults
   mTempParamSet.clear();
-  return mReceiver->accelerator("kdtree", mTempParamSet);
+  if (!mLuxC4DSettings) {
+    return mReceiver->accelerator("kdtree", mTempParamSet);
+  }
+
+  // otherwise, obtain settings from object
+  const char *name;
+  mLuxC4DSettings->getAccelerator(name, mTempParamSet);
+  return mReceiver->accelerator(name, mTempParamSet);
 }
 
 

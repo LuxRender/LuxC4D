@@ -181,6 +181,13 @@ void LuxAPIWriter::processFilePath(FilePath& path)
 }
 
 
+///
+Filename LuxAPIWriter::getSceneFilename(void)
+{
+  return mSceneFilename;
+}
+
+
 /// Specifies the comment for the next command - see
 /// LuxAPI::setComment(const char*).
 Bool LuxAPIWriter::setComment(const char* text)

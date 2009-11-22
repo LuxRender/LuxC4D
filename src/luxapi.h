@@ -72,6 +72,9 @@ public:
   ///   The path that should be processed.
   virtual void processFilePath(FilePath& path) =0;
 
+  ///
+  virtual Filename getSceneFilename(void) =0;
+
 
   /// Specifies the comment for the next Lux API command. This should be used
   /// by an exporter implementation that writes Lux scene files and should be

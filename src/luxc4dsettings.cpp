@@ -159,13 +159,13 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetReal(IDD_TRIANGLE_FILTER_HEIGHT, 2.0);
 
   // set accelerator defaults
-  data->SetLong(IDD_ACCELERATION_TYPE,              IDD_ACCELERATION_TABRECKDTREE);
+  data->SetLong(IDD_ACCELERATION_TYPE,              IDD_ACCELERATION_KDTREE);
   data->SetBool(IDD_ACCELERATION_ADVANCED,          FALSE);
-  data->SetLong(IDD_TABRECKDTREE_INTERSECTION_COST, 80);
-  data->SetLong(IDD_TABRECKDTREE_TRAVERSAL_COST,    1);
-  data->SetReal(IDD_TABRECKDTREE_EMPTY_BONUS,       0.2);
-  data->SetLong(IDD_TABRECKDTREE_MAX_PRIMITIVES,    1);
-  data->SetLong(IDD_TABRECKDTREE_MAX_DEPTH,         -1);
+  data->SetLong(IDD_KDTREE_INTERSECTION_COST, 80);
+  data->SetLong(IDD_KDTREE_TRAVERSAL_COST,    1);
+  data->SetReal(IDD_KDTREE_EMPTY_BONUS,       0.2);
+  data->SetLong(IDD_KDTREE_MAX_PRIMITIVES,    1);
+  data->SetLong(IDD_KDTREE_MAX_DEPTH,         -1);
   data->SetLong(IDD_BVH_TREE_TYPE,                  IDD_BVH_QUAD_TREE);
   data->SetLong(IDD_BVH_COST_SAMPLES,               0);
   data->SetLong(IDD_BVH_INTERSECTION_COST,          80);
@@ -312,9 +312,9 @@ Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
   // show/hide advanced accelerator parameters
   LONG accelerator = data->GetLong(IDD_ACCELERATION_TYPE);
   advanced = data->GetBool(IDD_ACCELERATION_ADVANCED);
-  showParameter(description, IDG_ACCELERATION_TABRECKDTREE, params, advanced && (accelerator == IDD_ACCELERATION_TABRECKDTREE));
-  showParameter(description, IDG_ACCELERATION_BVH,          params, advanced && (accelerator == IDD_ACCELERATION_BVH));
-  showParameter(description, IDG_ACCELERATION_QBVH,         params, advanced && (accelerator == IDD_ACCELERATION_QBVH));
+  showParameter(description, IDG_ACCELERATION_KDTREE, params, advanced && (accelerator == IDD_ACCELERATION_KDTREE));
+  showParameter(description, IDG_ACCELERATION_BVH,    params, advanced && (accelerator == IDD_ACCELERATION_BVH));
+  showParameter(description, IDG_ACCELERATION_QBVH,   params, advanced && (accelerator == IDD_ACCELERATION_QBVH));
 
   // show hide film parameters
   LONG tonemapKernel = data->GetLong(IDD_FLEXIMAGE_TONEMAP_KERNEL);
@@ -539,6 +539,19 @@ void LuxC4DSettings::getFilm(const char*& name,
 
   // store pixel filter name
   name = sFilmNames[film];
+}
+
+
+///
+LONG LuxC4DSettings::getOutputFilePathSettings(Filename& userDefined)
+{
+  // get base container
+  BaseContainer* data = getData();
+  if (!data) { return IDD_FLEXIMAGE_FILENAME_AS_SCENE_FILE; }
+
+  // read user defined path and return filename method
+  userDefined = data->GetFilename(IDD_FLEXIMAGE_OUTPUT_FILENAME);
+  return data->GetLong(IDD_FLEXIMAGE_FILENAME_TYPE);
 }
 
 
@@ -802,14 +815,14 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
   static Descr2Param<LuxString>  sDirectLightingStrategy(IDD_DIRECT_LIGHTING_STRATEGY,  "strategy");
 
 
-  // set default sampler
+  // set default integrator
   name = sIntegratorNames[IDD_INTEGRATOR_PATH];
 
   // get base container of this node
   BaseContainer* data = getData();
   if (!data)  return;
 
-  // get sampler...
+  // get integrator ...
   LONG integrator = data->GetLong(IDD_INTEGRATOR);
 
   // ... and fetch its data
@@ -873,6 +886,87 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
   name = sIntegratorNames[integrator];
 }
 
+
+/// Obtains the accelerator settings from the settings object.
+///
+/// @param[out]  name
+///   Will receive the accelerator name.
+/// @param[out]  paramSet
+///   The set to which the parameters get added.
+void LuxC4DSettings::getAccelerator(const char*& name,
+                                    LuxParamSet& paramSet)
+{
+  // the different accelerator names
+  static const char* sAcceleratorNames[IDD_ACCELERATION_TYPE_NUMBER] = {
+      "kdtree",
+      "bvh",
+      "qbvh"
+    };
+
+  // parameters for kd-tree
+  static Descr2Param<LuxInteger> sKdTreeIntersectionCost(IDD_KDTREE_INTERSECTION_COST, "intersectcost");
+  static Descr2Param<LuxInteger> sKdTreeTraversalCost   (IDD_KDTREE_TRAVERSAL_COST,    "traversalcost");
+  static Descr2Param<LuxFloat>   sKdTreeEmptyBonus      (IDD_KDTREE_EMPTY_BONUS,       "emptybonus");
+  static Descr2Param<LuxInteger> sKdTreeMaxPrimitives   (IDD_KDTREE_MAX_PRIMITIVES,    "maxprims");
+  static Descr2Param<LuxInteger> sKdTreeMaxDepth        (IDD_KDTREE_MAX_DEPTH,         "maxdepth");
+
+  // parameters for bvh tree
+  static Descr2Param<LuxInteger> sBVHIntersectionCost(IDD_BVH_TREE_TYPE,         "treetype");
+  static Descr2Param<LuxInteger> sBVHTraversalCost   (IDD_BVH_COST_SAMPLES,      "costsamples");
+  static Descr2Param<LuxInteger> sBVHMaxPrimitives   (IDD_BVH_INTERSECTION_COST, "intersectcost");
+  static Descr2Param<LuxInteger> sBVHMaxDepth        (IDD_BVH_TRAVERSAL_COST,    "traversalcost");
+  static Descr2Param<LuxFloat>   sBVHEmptyBonus      (IDD_BVH_EMPTY_BONUS,       "emptybonus");
+
+  // parameters for qbvh tree
+  static Descr2Param<LuxInteger> sQBVHTraversalCost(IDD_QBVH_MAX_PRIMITIVES,       "maxprimsperleaf");
+  static Descr2Param<LuxFloat>   sQBVHEmptyBonus   (IDD_QBVH_FULL_SWEEP_THRESHOLD, "fullsweepthreshold");
+  static Descr2Param<LuxInteger> sQBVHMaxPrimitives(IDD_QBVH_SKIP_FACTOR,          "skipfactor");
+
+
+  // set default accelerator
+  name = sAcceleratorNames[IDD_ACCELERATION_KDTREE];
+
+  // get base container of this node
+  BaseContainer* data = getData();
+  if (!data) { return; }
+
+  // get accelerator...
+  LONG accelerator = data->GetLong(IDD_ACCELERATION_TYPE);
+
+  // ... and fetch its data, if we have the advanced option enabled
+  if (data->GetBool(IDD_ACCELERATION_ADVANCED)) {
+    switch (accelerator) {
+      // kd-tree
+      case IDD_INTEGRATOR_PATH:
+        copyParam(sKdTreeIntersectionCost, paramSet);
+        copyParam(sKdTreeTraversalCost,    paramSet);
+        copyParam(sKdTreeEmptyBonus,       paramSet);
+        copyParam(sKdTreeMaxPrimitives,    paramSet);
+        copyParam(sKdTreeMaxDepth,         paramSet);
+        break;
+      // bvh tree
+      case IDD_ACCELERATION_BVH:
+        copyParam(sBVHIntersectionCost, paramSet);
+        copyParam(sBVHTraversalCost,    paramSet);
+        copyParam(sBVHMaxPrimitives,    paramSet);
+        copyParam(sBVHMaxDepth,         paramSet);
+        copyParam(sBVHEmptyBonus,       paramSet);
+        break;
+      // qbvh tree
+      case IDD_ACCELERATION_QBVH:
+        copyParam(sQBVHTraversalCost, paramSet);
+        copyParam(sQBVHEmptyBonus,    paramSet);
+        copyParam(sQBVHMaxPrimitives, paramSet);
+        break;
+      // invalid accelerator-> error and return
+      default:
+        ERRLOG_RETURN("LuxC4DSettings::getAccelerator(): invalid accelerator type found -> using default settings");
+    }
+  }
+
+  // store accelerator name
+  name = sAcceleratorNames[accelerator];
+}
 
 /// Obtains the filename of the exported scene from the settings. If it's not
 /// specified the filename will be empty.

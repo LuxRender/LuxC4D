@@ -144,15 +144,15 @@ STRINGTABLE VPluxc4dsettings
     IDD_ACCELERATION_TYPE               "Data Structure";
     IDD_ACCELERATION_ADVANCED           "Advanced";
 
-      IDD_ACCELERATION_TABRECKDTREE       "Kd-Tree";
+      IDD_ACCELERATION_KDTREE             "Kd-Tree";
       IDD_ACCELERATION_BVH                "BVH";
       IDD_ACCELERATION_QBVH               "QBVH";
 
-    IDD_TABRECKDTREE_INTERSECTION_COST  "Intersection Cost";
-    IDD_TABRECKDTREE_TRAVERSAL_COST     "Traversal Cost";
-    IDD_TABRECKDTREE_EMPTY_BONUS        "Empty Cell Bonus";
-    IDD_TABRECKDTREE_MAX_PRIMITIVES     "Max. Primitives";
-    IDD_TABRECKDTREE_MAX_DEPTH          "Max. Depth";
+    IDD_KDTREE_INTERSECTION_COST        "Intersection Cost";
+    IDD_KDTREE_TRAVERSAL_COST           "Traversal Cost";
+    IDD_KDTREE_EMPTY_BONUS              "Empty Cell Bonus";
+    IDD_KDTREE_MAX_PRIMITIVES           "Max. Primitives";
+    IDD_KDTREE_MAX_DEPTH                "Max. Depth";
 
     IDD_BVH_TREE_TYPE                   "Tree Type";
     IDD_BVH_COST_SAMPLES                "Cost Samples";

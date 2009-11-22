@@ -240,6 +240,18 @@ Filename FilePath::getFilename(void) const
 }
 
 
+void FilePath::setSuffix(const String& suffix)
+{
+  if (!mTokens.size()) { return; }
+
+  LONG pos;
+  if (mTokens.back().FindLast('.', &pos)) {
+    mTokens.back().Delete(pos, mTokens.back().GetLength() - pos);
+    mTokens.back() += suffix;
+  }
+}
+
+
 void FilePath::makeRelativeTo(const FilePath& basePath)
 {
   // we can't determine the relation between the two paths if they are not both
