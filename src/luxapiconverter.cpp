@@ -366,13 +366,9 @@ Bool LuxAPIConverter::exportFilm(void)
       outputFilename = mDocument->GetDocumentName();
     }
   }
-  GePrint("'" + outputFilename.GetString() + "'");
   FilePath outputFilePath(outputFilename);
-  GePrint("'" + outputFilePath.getString() + "'");
-  outputFilePath.setSuffix("");
-  GePrint("'" + outputFilePath.getString() + "'");
+  outputFilePath.setSuffix(String());
   mReceiver->processFilePath(outputFilePath);
-  GePrint("'" + outputFilePath.getString() + "'");
   LuxString outputFileStr(outputFilePath.getLuxString());
 
   // fill parameter set with parameters not coming from the settings object
@@ -900,18 +896,17 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       xRad = data.mSize.x * 0.5 * mC4D2LuxScale;
       yRad = data.mSize.y * 0.5 * mC4D2LuxScale;
       points.init(4);
-      points[0] = Vector(-xRad, -yRad, 0);
-      points[1] = Vector( xRad, -yRad, 0);
-      points[2] = Vector( xRad,  yRad, 0);
-      points[3] = Vector(-xRad,  yRad, 0);
-      triangles.init(2*3);
-      triangles[ 0] = 0;  triangles[ 1] = 2;  triangles[ 2] = 1;  
-      triangles[ 3] = 0;  triangles[ 4] = 3;  triangles[ 5] = 2;  
+      points[0] = Vector( xRad, -yRad, 0);
+      points[1] = Vector(-xRad, -yRad, 0);
+      points[2] = Vector(-xRad,  yRad, 0);
+      points[3] = Vector( xRad,  yRad, 0);
+      quads.init(4);
+      quads[0] = 0;  quads[1] = 1;  quads[2] = 2;  quads[3] = 3;
       flipYZ = FALSE;
       shapeParams.addParam(LUX_POINT, "P",
-                           &points.front(), points.size());
-      shapeParams.addParam(LUX_TRIANGLE, "triindices",
-                           &triangles.front(), triangles.size());
+                           points.arrayAddress(), points.size());
+      shapeParams.addParam(LUX_QUAD, "quadindices",
+                           quads.arrayAddress(), quads.size());
       shapeName = "mesh";
       break;
     // sphere area light
@@ -942,28 +937,22 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       points[1] = Vector( xRad, -yRad, -zRad);
       points[2] = Vector( xRad,  yRad, -zRad);
       points[3] = Vector(-xRad,  yRad, -zRad);
-      points[4] = Vector(-xRad, -yRad,  zRad);
-      points[5] = Vector( xRad, -yRad,  zRad);
-      points[6] = Vector( xRad,  yRad,  zRad);
-      points[7] = Vector(-xRad,  yRad,  zRad);
-      triangles.init(6*2*3);
-      triangles[ 0] = 0;  triangles[ 1] = 1;  triangles[ 2] = 2;  
-      triangles[ 3] = 0;  triangles[ 4] = 2;  triangles[ 5] = 3;  
-      triangles[ 6] = 7;  triangles[ 7] = 6;  triangles[ 8] = 5;  
-      triangles[ 9] = 7;  triangles[10] = 5;  triangles[11] = 4;  
-      triangles[12] = 1;  triangles[13] = 0;  triangles[14] = 4;  
-      triangles[15] = 1;  triangles[16] = 4;  triangles[17] = 5;  
-      triangles[18] = 2;  triangles[19] = 1;  triangles[20] = 5;  
-      triangles[21] = 2;  triangles[22] = 5;  triangles[23] = 6;  
-      triangles[24] = 3;  triangles[25] = 2;  triangles[26] = 6;  
-      triangles[27] = 3;  triangles[28] = 6;  triangles[29] = 7;  
-      triangles[30] = 0;  triangles[31] = 3;  triangles[32] = 7;  
-      triangles[33] = 0;  triangles[34] = 7;  triangles[35] = 4;  
+      points[4] = Vector( xRad, -yRad,  zRad);
+      points[5] = Vector(-xRad, -yRad,  zRad);
+      points[6] = Vector(-xRad,  yRad,  zRad);
+      points[7] = Vector( xRad,  yRad,  zRad);
+      quads.init(6*4);
+      quads[ 0] = 0;  quads[ 1] = 1;  quads[ 2] = 2;  quads[ 3] = 3;
+      quads[ 4] = 4;  quads[ 5] = 5;  quads[ 6] = 6;  quads[ 7] = 7;
+      quads[ 8] = 3;  quads[ 9] = 2;  quads[10] = 7;  quads[11] = 6;
+      quads[12] = 1;  quads[13] = 0;  quads[14] = 5;  quads[15] = 4;
+      quads[16] = 1;  quads[17] = 4;  quads[18] = 7;  quads[19] = 2;
+      quads[20] = 5;  quads[21] = 0;  quads[22] = 3;  quads[23] = 6;
       flipYZ = FALSE;
       shapeParams.addParam(LUX_POINT, "P",
-                           &points.front(), points.size());
-      shapeParams.addParam(LUX_TRIANGLE, "triindices",
-                           &triangles.front(), triangles.size());
+                           points.arrayAddress(), points.size());
+      shapeParams.addParam(LUX_QUAD, "quadindices",
+                           quads.arrayAddress(), quads.size());
       shapeName = "mesh";
       break;
     // hemisphere area light
@@ -981,9 +970,9 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       if (!triangles.size() || !points.size())  return TRUE;
       flipYZ = FALSE;
       shapeParams.addParam(LUX_POINT, "P",
-                           &points.front(), points.size());
+                           points.arrayAddress(), points.size());
       shapeParams.addParam(LUX_TRIANGLE, "triindices",
-                           &triangles.front(), triangles.size());
+                           triangles.arrayAddress(), triangles.size());
       shapeName = "mesh";
       break;
     default:
