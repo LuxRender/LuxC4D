@@ -165,6 +165,14 @@ private:
     LuxFloat   mEConst;
   };
 
+  /// Structure that stores all parameters of a infinite light
+  struct InfiniteLightData {
+    LONG     mType;
+    LuxFloat mGain;
+    LuxColor mColor;
+    Filename mFilename;
+  };
+
 
   // Union which is used during conversion of vertices with normals.
   union Point2PolyN {
@@ -230,6 +238,8 @@ private:
   // several functions
   LuxParamSet        mTempParamSet;
   CameraObject*      mCamera;
+  BaseObject*        mSkyObject;
+  ULONG              mPortalCount;
   ULONG              mLightCount;
   ObjectsT           mAreaLightObjects;
   ReusableMaterialsT mReusableMaterials;
@@ -282,6 +292,8 @@ private:
   Bool exportSunSkyLight(SunSkyLightData& data);
   
   Bool exportAutoLight(void);
+
+  Bool exportInfinite(void);
 
   Bool exportStandardMaterial(void);
 

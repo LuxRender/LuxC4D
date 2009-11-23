@@ -137,9 +137,10 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document,
   // export scene description
   if (!mReceiver->worldBegin() ||
       !exportLights() ||
-      !exportAutoLight() ||
       !exportStandardMaterial() ||
       !exportGeometry() ||
+      !exportInfinite() ||
+      !exportAutoLight() ||
       !mReceiver->worldEnd())
   {
     goto CLEANUP_AND_RETURN;
@@ -250,17 +251,19 @@ Bool LuxAPIConverter::Do(void*         data,
 void LuxAPIConverter::clearTemporaryData(void)
 {
   mTempParamSet.clear();
-  mCamera       = 0;
-  mLightCount   = 0;
+  mCamera         = 0;
+  mSkyObject      = 0;
+  mPortalCount    = 0;
+  mLightCount     = 0;
   mAreaLightObjects.erase();
   mReusableMaterials.erase();
   mMaterialUsage.erase();
-  mCachedObject = 0;
+  mCachedObject   = 0;
   mPolygonCache.erase();
   mPointCache.erase();
   mNormalCache.erase();
   mUVCache.erase();
-  mDo           = 0;
+  mDo             = 0;
 }
 
 
@@ -314,7 +317,7 @@ Bool LuxAPIConverter::obtainGlobalSceneData(void)
     if (!layerData || layerData->render) {
 #endif
       mCamera = (CameraObject*)getParameterLink(*stageObject, STAGEOBJECT_CLINK, Ocamera);
-      if (mCamera && (mCamera->GetType() != Ocamera)) { mCamera = 0; }
+      mSkyObject = (BaseObject*)getParameterLink(*stageObject, STAGEOBJECT_SLINK, Osky);
 #if _C4D_VERSION>=100
     }
 #endif
@@ -628,8 +631,10 @@ Bool LuxAPIConverter::doLightExport(HierarchyData& hierarchyData,
 {
   // skip generator objects, invisible objects, objects that are no lights
   // or lights that are not enabled
-  if (controlObject || !hierarchyData.mVisible ||
-      (object.GetType() != Olight) || !object.GetDeformMode())
+  if (controlObject ||
+      !hierarchyData.mVisible ||
+      ((object.GetType() != Olight) && (object.GetType() != Osky)) ||
+      !object.GetDeformMode())
   {
     return TRUE;
   }
@@ -637,10 +642,16 @@ Bool LuxAPIConverter::doLightExport(HierarchyData& hierarchyData,
 #if _C4D_VERSION>=100
   // skip objects that belong to a layer that should not be rendered
   const LayerData* layerData = object.GetLayerData(mDocument);
-  if (layerData && !layerData->render) {
+  if (layerData && !layerData->render) { return TRUE; }
+#endif
+
+  // if the object is a sky object, record it if haven't done it already
+  // (we will create the according light object later, when we know if there
+  // are any portal objects in the scene)
+  if (object.GetType() == Osky) {
+    if (!mSkyObject) { mSkyObject = &object; }
     return TRUE;
   }
-#endif
 
   // export light object
   return exportLight(object, globalMatrix);
@@ -1107,6 +1118,82 @@ Bool LuxAPIConverter::exportAutoLight(void)
 }
 
 
+///
+Bool LuxAPIConverter::exportInfinite(void)
+{
+  // return early if there is no sky object to export
+  if (!mSkyObject) { return TRUE; }
+
+  // get parameters from light object and/or from its associated light tag
+  LuxC4DLightTag::LightParameters parameters;
+  if (!LuxC4DLightTag::getLightParameters(*mSkyObject, mC4D2LuxScale, parameters) ||
+      (parameters.mType != IDD_LIGHT_TYPE_INFINITE))
+  {
+    ERRLOG_RETURN_VALUE(FALSE, "Could not obtain correct light parameters for sky object.");
+  }
+
+  // if the light has no brightness at all, don't export it
+  if (parameters.mBrightness == 0.0) { return TRUE; }
+
+  // start new attribute scope
+  debugLog("exporting infinite/sky light ...");
+  if (!mReceiver->setComment("start of infinite light '" + mSkyObject->GetName() + "'"))  return FALSE;
+  if (!mReceiver->attributeBegin())  return FALSE;
+
+  // write transformation matrix
+  LuxMatrix  transformMatrix(mSkyObject->GetMg(), mC4D2LuxScale);
+  if (!mReceiver->transform(transformMatrix))  return FALSE;
+
+  // write light group if available
+  if (parameters.mGroup.Content()) {
+    LuxString lightGroup;
+    convert2LuxString(parameters.mGroup, lightGroup);
+    if (!mReceiver->lightGroup(lightGroup.c_str()))  return FALSE;
+  }
+
+  // get file path of texture if available or just setup parameter "L"
+  mTempParamSet.clear();
+  LuxColor   l(parameters.mColor);
+  LuxInteger nSamples(parameters.mSamples);
+  LuxString  mapName;
+  if (parameters.mSkyTexFilename.Content()) {
+    l = LuxColor(1.0);
+    FilePath mapPath(parameters.mSkyTexFilename);
+    mReceiver->processFilePath(mapPath);
+    mapName = mapPath.getLuxString();
+    mTempParamSet.addParam(LUX_STRING, "mapname", &mapName);
+  }
+
+  // if light "infinitesample" add "L" and "nsamples"
+  if ((parameters.mInfiniteType == IDD_INFINITE_LIGHT_TYPE_INFINITE_IMPORTANCE) ||
+      ((parameters.mInfiniteType == IDD_INFINITE_LIGHT_TYPE_AUTO) && !mPortalCount))
+  {
+    l *= parameters.mBrightness * 0.05;
+    mTempParamSet.addParam(LUX_COLOR,   "L",        &l);
+    mTempParamSet.addParam(LUX_INTEGER, "nsamples", &nSamples);
+    mReceiver->lightSource("infinitesample", mTempParamSet);
+  // if light "infinite" add "L", "gain", "samples" and "mapping"
+  } else {
+    LuxString mapping("latlong");
+    LuxFloat  gain(parameters.mBrightness * 0.05);
+    mTempParamSet.addParam(LUX_STRING,  "mapping",  &mapping);
+    mTempParamSet.addParam(LUX_COLOR,   "L",        &l);
+    mTempParamSet.addParam(LUX_FLOAT,   "gain",     &gain);
+    mTempParamSet.addParam(LUX_INTEGER, "nsamples", &nSamples);
+    mReceiver->lightSource("infinite", mTempParamSet);
+  }
+
+  // close attribute scope
+  if (!mReceiver->setComment("end of infinite light '" + mSkyObject->GetName() + "'"))  return FALSE;
+  if (!mReceiver->attributeEnd())  return FALSE;
+
+  // increase light count
+  ++mLightCount;
+
+  return TRUE;
+}
+
+
 /// Exports all used materials of the current scene + a default material
 /// (grey matte).
 ///
@@ -1179,13 +1266,9 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
   for (BaseTag* tag=object.GetFirstTag(); tag; tag=tag->GetNext()) {
     if (tag->GetType() == Ttexture) {
       material = (BaseMaterial*)getParameterLink(*tag, TEXTURETAG_MATERIAL, Mbase);
-      if (!material) {
-        continue;
-      }
+      if (!material) { continue; }
       String restriction = getParameterString(*tag, TEXTURETAG_RESTRICTION);
-      if (restriction.Content()) {
-        continue;
-      }
+      if (restriction.Content()) { continue; }
       textureTag = (TextureTag*)tag;
       break;
     }
@@ -2150,14 +2233,15 @@ Bool LuxAPIConverter::exportPortalObject(PolygonObject& object,
   debugLog("exporting portal polygon object '" + object.GetName() + "' ...");
 
   // the container for the geometry
-  TrianglesT triangles;
   PointsT    points;
+  TrianglesT triangles;
+  QuadsT     quads;
 
   // if we should create a simplified geometry:
   if (simplify) {
     // determine bounding box centre and radius
     Vector bboxCentre = object.GetMp() * mC4D2LuxScale;
-    Vector bboxRad = object.GetRad() * mC4D2LuxScale;
+    Vector bboxRad    = object.GetRad() * mC4D2LuxScale;
     // setup points depending on the face direction
     points.init(4);
     switch (tagData->GetLong(IDD_PORTAL_FACE_DIRECTION)) {
@@ -2201,16 +2285,15 @@ Bool LuxAPIConverter::exportPortalObject(PolygonObject& object,
         ERRLOG_RETURN_VALUE(FALSE, "invalid face direction in portal tag '" + tag.GetName() + "'");
     }
     // setup triangles
-    triangles.init(2*3);
-    triangles[ 0] = 0;  triangles[ 1] = 1;  triangles[ 2] = 2;  
-    triangles[ 3] = 0;  triangles[ 4] = 2;  triangles[ 5] = 3;  
+    quads.init(4);
+    quads[0] = 0;  quads[1] = 1;  quads[2] = 2;  quads[3] = 3;
   } else {
     // convert and cache geometry
     if (!convertGeometry(object, triangles, points)) { return FALSE; }
   }
 
   // skip empty objects
-  if (!triangles.size() || !points.size()) {
+  if ((!triangles.size() && !quads.size()) || !points.size()) {
     debugLog("  which is empty -> nothing exported");
     return TRUE;
   }
@@ -2223,15 +2306,23 @@ Bool LuxAPIConverter::exportPortalObject(PolygonObject& object,
   mTempParamSet.clear();
   mTempParamSet.addParam(LUX_POINT, "P",
                          points.arrayAddress(), points.size());
-  mTempParamSet.addParam(LUX_TRIANGLE, "triindices",
-                         triangles.arrayAddress(), triangles.size());
-  
+  if (triangles.size()) {
+    mTempParamSet.addParam(LUX_TRIANGLE, "triindices",
+                           triangles.arrayAddress(), triangles.size());
+  }
+  if (quads.size()) {
+    mTempParamSet.addParam(LUX_QUAD, "quadindices",
+                           quads.arrayAddress(), quads.size());
+  }
 
   // if the normals should be flipped, export "reverseorientation"
   if (flipNormals && !mReceiver->reverseOrientation())  return FALSE;
 
   // export shape
   if (!mReceiver->portalShape("mesh", mTempParamSet)) { return FALSE; }
+
+  // set flag that we have exported at least 1 portal -> influences infinite light
+  ++mPortalCount;
 
   return TRUE;
 }

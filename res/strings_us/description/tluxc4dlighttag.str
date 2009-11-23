@@ -40,6 +40,7 @@ STRINGTABLE Tluxc4dlighttag
     IDD_LIGHT_TYPE_SUN        "Sun Light";
     IDD_LIGHT_TYPE_SKY        "Sky Light";
     IDD_LIGHT_TYPE_SUNSKY     "Sun + Sky Light";
+    IDD_LIGHT_TYPE_INFINITE   "Infinite Light";
 
   IDG_POINT_LIGHT                 "Point Light Settings";
   IDD_POINT_LIGHT_COLOR           "Color";
@@ -89,7 +90,7 @@ STRINGTABLE Tluxc4dlighttag
   IDD_SKY_LIGHT_D_CONST             "D";
   IDD_SKY_LIGHT_E_CONST             "E";
 
-  IDG_SUNSKY_LIGHT                  "Sun+Sky Settings";
+  IDG_SUNSKY_LIGHT                  "Sun+Sky Light Settings";
   IDD_SUNSKY_LIGHT_BRIGHTNESS       "Brightness";
   IDD_SUNSKY_LIGHT_SAMPLES          "Samples";
   IDD_SUNSKY_LIGHT_TURBIDITY        "Turbidity";
@@ -100,6 +101,15 @@ STRINGTABLE Tluxc4dlighttag
   IDD_SUNSKY_LIGHT_C_CONST          "C";
   IDD_SUNSKY_LIGHT_D_CONST          "D";
   IDD_SUNSKY_LIGHT_E_CONST          "E";
+
+  IDG_INFINITE_LIGHT                "Infinite Light Settings";
+  IDD_INFINITE_LIGHT_BRIGHTNESS     "Brightness";
+  IDD_INFINITE_LIGHT_SAMPLES        "Samples";
+  IDD_INFINITE_LIGHT_TYPE           "Type";
+
+    IDD_INFINITE_LIGHT_TYPE_AUTO                "Auto";
+    IDD_INFINITE_LIGHT_TYPE_INFINITE            "Infinite";
+    IDD_INFINITE_LIGHT_TYPE_INFINITE_IMPORTANCE "Infinite Importance Sampled";
 
   IDB_COPY_PARAMETERS               "Copy from Object";
 }

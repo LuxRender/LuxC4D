@@ -72,7 +72,7 @@ public:
     PolygonObject* mShapeObject;
     Vector         mShapeSize;
 
-    // used by area, sun, sky and sun-sky lights
+    // used by area, sun, sky, sun-sky and infinite lights
     LONG           mSamples;
 
     // used by sun light
@@ -84,6 +84,10 @@ public:
     // used by sky and sun-sky lights
     Bool           mAdvanced;
     Real           mA, mB, mC, mD, mE;
+
+    // used by infinite/sky lights
+    LONG           mInfiniteType;
+    Filename       mSkyTexFilename;
   };
 
 
