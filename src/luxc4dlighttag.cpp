@@ -199,6 +199,14 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
       parameters.mBrightness = 1.0;
     }
 
+    // if there is no light tag, just setup the defaults and return
+    if (!lightTag) {
+      parameters.mType         = IDD_LIGHT_TYPE_INFINITE;
+      parameters.mSamples      = 1;
+      parameters.mInfiniteType = IDD_INFINITE_LIGHT_TYPE_AUTO;
+      return TRUE;
+    }
+
   // if it's neither a light nor a sky object -> return
   } else {
     ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): passed object is no light object");
