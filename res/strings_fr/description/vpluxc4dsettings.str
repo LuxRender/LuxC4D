@@ -161,7 +161,7 @@ STRINGTABLE VPluxc4dsettings
       IDD_FLEXIMAGE_REINHARD_POSTSCALE    "Post-ajustement";
       IDD_FLEXIMAGE_REINHARD_BURN         "Combustion";
       IDD_FLEXIMAGE_LINEAR_SENSITIVITY    "Sensitivité (ISO)";
-      IDD_FLEXIMAGE_LINEAR_EXPOSURE       "Exposition (sec)";
+      IDD_FLEXIMAGE_LINEAR_EXPOSURE       "Exposition (msec)";
       IDD_FLEXIMAGE_LINEAR_FSTOP          "F-Stop";
       IDD_FLEXIMAGE_LINEAR_GAMMA          "Gamma";
       IDD_FLEXIMAGE_CONTRAST_YWA          "Luminosité adaptée de l'Affichage/Monde";
@@ -183,30 +183,36 @@ STRINGTABLE VPluxc4dsettings
       IDD_FLEXIMAGE_TGA_CHANNELS          "Canaux";
       IDD_FLEXIMAGE_TGA_GAMUT_CLAMP       "Clamper le Gamut";
     
-      IDD_CLAMP_METHOD_LUM                "Luminosité";
-      IDD_CLAMP_METHOD_HUE                "Teinte";
-      IDD_CLAMP_METHOD_CUT                "Coupe";
+        IDD_CLAMP_METHOD_LUM                "Luminosité";
+        IDD_CLAMP_METHOD_HUE                "Teinte";
+        IDD_CLAMP_METHOD_CUT                "Coupe";
 
-      IDD_TONEMAP_KERNEL_REINHARD         "Reinhard";
-      IDD_TONEMAP_KERNEL_LINEAR           "Linéaire";
-      IDD_TONEMAP_KERNEL_CONTRAST         "Contraste";
-      IDD_TONEMAP_KERNEL_MAXWHITE         "Blanc Max.";
+        IDD_TONEMAP_KERNEL_REINHARD         "Reinhard";
+        IDD_TONEMAP_KERNEL_LINEAR           "Linéaire";
+        IDD_TONEMAP_KERNEL_CONTRAST         "Contraste";
+        IDD_TONEMAP_KERNEL_MAXWHITE         "Blanc Max.";
 
-      IDD_WRITE_CHANNELS_Y                "Niveaux de gris";
-      IDD_WRITE_CHANNELS_YA               "Niveaux de gris + alpha";
-      IDD_WRITE_CHANNELS_RGB              "RVB";
-      IDD_WRITE_CHANNELS_RGBA             "RVB + alpha";
+        IDD_WRITE_CHANNELS_Y                "Niveaux de gris";
+        IDD_WRITE_CHANNELS_YA               "Niveaux de gris + alpha";
+        IDD_WRITE_CHANNELS_RGB              "RVB";
+        IDD_WRITE_CHANNELS_RGBA             "RVB + alpha";
 
-      IDD_ZBUF_NORM_TYPE_NONE             "Aucun";
-      IDD_ZBUF_NORM_TYPE_CAMERA           "Début/Fin de la Caméra";
-      IDD_ZBUF_NORM_TYPE_SCENE            "Min/Max. de la Scène";
+        IDD_ZBUF_NORM_TYPE_NONE             "Aucun";
+        IDD_ZBUF_NORM_TYPE_CAMERA           "Début/Fin de la Caméra";
+        IDD_ZBUF_NORM_TYPE_SCENE            "Min/Max. de la Scène";
 
-      IDD_EXR_COMPRESSION_RLE             "RLE (Le moins de perte)";
-      IDD_EXR_COMPRESSION_PIZ             "PIZ (Le moins de perte)";
-      IDD_EXR_COMPRESSION_ZIP             "ZIP (Le moins de perte)";
-      IDD_EXR_COMPRESSION_PXR24           "Pxr24 (Perte)";
-      IDD_EXR_COMPRESSION_NONE            "Aucune";
+        IDD_EXR_COMPRESSION_RLE             "RLE (Le moins de perte)";
+        IDD_EXR_COMPRESSION_PIZ             "PIZ (Le moins de perte)";
+        IDD_EXR_COMPRESSION_ZIP             "ZIP (Le moins de perte)";
+        IDD_EXR_COMPRESSION_PXR24           "Pxr24 (Perte)";
+        IDD_EXR_COMPRESSION_NONE            "Aucune";
     
+      IDD_FLEXIMAGE_FILENAME_TYPE           "Output Filename";
+
+        IDD_FLEXIMAGE_FILENAME_AS_SCENE_FILE      "Like Scene File";
+        IDD_FLEXIMAGE_FILENAME_AS_C4D_OUTPUT_FILE "Like C4D Output File";
+        IDD_FLEXIMAGE_FILENAME_DEFINE_HERE        "Define Filename Here";
+
     
   IDG_EXPORT                          "Exportation";
     
@@ -218,7 +224,7 @@ STRINGTABLE VPluxc4dsettings
       IDD_USE_C4D_EXPORT_FILENAME         "Même nom que le fichier C4D";
       IDD_DEFINE_EXPORT_FILENAME          "Definir le nom du fichier";
 
-    IDD_SCALE_FACTOR                    "Facteur d'Echelle C4D -> LuxRender";
+    IDD_SCALE_FACTOR                    "How many cm is 1 C4D unit?";
     IDD_EXPORT_BUMP_SAMPLE_DISTANCE     "Export Bump Sample Distance";
     IDD_BUMP_SAMPLE_DISTANCE            "Bump Sample Distance";
     IDD_TEXTURE_GAMMA_CORRECTION        "Texture Gamma Correction";

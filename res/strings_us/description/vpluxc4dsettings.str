@@ -140,6 +140,35 @@ STRINGTABLE VPluxc4dsettings
     IDD_TRIANGLE_FILTER_HEIGHT          "Height";
 
 
+    IDG_ACCELERATION                    "Acceleration";
+    IDD_ACCELERATION_TYPE               "Data Structure";
+    IDD_ACCELERATION_ADVANCED           "Advanced";
+
+      IDD_ACCELERATION_KDTREE             "Kd-Tree";
+      IDD_ACCELERATION_BVH                "BVH";
+      IDD_ACCELERATION_QBVH               "QBVH";
+
+    IDD_KDTREE_INTERSECTION_COST        "Intersection Cost";
+    IDD_KDTREE_TRAVERSAL_COST           "Traversal Cost";
+    IDD_KDTREE_EMPTY_BONUS              "Empty Cell Bonus";
+    IDD_KDTREE_MAX_PRIMITIVES           "Max. Primitives";
+    IDD_KDTREE_MAX_DEPTH                "Max. Depth";
+
+    IDD_BVH_TREE_TYPE                   "Tree Type";
+    IDD_BVH_COST_SAMPLES                "Cost Samples";
+    IDD_BVH_INTERSECTION_COST           "Intersection Cost";
+    IDD_BVH_TRAVERSAL_COST              "Traversal Cost";
+    IDD_BVH_EMPTY_BONUS                 "Empty Cell Bonus";
+    
+      IDD_BVH_BINARY_TREE                 "Binary Tree";
+      IDD_BVH_QUAD_TREE                   "Quad-Tree";
+      IDD_BVH_OCT_TREE                    "Octree";
+
+    IDD_QBVH_MAX_PRIMITIVES             "Max. Primitives";
+    IDD_QBVH_FULL_SWEEP_THRESHOLD       "Full Sweep Threshold";
+    IDD_QBVH_SKIP_FACTOR                "Skip Factor";
+
+
   IDG_OUTPUT                          "Output";
 
     IDG_FILM                            "Film";
@@ -161,7 +190,7 @@ STRINGTABLE VPluxc4dsettings
       IDD_FLEXIMAGE_REINHARD_POSTSCALE    "Postscale";
       IDD_FLEXIMAGE_REINHARD_BURN         "Burn";
       IDD_FLEXIMAGE_LINEAR_SENSITIVITY    "Sensitivity (ISO)";
-      IDD_FLEXIMAGE_LINEAR_EXPOSURE       "Exposure (s)";
+      IDD_FLEXIMAGE_LINEAR_EXPOSURE       "Exposure (ms)";
       IDD_FLEXIMAGE_LINEAR_FSTOP          "F-Stop";
       IDD_FLEXIMAGE_LINEAR_GAMMA          "Gamma";
       IDD_FLEXIMAGE_CONTRAST_YWA          "Display/World Adapt. Lum.";
@@ -183,29 +212,36 @@ STRINGTABLE VPluxc4dsettings
       IDD_FLEXIMAGE_TGA_CHANNELS          "Channels";
       IDD_FLEXIMAGE_TGA_GAMUT_CLAMP       "Gamut Clamp";
     
-      IDD_CLAMP_METHOD_LUM                "LUM";
-      IDD_CLAMP_METHOD_HUE                "HUE";
-      IDD_CLAMP_METHOD_CUT                "CUT";
+        IDD_CLAMP_METHOD_LUM                "LUM";
+        IDD_CLAMP_METHOD_HUE                "HUE";
+        IDD_CLAMP_METHOD_CUT                "CUT";
 
-      IDD_TONEMAP_KERNEL_REINHARD         "Reinhard";
-      IDD_TONEMAP_KERNEL_LINEAR           "Linear";
-      IDD_TONEMAP_KERNEL_CONTRAST         "Contrast";
-      IDD_TONEMAP_KERNEL_MAXWHITE         "Max. White";
+        IDD_TONEMAP_KERNEL_REINHARD         "Reinhard";
+        IDD_TONEMAP_KERNEL_LINEAR           "Linear";
+        IDD_TONEMAP_KERNEL_CONTRAST         "Contrast";
+        IDD_TONEMAP_KERNEL_MAXWHITE         "Max. White";
 
-      IDD_WRITE_CHANNELS_Y                "Y";
-      IDD_WRITE_CHANNELS_YA               "YA";
-      IDD_WRITE_CHANNELS_RGB              "RGB";
-      IDD_WRITE_CHANNELS_RGBA             "RGBA";
+        IDD_WRITE_CHANNELS_Y                "Y";
+        IDD_WRITE_CHANNELS_YA               "YA";
+        IDD_WRITE_CHANNELS_RGB              "RGB";
+        IDD_WRITE_CHANNELS_RGBA             "RGBA";
 
-      IDD_ZBUF_NORM_TYPE_NONE             "None";
-      IDD_ZBUF_NORM_TYPE_CAMERA           "Camera Start/End";
-      IDD_ZBUF_NORM_TYPE_SCENE            "Scene Min/Max";
+        IDD_ZBUF_NORM_TYPE_NONE             "None";
+        IDD_ZBUF_NORM_TYPE_CAMERA           "Camera Start/End";
+        IDD_ZBUF_NORM_TYPE_SCENE            "Scene Min/Max";
 
-      IDD_EXR_COMPRESSION_RLE             "RLE (lossless)";
-      IDD_EXR_COMPRESSION_PIZ             "PIZ (lossless)";
-      IDD_EXR_COMPRESSION_ZIP             "ZIP (lossless)";
-      IDD_EXR_COMPRESSION_PXR24           "Pxr24 (lossy)";
-      IDD_EXR_COMPRESSION_NONE            "None";
+        IDD_EXR_COMPRESSION_RLE             "RLE (lossless)";
+        IDD_EXR_COMPRESSION_PIZ             "PIZ (lossless)";
+        IDD_EXR_COMPRESSION_ZIP             "ZIP (lossless)";
+        IDD_EXR_COMPRESSION_PXR24           "Pxr24 (lossy)";
+        IDD_EXR_COMPRESSION_NONE            "None";
+
+      IDD_FLEXIMAGE_FILENAME_TYPE           "Output Filename";
+      IDD_FLEXIMAGE_OUTPUT_FILENAME         "";
+
+        IDD_FLEXIMAGE_FILENAME_AS_SCENE_FILE      "Like Scene File";
+        IDD_FLEXIMAGE_FILENAME_AS_C4D_OUTPUT_FILE "Like C4D Output File";
+        IDD_FLEXIMAGE_FILENAME_DEFINE_HERE        "Define Filename Here";
     
     
   IDG_EXPORT                          "Export";
@@ -218,7 +254,7 @@ STRINGTABLE VPluxc4dsettings
       IDD_USE_C4D_EXPORT_FILENAME         "Same Name As C4D Project";
       IDD_DEFINE_EXPORT_FILENAME          "Define Filename Here";
 
-    IDD_SCALE_FACTOR                    "C4D -> Lux Scale Factor";
+    IDD_SCALE_FACTOR                    "How many cm is 1 C4D unit?";
     IDD_EXPORT_BUMP_SAMPLE_DISTANCE     "Export Bump Sample Distance";
     IDD_BUMP_SAMPLE_DISTANCE            "Bump Sample Distance";
     IDD_TEXTURE_GAMMA_CORRECTION        "Texture Gamma Correction";

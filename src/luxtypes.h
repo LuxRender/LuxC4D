@@ -341,6 +341,15 @@ struct LuxColor
   }
 
   ///
+  inline LuxColor& operator*=(const LuxFloat& scalar)
+  {
+    c[0] *= scalar;
+    c[1] *= scalar;
+    c[2] *= scalar;
+    return *this;
+  }
+
+  ///
   inline LuxColor operator^(const LuxColor& other) const
   {
     return LuxColor(c[0] * other.c[0], c[1] * other.c[1], c[2] * other.c[2]);

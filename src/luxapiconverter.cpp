@@ -36,6 +36,7 @@
 #include "tluxc4dlighttag.h"
 #include "tluxc4dportaltag.h"
 #include "utilities.h"
+#include "vpluxc4dsettings.h"
 
 
 
@@ -136,9 +137,10 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document,
   // export scene description
   if (!mReceiver->worldBegin() ||
       !exportLights() ||
-      !exportAutoLight() ||
       !exportStandardMaterial() ||
       !exportGeometry() ||
+      !exportInfiniteLight() ||
+      !exportAutoLight() ||
       !mReceiver->worldEnd())
   {
     goto CLEANUP_AND_RETURN;
@@ -249,17 +251,20 @@ Bool LuxAPIConverter::Do(void*         data,
 void LuxAPIConverter::clearTemporaryData(void)
 {
   mTempParamSet.clear();
-  mCamera       = 0;
-  mLightCount   = 0;
+  mIsBidirectional = FALSE;
+  mCamera          = 0;
+  mSkyObject       = 0;
+  mPortalCount     = 0;
+  mLightCount      = 0;
   mAreaLightObjects.erase();
   mReusableMaterials.erase();
   mMaterialUsage.erase();
-  mCachedObject = 0;
+  mCachedObject    = 0;
   mPolygonCache.erase();
   mPointCache.erase();
   mNormalCache.erase();
   mUVCache.erase();
-  mDo           = 0;
+  mDo              = 0;
 }
 
 
@@ -313,7 +318,7 @@ Bool LuxAPIConverter::obtainGlobalSceneData(void)
     if (!layerData || layerData->render) {
 #endif
       mCamera = (CameraObject*)getParameterLink(*stageObject, STAGEOBJECT_CLINK, Ocamera);
-      if (mCamera && (mCamera->GetType() != Ocamera)) { mCamera = 0; }
+      mSkyObject = (BaseObject*)getParameterLink(*stageObject, STAGEOBJECT_SLINK, Osky);
 #if _C4D_VERSION>=100
     }
 #endif
@@ -350,26 +355,38 @@ Bool LuxAPIConverter::exportFilm(void)
   LuxInteger xResolution = (LuxInteger)mC4DRenderSettings->GetLong(RDATA_XRES);
   LuxInteger yResolution = (LuxInteger)mC4DRenderSettings->GetLong(RDATA_YRES);
 
-  // obtain output filename
-  String filenameC4D = mC4DRenderSettings->GetString(RDATA_PATH);
-  if (!filenameC4D.Content()) {
-    Filename docFilename = mDocument->GetDocumentName();
-    docFilename.ClearSuffix();
-    filenameC4D = docFilename.GetString();
+  // determine output filename
+  Filename outputFilename;
+  if (mLuxC4DSettings) {
+    LONG outputFilenameMethod = mLuxC4DSettings->getOutputFilePathSettings(outputFilename);
+    GePrint("'" + outputFilename.GetString() + "'");
+    if (outputFilenameMethod == IDD_FLEXIMAGE_FILENAME_AS_SCENE_FILE) {
+      outputFilename = mReceiver->getSceneFilename();
+    }
   }
-  LuxString filename;
-  convert2LuxString(filenameC4D, filename);
+  if (!outputFilename.Content()) {
+    outputFilename = mC4DRenderSettings->GetFilename(RDATA_PATH);
+    if (!outputFilename.Content()) {
+      outputFilename = mDocument->GetDocumentName();
+    }
+  }
+  FilePath outputFilePath(outputFilename);
+  outputFilePath.setSuffix(String());
+  mReceiver->processFilePath(outputFilePath);
+  LuxString outputFileStr(outputFilePath.getLuxString());
 
   // fill parameter set with parameters not coming from the settings object
   mTempParamSet.clear();
   mTempParamSet.addParam(LUX_INTEGER, "xresolution", &xResolution);
   mTempParamSet.addParam(LUX_INTEGER, "yresolution", &yResolution);
-  mTempParamSet.addParam(LUX_STRING,  "filename",    &filename);
+  mTempParamSet.addParam(LUX_STRING,  "filename",    &outputFileStr);
 
   // if no settings object found, use defaults
   if (!mLuxC4DSettings) {
-    LuxBool writePNG = TRUE;
-    mTempParamSet.addParam(LUX_BOOL, "write_png", &writePNG);
+    LuxBool   writePNG(TRUE);
+    mTempParamSet.addParam(LUX_BOOL,   "write_png",     &writePNG);
+    LuxString toneMapKernel("maxwhite");
+    mTempParamSet.addParam(LUX_STRING, "tonemapkernel", &toneMapKernel);
     return mReceiver->film("fleximage", mTempParamSet);
   }
   
@@ -528,7 +545,7 @@ Bool LuxAPIConverter::exportSampler(void)
 }
 
 
-/// Exports the surface integrator of the LuxC4D settings, if vailable. If not,
+/// Exports the surface integrator of the LuxC4D settings, if available. If not,
 /// we use the default integrator (path, maxdepth=10).
 ///
 /// @return
@@ -542,6 +559,7 @@ Bool LuxAPIConverter::exportSurfaceIntegrator(void)
   // if no settings object found, use defaults
   mTempParamSet.clear();
   if (!mLuxC4DSettings) {
+    mIsBidirectional = FALSE;
     LuxInteger maxDepth = 10;
     mTempParamSet.addParam(LUX_INTEGER, "maxdepth", &maxDepth);
     return mReceiver->surfaceIntegrator("path", mTempParamSet);
@@ -549,14 +567,13 @@ Bool LuxAPIConverter::exportSurfaceIntegrator(void)
 
   // otherwise, obtain settings from object
   const char *name;
-  mLuxC4DSettings->getSurfaceIntegrator(name, mTempParamSet);
+  mLuxC4DSettings->getSurfaceIntegrator(name, mTempParamSet, mIsBidirectional);
   return mReceiver->surfaceIntegrator(name, mTempParamSet);
 }
 
 
-/// TODO ...
-/// Will export the geometry accelerator used by Lux. (at the moment it's
-/// exporting only "kdtree").
+/// Exports the accelerator of the LuxC4D settings, if available. If not,
+/// we use the default accelerator (kd-Tree).
 ///
 /// @return
 ///   TRUE, if successful, FALSE otherwise
@@ -566,8 +583,16 @@ Bool LuxAPIConverter::exportAccelerator(void)
   GeAssert(mDocument);
   GeAssert(mReceiver);
 
+  // if no settings object found, use defaults
   mTempParamSet.clear();
-  return mReceiver->accelerator("kdtree", mTempParamSet);
+  if (!mLuxC4DSettings) {
+    return mReceiver->accelerator("kdtree", mTempParamSet);
+  }
+
+  // otherwise, obtain settings from object
+  const char *name;
+  mLuxC4DSettings->getAccelerator(name, mTempParamSet);
+  return mReceiver->accelerator(name, mTempParamSet);
 }
 
 
@@ -609,8 +634,10 @@ Bool LuxAPIConverter::doLightExport(HierarchyData& hierarchyData,
 {
   // skip generator objects, invisible objects, objects that are no lights
   // or lights that are not enabled
-  if (controlObject || !hierarchyData.mVisible ||
-      (object.GetType() != Olight) || !object.GetDeformMode())
+  if (controlObject ||
+      !hierarchyData.mVisible ||
+      ((object.GetType() != Olight) && (object.GetType() != Osky)) ||
+      !object.GetDeformMode())
   {
     return TRUE;
   }
@@ -618,10 +645,16 @@ Bool LuxAPIConverter::doLightExport(HierarchyData& hierarchyData,
 #if _C4D_VERSION>=100
   // skip objects that belong to a layer that should not be rendered
   const LayerData* layerData = object.GetLayerData(mDocument);
-  if (layerData && !layerData->render) {
+  if (layerData && !layerData->render) { return TRUE; }
+#endif
+
+  // if the object is a sky object, record it if haven't done it already
+  // (we will create the according light object later, when we know if there
+  // are any portal objects in the scene)
+  if (object.GetType() == Osky) {
+    if (!mSkyObject) { mSkyObject = &object; }
     return TRUE;
   }
-#endif
 
   // export light object
   return exportLight(object, globalMatrix);
@@ -706,7 +739,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         AreaLightData data;
         data.mColor          = parameters.mColor;
-        data.mGain           = parameters.mBrightness * 50.0;
+        data.mGain           = parameters.mBrightness * 100.0;
         data.mFlippedNormals = (parameters.mFlippedNormals != 0);
         data.mSamples        = parameters.mSamples;
         data.mLightMatrix    = lightObject.GetMg();
@@ -877,18 +910,17 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       xRad = data.mSize.x * 0.5 * mC4D2LuxScale;
       yRad = data.mSize.y * 0.5 * mC4D2LuxScale;
       points.init(4);
-      points[0] = Vector(-xRad, -yRad, 0);
-      points[1] = Vector( xRad, -yRad, 0);
-      points[2] = Vector( xRad,  yRad, 0);
-      points[3] = Vector(-xRad,  yRad, 0);
-      triangles.init(2*3);
-      triangles[ 0] = 0;  triangles[ 1] = 2;  triangles[ 2] = 1;  
-      triangles[ 3] = 0;  triangles[ 4] = 3;  triangles[ 5] = 2;  
+      points[0] = Vector( xRad, -yRad, 0);
+      points[1] = Vector(-xRad, -yRad, 0);
+      points[2] = Vector(-xRad,  yRad, 0);
+      points[3] = Vector( xRad,  yRad, 0);
+      quads.init(4);
+      quads[0] = 0;  quads[1] = 1;  quads[2] = 2;  quads[3] = 3;
       flipYZ = FALSE;
       shapeParams.addParam(LUX_POINT, "P",
-                           &points.front(), points.size());
-      shapeParams.addParam(LUX_TRIANGLE, "triindices",
-                           &triangles.front(), triangles.size());
+                           points.arrayAddress(), points.size());
+      shapeParams.addParam(LUX_QUAD, "quadindices",
+                           quads.arrayAddress(), quads.size());
       shapeName = "mesh";
       break;
     // sphere area light
@@ -919,28 +951,22 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       points[1] = Vector( xRad, -yRad, -zRad);
       points[2] = Vector( xRad,  yRad, -zRad);
       points[3] = Vector(-xRad,  yRad, -zRad);
-      points[4] = Vector(-xRad, -yRad,  zRad);
-      points[5] = Vector( xRad, -yRad,  zRad);
-      points[6] = Vector( xRad,  yRad,  zRad);
-      points[7] = Vector(-xRad,  yRad,  zRad);
-      triangles.init(6*2*3);
-      triangles[ 0] = 0;  triangles[ 1] = 1;  triangles[ 2] = 2;  
-      triangles[ 3] = 0;  triangles[ 4] = 2;  triangles[ 5] = 3;  
-      triangles[ 6] = 7;  triangles[ 7] = 6;  triangles[ 8] = 5;  
-      triangles[ 9] = 7;  triangles[10] = 5;  triangles[11] = 4;  
-      triangles[12] = 1;  triangles[13] = 0;  triangles[14] = 4;  
-      triangles[15] = 1;  triangles[16] = 4;  triangles[17] = 5;  
-      triangles[18] = 2;  triangles[19] = 1;  triangles[20] = 5;  
-      triangles[21] = 2;  triangles[22] = 5;  triangles[23] = 6;  
-      triangles[24] = 3;  triangles[25] = 2;  triangles[26] = 6;  
-      triangles[27] = 3;  triangles[28] = 6;  triangles[29] = 7;  
-      triangles[30] = 0;  triangles[31] = 3;  triangles[32] = 7;  
-      triangles[33] = 0;  triangles[34] = 7;  triangles[35] = 4;  
+      points[4] = Vector( xRad, -yRad,  zRad);
+      points[5] = Vector(-xRad, -yRad,  zRad);
+      points[6] = Vector(-xRad,  yRad,  zRad);
+      points[7] = Vector( xRad,  yRad,  zRad);
+      quads.init(6*4);
+      quads[ 0] = 0;  quads[ 1] = 1;  quads[ 2] = 2;  quads[ 3] = 3;
+      quads[ 4] = 4;  quads[ 5] = 5;  quads[ 6] = 6;  quads[ 7] = 7;
+      quads[ 8] = 3;  quads[ 9] = 2;  quads[10] = 7;  quads[11] = 6;
+      quads[12] = 1;  quads[13] = 0;  quads[14] = 5;  quads[15] = 4;
+      quads[16] = 1;  quads[17] = 4;  quads[18] = 7;  quads[19] = 2;
+      quads[20] = 5;  quads[21] = 0;  quads[22] = 3;  quads[23] = 6;
       flipYZ = FALSE;
       shapeParams.addParam(LUX_POINT, "P",
-                           &points.front(), points.size());
-      shapeParams.addParam(LUX_TRIANGLE, "triindices",
-                           &triangles.front(), triangles.size());
+                           points.arrayAddress(), points.size());
+      shapeParams.addParam(LUX_QUAD, "quadindices",
+                           quads.arrayAddress(), quads.size());
       shapeName = "mesh";
       break;
     // hemisphere area light
@@ -958,9 +984,9 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       if (!triangles.size() || !points.size())  return TRUE;
       flipYZ = FALSE;
       shapeParams.addParam(LUX_POINT, "P",
-                           &points.front(), points.size());
+                           points.arrayAddress(), points.size());
       shapeParams.addParam(LUX_TRIANGLE, "triindices",
-                           &triangles.front(), triangles.size());
+                           triangles.arrayAddress(), triangles.size());
       shapeName = "mesh";
       break;
     default:
@@ -975,6 +1001,14 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
   }
   LuxMatrix  transformMatrix(data.mLightMatrix, mC4D2LuxScale);
   if (!mReceiver->transform(transformMatrix))  return FALSE;
+
+  // export black matte material
+  mTempParamSet.clear();
+  LuxColor black(0.0);
+  mTempParamSet.addParam(LUX_COLOR, "Kd",    &black);
+  LuxFloat sigma(0);
+  mTempParamSet.addParam(LUX_FLOAT, "sigma", &sigma);
+  if (!mReceiver->material("matte", mTempParamSet)) { return FALSE; }
 
   // export area light
   mTempParamSet.clear();
@@ -1069,8 +1103,7 @@ Bool LuxAPIConverter::exportSunSkyLight(SunSkyLightData& data)
 Bool LuxAPIConverter::exportAutoLight(void)
 {
   // safety checks
-  GeAssert(mDocument);
-  GeAssert(mReceiver);
+  GeAssert(mCamera);
 
   // we export the auto light only, if no other light has been exported
   if (mLightCount) {
@@ -1079,19 +1112,90 @@ Bool LuxAPIConverter::exportAutoLight(void)
 
   debugLog("exporting auto light ...");
 
-  // calculate slightly rotated matrix based on camera matrix
-  Matrix lightMatrix    = mCamera->GetMgn() * MatrixRotY(Rad(-20.0));
-  Vector scaledPosition = lightMatrix.off * mC4D2LuxScale;
-  Vector direction      = lightMatrix.v3;
-  normalize(direction);
-
-  // setup distant (parallel) light and export it
-  DistantLightData data;
+  // setup and export point light at the position of the camera (works with all
+  // integrators)
+  PointLightData data;
   data.mColor = Vector(1.0);
   data.mGain  = 0.1;
-  data.mFrom  = scaledPosition;
-  data.mTo    = scaledPosition + direction;
-  return exportDistantLight(data);
+  data.mFrom  = mCamera->GetMg().off * mC4D2LuxScale;
+  return exportPointLight(data);
+}
+
+
+///
+Bool LuxAPIConverter::exportInfiniteLight(void)
+{
+  // return early if there is no sky object to export
+  if (!mSkyObject) { return TRUE; }
+
+  // get parameters from light object and/or from its associated light tag
+  LuxC4DLightTag::LightParameters parameters;
+  if (!LuxC4DLightTag::getLightParameters(*mSkyObject, mC4D2LuxScale, parameters) ||
+      (parameters.mType != IDD_LIGHT_TYPE_INFINITE))
+  {
+    ERRLOG_RETURN_VALUE(FALSE, " LuxAPIConverter::exportInfiniteLight(): Could not obtain correct light parameters for sky object.");
+  }
+
+  // if the light has no brightness at all, don't export it
+  if (parameters.mBrightness == 0.0) { return TRUE; }
+
+  // start new attribute scope
+  debugLog("exporting infinite/sky light ...");
+  if (!mReceiver->setComment("start of infinite light '" + mSkyObject->GetName() + "'"))  return FALSE;
+  if (!mReceiver->attributeBegin())  return FALSE;
+
+  // write transformation matrix
+  LuxMatrix  transformMatrix(mSkyObject->GetMg(), mC4D2LuxScale);
+  if (!mReceiver->transform(transformMatrix))  return FALSE;
+
+  // write light group if available
+  if (parameters.mGroup.Content()) {
+    LuxString lightGroup;
+    convert2LuxString(parameters.mGroup, lightGroup);
+    if (!mReceiver->lightGroup(lightGroup.c_str()))  return FALSE;
+  }
+
+  // get file path of texture if available or just setup parameter "L"
+  mTempParamSet.clear();
+  LuxColor   l(parameters.mColor);
+  LuxInteger nSamples(parameters.mSamples);
+  LuxString  mapName;
+  if (parameters.mSkyTexFilename.Content()) {
+    l = LuxColor(1.0);
+    FilePath mapPath(parameters.mSkyTexFilename);
+    mReceiver->processFilePath(mapPath);
+    mapName = mapPath.getLuxString();
+    mTempParamSet.addParam(LUX_STRING, "mapname", &mapName);
+  }
+
+  // if light "infinitesample" add "L" and "nsamples"
+  if ((parameters.mInfiniteType == IDD_INFINITE_LIGHT_TYPE_INFINITE_IMPORTANCE) ||
+      ((parameters.mInfiniteType == IDD_INFINITE_LIGHT_TYPE_AUTO) &&
+       !mPortalCount && !mIsBidirectional))
+  {
+    l *= parameters.mBrightness * 0.05;
+    mTempParamSet.addParam(LUX_COLOR,   "L",        &l);
+    mTempParamSet.addParam(LUX_INTEGER, "nsamples", &nSamples);
+    mReceiver->lightSource("infinitesample", mTempParamSet);
+  // if light "infinite" add "L", "gain", "samples" and "mapping"
+  } else {
+    LuxString mapping("latlong");
+    LuxFloat  gain(parameters.mBrightness * 0.05);
+    mTempParamSet.addParam(LUX_STRING,  "mapping",  &mapping);
+    mTempParamSet.addParam(LUX_COLOR,   "L",        &l);
+    mTempParamSet.addParam(LUX_FLOAT,   "gain",     &gain);
+    mTempParamSet.addParam(LUX_INTEGER, "nsamples", &nSamples);
+    mReceiver->lightSource("infinite", mTempParamSet);
+  }
+
+  // close attribute scope
+  if (!mReceiver->setComment("end of infinite light '" + mSkyObject->GetName() + "'"))  return FALSE;
+  if (!mReceiver->attributeEnd())  return FALSE;
+
+  // increase light count
+  ++mLightCount;
+
+  return TRUE;
 }
 
 
@@ -1167,13 +1271,9 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
   for (BaseTag* tag=object.GetFirstTag(); tag; tag=tag->GetNext()) {
     if (tag->GetType() == Ttexture) {
       material = (BaseMaterial*)getParameterLink(*tag, TEXTURETAG_MATERIAL, Mbase);
-      if (!material) {
-        continue;
-      }
+      if (!material) { continue; }
       String restriction = getParameterString(*tag, TEXTURETAG_RESTRICTION);
-      if (restriction.Content()) {
-        continue;
-      }
+      if (restriction.Content()) { continue; }
       textureTag = (TextureTag*)tag;
       break;
     }
@@ -1231,7 +1331,7 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
     if (hierarchyData.mMaterialIsEmissive) {
       LuxParamSet areaParamSet(3);
       LuxString   textureName = hierarchyData.mMaterialName + ".L";
-      LuxFloat    gain = 50.0;
+      LuxFloat    gain = 100.0;
       areaParamSet.addParam(LUX_TEXTURE, "L",    &textureName);
       areaParamSet.addParam(LUX_FLOAT,   "gain", &gain);
       if (!mReceiver->areaLightSource("area", areaParamSet))  return FALSE;
@@ -1705,9 +1805,6 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                   MATERIAL_REFLECTION_COLOR,
                                                   MATERIAL_REFLECTION_BRIGHTNESS,
                                                   MATERIAL_REFLECTION_TEXTURESTRENGTH));
-    } else {
-      materialData.setChannel(LUX_GLASS_REFLECTION,
-                              gNewNC LuxConstantTextureData(LuxColor(0.0)));
     }
 
     // obtain transparency channel
@@ -1752,9 +1849,6 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                   MATERIAL_REFLECTION_COLOR,
                                                   MATERIAL_REFLECTION_BRIGHTNESS,
                                                   MATERIAL_REFLECTION_TEXTURESTRENGTH));
-    } else {
-      materialData.setChannel(LUX_GLASS_REFLECTION,
-                              gNewNC LuxConstantTextureData(LuxColor(0.0f)));
     }
 
     // obtain transparency channel + roughness
@@ -2138,14 +2232,15 @@ Bool LuxAPIConverter::exportPortalObject(PolygonObject& object,
   debugLog("exporting portal polygon object '" + object.GetName() + "' ...");
 
   // the container for the geometry
-  TrianglesT triangles;
   PointsT    points;
+  TrianglesT triangles;
+  QuadsT     quads;
 
   // if we should create a simplified geometry:
   if (simplify) {
     // determine bounding box centre and radius
     Vector bboxCentre = object.GetMp() * mC4D2LuxScale;
-    Vector bboxRad = object.GetRad() * mC4D2LuxScale;
+    Vector bboxRad    = object.GetRad() * mC4D2LuxScale;
     // setup points depending on the face direction
     points.init(4);
     switch (tagData->GetLong(IDD_PORTAL_FACE_DIRECTION)) {
@@ -2189,16 +2284,15 @@ Bool LuxAPIConverter::exportPortalObject(PolygonObject& object,
         ERRLOG_RETURN_VALUE(FALSE, "invalid face direction in portal tag '" + tag.GetName() + "'");
     }
     // setup triangles
-    triangles.init(2*3);
-    triangles[ 0] = 0;  triangles[ 1] = 1;  triangles[ 2] = 2;  
-    triangles[ 3] = 0;  triangles[ 4] = 2;  triangles[ 5] = 3;  
+    quads.init(4);
+    quads[0] = 0;  quads[1] = 1;  quads[2] = 2;  quads[3] = 3;
   } else {
     // convert and cache geometry
     if (!convertGeometry(object, triangles, points)) { return FALSE; }
   }
 
   // skip empty objects
-  if (!triangles.size() || !points.size()) {
+  if ((!triangles.size() && !quads.size()) || !points.size()) {
     debugLog("  which is empty -> nothing exported");
     return TRUE;
   }
@@ -2211,15 +2305,23 @@ Bool LuxAPIConverter::exportPortalObject(PolygonObject& object,
   mTempParamSet.clear();
   mTempParamSet.addParam(LUX_POINT, "P",
                          points.arrayAddress(), points.size());
-  mTempParamSet.addParam(LUX_TRIANGLE, "triindices",
-                         triangles.arrayAddress(), triangles.size());
-  
+  if (triangles.size()) {
+    mTempParamSet.addParam(LUX_TRIANGLE, "triindices",
+                           triangles.arrayAddress(), triangles.size());
+  }
+  if (quads.size()) {
+    mTempParamSet.addParam(LUX_QUAD, "quadindices",
+                           quads.arrayAddress(), quads.size());
+  }
 
   // if the normals should be flipped, export "reverseorientation"
   if (flipNormals && !mReceiver->reverseOrientation())  return FALSE;
 
   // export shape
   if (!mReceiver->portalShape("mesh", mTempParamSet)) { return FALSE; }
+
+  // set flag that we have exported at least 1 portal -> influences infinite light
+  ++mPortalCount;
 
   return TRUE;
 }

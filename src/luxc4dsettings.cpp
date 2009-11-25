@@ -158,6 +158,24 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetReal(IDD_TRIANGLE_FILTER_WIDTH,  2.0);
   data->SetReal(IDD_TRIANGLE_FILTER_HEIGHT, 2.0);
 
+  // set accelerator defaults
+  data->SetLong(IDD_ACCELERATION_TYPE,         IDD_ACCELERATION_KDTREE);
+  data->SetBool(IDD_ACCELERATION_ADVANCED,     FALSE);
+  data->SetLong(IDD_KDTREE_INTERSECTION_COST,  80);
+  data->SetLong(IDD_KDTREE_TRAVERSAL_COST,     1);
+  data->SetReal(IDD_KDTREE_EMPTY_BONUS,        0.2);
+  data->SetLong(IDD_KDTREE_MAX_PRIMITIVES,     1);
+  data->SetLong(IDD_KDTREE_MAX_DEPTH,          -1);
+  data->SetLong(IDD_BVH_TREE_TYPE,             IDD_BVH_QUAD_TREE);
+  data->SetLong(IDD_BVH_COST_SAMPLES,          0);
+  data->SetLong(IDD_BVH_INTERSECTION_COST,     80);
+  data->SetLong(IDD_BVH_TRAVERSAL_COST,        10);
+  data->SetReal(IDD_BVH_EMPTY_BONUS,           0.5);
+  data->SetLong(IDD_QBVH_MAX_PRIMITIVES,       4);
+  data->SetReal(IDD_QBVH_FULL_SWEEP_THRESHOLD, 16);
+  data->SetLong(IDD_QBVH_SKIP_FACTOR,          1);
+
+
   // set film parameters
   data->SetLong(IDD_FILM,                             IDD_FILM_FLEXIMAGE);
   data->SetLong(IDD_FLEXIMAGE_HALT_SPP,               0);
@@ -167,15 +185,16 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetReal(IDD_FLEXIMAGE_WRITE_INTERVAL,         120);
   data->SetLong(IDD_FLEXIMAGE_CLAMP_METHOD,           IDD_CLAMP_METHOD_LUM);
   data->SetLong(IDD_FLEXIMAGE_REJECT_WARMUP,          128);
-  data->SetLong(IDD_FLEXIMAGE_TONEMAP_KERNEL,         IDD_TONEMAP_KERNEL_REINHARD);
+  data->SetLong(IDD_FLEXIMAGE_TONEMAP_KERNEL,         IDD_TONEMAP_KERNEL_MAXWHITE);
   data->SetReal(IDD_FLEXIMAGE_REINHARD_PRESCALE,      1.0);
   data->SetReal(IDD_FLEXIMAGE_REINHARD_POSTSCALE,     1.0);
   data->SetReal(IDD_FLEXIMAGE_REINHARD_BURN,          6.0);
   data->SetReal(IDD_FLEXIMAGE_LINEAR_SENSITIVITY,     50.0);
-  data->SetReal(IDD_FLEXIMAGE_LINEAR_EXPOSURE,        1.0);
+  data->SetReal(IDD_FLEXIMAGE_LINEAR_EXPOSURE,        5.0);
   data->SetReal(IDD_FLEXIMAGE_LINEAR_FSTOP,           2.8);
   data->SetReal(IDD_FLEXIMAGE_LINEAR_GAMMA,           1.0);
   data->SetReal(IDD_FLEXIMAGE_CONTRAST_YWA,           1.0);
+  data->SetLong(IDD_FLEXIMAGE_FILENAME_TYPE,          IDD_FLEXIMAGE_FILENAME_AS_SCENE_FILE);
   data->SetBool(IDD_FLEXIMAGE_WRITE_EXR,              FALSE);
   data->SetBool(IDD_FLEXIMAGE_WRITE_PNG,              TRUE);
   data->SetBool(IDD_FLEXIMAGE_WRITE_TGA,              FALSE);
@@ -195,7 +214,7 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   // set export defaults
   data->SetLong(IDD_WHICH_EXPORT_FILENAME,       IDD_ASK_FOR_EXPORT_FILENAME);
   data->SetBool(IDD_ALLOW_OVERWRITING,           FALSE);
-  data->SetReal(IDD_SCALE_FACTOR,                0.01);
+  data->SetReal(IDD_SCALE_FACTOR,                1.0);
   data->SetBool(IDD_EXPORT_BUMP_SAMPLE_DISTANCE, TRUE);
   data->SetReal(IDD_BUMP_SAMPLE_DISTANCE,        0.001);
   data->SetReal(IDD_TEXTURE_GAMMA_CORRECTION,    renderGamma);
@@ -290,11 +309,20 @@ Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
   showParameter(description, IDG_SINC_FILTER,     params, pixelFilter == IDD_PIXEL_FILTER_SINC);
   showParameter(description, IDG_TRIANGLE_FILTER, params, pixelFilter == IDD_PIXEL_FILTER_TRIANGLE);
 
+  // show/hide advanced accelerator parameters
+  LONG accelerator = data->GetLong(IDD_ACCELERATION_TYPE);
+  advanced = data->GetBool(IDD_ACCELERATION_ADVANCED);
+  showParameter(description, IDG_ACCELERATION_KDTREE, params, advanced && (accelerator == IDD_ACCELERATION_KDTREE));
+  showParameter(description, IDG_ACCELERATION_BVH,    params, advanced && (accelerator == IDD_ACCELERATION_BVH));
+  showParameter(description, IDG_ACCELERATION_QBVH,   params, advanced && (accelerator == IDD_ACCELERATION_QBVH));
+
   // show hide film parameters
   LONG tonemapKernel = data->GetLong(IDD_FLEXIMAGE_TONEMAP_KERNEL);
+  LONG outputFilenameMethod = data->GetLong(IDD_FLEXIMAGE_FILENAME_TYPE);
   showParameter(description, IDG_FLEXIMAGE_REINHARD, params, tonemapKernel == IDD_TONEMAP_KERNEL_REINHARD);
   showParameter(description, IDG_FLEXIMAGE_LINEAR,   params, tonemapKernel == IDD_TONEMAP_KERNEL_LINEAR);
   showParameter(description, IDG_FLEXIMAGE_CONTRAST, params, tonemapKernel == IDD_TONEMAP_KERNEL_CONTRAST);
+  showParameter(description, IDD_FLEXIMAGE_OUTPUT_FILENAME,    params, outputFilenameMethod == IDD_FLEXIMAGE_FILENAME_DEFINE_HERE);
   showParameter(description, IDG_FLEXIMAGE_EXR,                params, data->GetBool(IDD_FLEXIMAGE_WRITE_EXR));
   showParameter(description, IDD_FLEXIMAGE_EXR_ZBUF_NORM_TYPE, params, data->GetBool(IDD_FLEXIMAGE_EXR_WRITE_ZBUF));
   showParameter(description, IDG_FLEXIMAGE_PNG, params, data->GetBool(IDD_FLEXIMAGE_WRITE_PNG));
@@ -474,7 +502,7 @@ void LuxC4DSettings::getFilm(const char*& name,
           break;
         case IDD_TONEMAP_KERNEL_LINEAR:
           copyParam(sFleximageLinearSensitivity, paramSet);
-          copyParam(sFleximageLinearExposure,    paramSet);
+          copyParam(sFleximageLinearExposure,    paramSet, 0.001);
           copyParam(sFleximageLinearFStop,       paramSet);
           copyParam(sFleximageLinearGamma,       paramSet);
           break;
@@ -511,6 +539,19 @@ void LuxC4DSettings::getFilm(const char*& name,
 
   // store pixel filter name
   name = sFilmNames[film];
+}
+
+
+///
+LONG LuxC4DSettings::getOutputFilePathSettings(Filename& userDefined)
+{
+  // get base container
+  BaseContainer* data = getData();
+  if (!data) { return IDD_FLEXIMAGE_FILENAME_AS_SCENE_FILE; }
+
+  // read user defined path and return filename method
+  userDefined = data->GetFilename(IDD_FLEXIMAGE_OUTPUT_FILENAME);
+  return data->GetLong(IDD_FLEXIMAGE_FILENAME_TYPE);
 }
 
 
@@ -716,7 +757,8 @@ void LuxC4DSettings::getSampler(const char*& name,
 /// @param[out]  paramSet
 ///   The set to which the parameters get added.
 void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
-                                          LuxParamSet& paramSet)
+                                          LuxParamSet& paramSet,
+                                          Bool&        isBidirectional)
 {
   // the different sampler names
   static const char* sIntegratorNames[IDD_INTEGRATOR_NUMBER] = {
@@ -774,14 +816,15 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
   static Descr2Param<LuxString>  sDirectLightingStrategy(IDD_DIRECT_LIGHTING_STRATEGY,  "strategy");
 
 
-  // set default sampler
+  // set default integrator
   name = sIntegratorNames[IDD_INTEGRATOR_PATH];
+  isBidirectional = FALSE;
 
   // get base container of this node
   BaseContainer* data = getData();
   if (!data)  return;
 
-  // get sampler...
+  // get integrator ...
   LONG integrator = data->GetLong(IDD_INTEGRATOR);
 
   // ... and fetch its data
@@ -827,6 +870,7 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
         copyParam(sBidirectionalEyeRRThreshold,      paramSet);
         copyParam(sBidirectionalLightRRThreshold,    paramSet);
       }
+      isBidirectional = TRUE;
       break;
     // direct lighting integrator
     case IDD_INTEGRATOR_DIRECT_LIGHTING:
@@ -845,6 +889,87 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
   name = sIntegratorNames[integrator];
 }
 
+
+/// Obtains the accelerator settings from the settings object.
+///
+/// @param[out]  name
+///   Will receive the accelerator name.
+/// @param[out]  paramSet
+///   The set to which the parameters get added.
+void LuxC4DSettings::getAccelerator(const char*& name,
+                                    LuxParamSet& paramSet)
+{
+  // the different accelerator names
+  static const char* sAcceleratorNames[IDD_ACCELERATION_TYPE_NUMBER] = {
+      "kdtree",
+      "bvh",
+      "qbvh"
+    };
+
+  // parameters for kd-tree
+  static Descr2Param<LuxInteger> sKdTreeIntersectionCost(IDD_KDTREE_INTERSECTION_COST, "intersectcost");
+  static Descr2Param<LuxInteger> sKdTreeTraversalCost   (IDD_KDTREE_TRAVERSAL_COST,    "traversalcost");
+  static Descr2Param<LuxFloat>   sKdTreeEmptyBonus      (IDD_KDTREE_EMPTY_BONUS,       "emptybonus");
+  static Descr2Param<LuxInteger> sKdTreeMaxPrimitives   (IDD_KDTREE_MAX_PRIMITIVES,    "maxprims");
+  static Descr2Param<LuxInteger> sKdTreeMaxDepth        (IDD_KDTREE_MAX_DEPTH,         "maxdepth");
+
+  // parameters for bvh tree
+  static Descr2Param<LuxInteger> sBVHIntersectionCost(IDD_BVH_TREE_TYPE,         "treetype");
+  static Descr2Param<LuxInteger> sBVHTraversalCost   (IDD_BVH_COST_SAMPLES,      "costsamples");
+  static Descr2Param<LuxInteger> sBVHMaxPrimitives   (IDD_BVH_INTERSECTION_COST, "intersectcost");
+  static Descr2Param<LuxInteger> sBVHMaxDepth        (IDD_BVH_TRAVERSAL_COST,    "traversalcost");
+  static Descr2Param<LuxFloat>   sBVHEmptyBonus      (IDD_BVH_EMPTY_BONUS,       "emptybonus");
+
+  // parameters for qbvh tree
+  static Descr2Param<LuxInteger> sQBVHTraversalCost(IDD_QBVH_MAX_PRIMITIVES,       "maxprimsperleaf");
+  static Descr2Param<LuxFloat>   sQBVHEmptyBonus   (IDD_QBVH_FULL_SWEEP_THRESHOLD, "fullsweepthreshold");
+  static Descr2Param<LuxInteger> sQBVHMaxPrimitives(IDD_QBVH_SKIP_FACTOR,          "skipfactor");
+
+
+  // set default accelerator
+  name = sAcceleratorNames[IDD_ACCELERATION_KDTREE];
+
+  // get base container of this node
+  BaseContainer* data = getData();
+  if (!data) { return; }
+
+  // get accelerator...
+  LONG accelerator = data->GetLong(IDD_ACCELERATION_TYPE);
+
+  // ... and fetch its data, if we have the advanced option enabled
+  if (data->GetBool(IDD_ACCELERATION_ADVANCED)) {
+    switch (accelerator) {
+      // kd-tree
+      case IDD_INTEGRATOR_PATH:
+        copyParam(sKdTreeIntersectionCost, paramSet);
+        copyParam(sKdTreeTraversalCost,    paramSet);
+        copyParam(sKdTreeEmptyBonus,       paramSet);
+        copyParam(sKdTreeMaxPrimitives,    paramSet);
+        copyParam(sKdTreeMaxDepth,         paramSet);
+        break;
+      // bvh tree
+      case IDD_ACCELERATION_BVH:
+        copyParam(sBVHIntersectionCost, paramSet);
+        copyParam(sBVHTraversalCost,    paramSet);
+        copyParam(sBVHMaxPrimitives,    paramSet);
+        copyParam(sBVHMaxDepth,         paramSet);
+        copyParam(sBVHEmptyBonus,       paramSet);
+        break;
+      // qbvh tree
+      case IDD_ACCELERATION_QBVH:
+        copyParam(sQBVHTraversalCost, paramSet);
+        copyParam(sQBVHEmptyBonus,    paramSet);
+        copyParam(sQBVHMaxPrimitives, paramSet);
+        break;
+      // invalid accelerator-> error and return
+      default:
+        ERRLOG_RETURN("LuxC4DSettings::getAccelerator(): invalid accelerator type found -> using default settings");
+    }
+  }
+
+  // store accelerator name
+  name = sAcceleratorNames[accelerator];
+}
 
 /// Obtains the filename of the exported scene from the settings. If it's not
 /// specified the filename will be empty.
@@ -893,7 +1018,7 @@ Real LuxC4DSettings::getC4D2LuxScale(void)
   // get base container and return the scale factor from it
   BaseContainer* data = getData();
   if (!data) { return 0.01; }
-  return data->GetReal(IDD_SCALE_FACTOR);
+  return data->GetReal(IDD_SCALE_FACTOR) * 0.01;
 }
 
 /// Returns the bump sample distance, that should be used for bump mapping or
@@ -956,7 +1081,7 @@ BaseContainer* LuxC4DSettings::getData(void)
 /// @param[in]  paramSet
 ///   The set where the parameter gets added to.
 void LuxC4DSettings::copyParam(Descr2Param<LuxBool>& descr2Param,
-                               LuxParamSet&           paramSet)
+                               LuxParamSet&          paramSet)
 {
   // get base container of this object
   BaseContainer* data = getData();
@@ -975,7 +1100,7 @@ void LuxC4DSettings::copyParam(Descr2Param<LuxBool>& descr2Param,
 /// @param[in]  paramSet
 ///   The set where the parameter gets added to.
 void LuxC4DSettings::copyParam(Descr2Param<LuxInteger>& descr2Param,
-                               LuxParamSet&              paramSet)
+                               LuxParamSet&             paramSet)
 {
   // get base container of this object
   BaseContainer* data = getData();
@@ -994,14 +1119,15 @@ void LuxC4DSettings::copyParam(Descr2Param<LuxInteger>& descr2Param,
 /// @param[in]  paramSet
 ///   The set where the parameter gets added to.
 void LuxC4DSettings::copyParam(Descr2Param<LuxFloat>& descr2Param,
-                               LuxParamSet&            paramSet)
+                               LuxParamSet&           paramSet,
+                               LuxFloat               scaleFactor)
 {
   // get base container of this object
   BaseContainer* data = getData();
   if (!data)  return;
 
   // get float and add it to parameter set
-  descr2Param.mParam = data->GetReal(descr2Param.mID);
+  descr2Param.mParam = data->GetReal(descr2Param.mID) * scaleFactor;
   paramSet.addParam(LUX_FLOAT, descr2Param.mParamName, &descr2Param.mParam);
 }
 

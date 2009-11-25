@@ -66,6 +66,8 @@ public:
 
   Filename getFilename(void) const;
 
+  void setSuffix(const String& suffix);
+
   void makeRelativeTo(const FilePath& basePath);
 
   FilePath operator+(const FilePath& other) const;

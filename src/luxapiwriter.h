@@ -53,6 +53,7 @@ public:
   virtual Bool endScene(void);
 
   virtual void processFilePath(FilePath& path);
+  virtual Filename getSceneFilename(void);
 
   virtual Bool setComment(const char* text);
   virtual Bool setComment(const String& text);

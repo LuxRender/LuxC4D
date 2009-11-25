@@ -80,70 +80,148 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
                                         LReal            c4d2LuxScale,
                                         LightParameters& parameters)
 {
-  // check if object is of the right type
-  if (lightObject.GetType() != Olight)  ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): passed object is no light object");
-
-  // calculate brightness correction factor which we only apply, if the falloff
-  // of the C4D light is "inverse" or "inverse square"
-  Real falloffCorrection = 1.0f;
-  LONG falloffType = getParameterLong(lightObject, LIGHT_DETAILS_FALLOFF);
-  if ((falloffType == LIGHT_DETAILS_FALLOFF_INVERSE) ||
-      (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE))
-  {
-    falloffCorrection = getParameterReal(lightObject,
-                                         LIGHT_DETAILS_OUTERDISTANCE,
-                                         1.0 / c4d2LuxScale)
-                        * c4d2LuxScale;
-    if (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE) {
-      falloffCorrection *= falloffCorrection;
-    }
-  }
-
   // reset parameters
   memset(&parameters, 0, sizeof(parameters));
+  Real falloffCorrection = 1.0f;
 
-  // if we can't find a light tag, read the parameters directly from the object
-  BaseTag* tag = lightObject.GetTag(PID_LUXC4D_LIGHT_TAG);
-  if (!tag) {
-    parameters.mType       = getLightType(lightObject);
-    parameters.mBrightness = getParameterReal(lightObject, LIGHT_BRIGHTNESS)
-                             * falloffCorrection;
-    parameters.mColor      = getParameterVector(lightObject, LIGHT_COLOR);
-    switch (parameters.mType) {
-      case IDD_LIGHT_TYPE_POINT:
-        break;
-      case IDD_LIGHT_TYPE_SPOT:
-        parameters.mInnerAngle = getParameterReal(lightObject, LIGHT_DETAILS_INNERANGLE);
-        parameters.mOuterAngle = getParameterReal(lightObject, LIGHT_DETAILS_OUTERANGLE);
-        break;
-      case IDD_LIGHT_TYPE_DISTANT:
-        break;
-      case IDD_LIGHT_TYPE_AREA:
-        parameters.mSamples        = 1;
-        parameters.mFlippedNormals = FALSE;
-        parameters.mShapeType      = c4dShape2LuxShape(getParameterLong(lightObject, LIGHT_AREADETAILS_SHAPE));
-        parameters.mShapeObject    = (PolygonObject*)getParameterLink(lightObject,
-                                                                      LIGHT_AREADETAILS_OBJECT,
-                                                                      Opolygon);
-        parameters.mShapeSize      = Vector(getParameterReal(lightObject, LIGHT_AREADETAILS_SIZEX),
-                                            getParameterReal(lightObject, LIGHT_AREADETAILS_SIZEY),
-                                            getParameterReal(lightObject, LIGHT_AREADETAILS_SIZEZ));
-        break;
-      default:
-        ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): invalid light type determined from light object");
+  // get light tag
+  BaseTag* lightTag = lightObject.GetTag(PID_LUXC4D_LIGHT_TAG);
+
+  // if the object is a light:
+  if (lightObject.GetType() == Olight) {
+
+    // calculate brightness correction factor which we only apply, if the falloff
+    // of the C4D light is "inverse" or "inverse square"
+    LONG falloffType = getParameterLong(lightObject, LIGHT_DETAILS_FALLOFF);
+    if ((falloffType == LIGHT_DETAILS_FALLOFF_INVERSE) ||
+        (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE))
+    {
+      falloffCorrection = getParameterReal(lightObject,
+                                           LIGHT_DETAILS_OUTERDISTANCE,
+                                           1.0 / c4d2LuxScale)
+                          * c4d2LuxScale;
+      if (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE) {
+        falloffCorrection *= falloffCorrection;
+      }
     }
-    return TRUE;
+
+    // if we can't find a light tag, read the parameters directly from the object
+    if (!lightTag) {
+      parameters.mType       = getLightType(lightObject);
+      parameters.mBrightness = getParameterReal(lightObject, LIGHT_BRIGHTNESS)
+                               * falloffCorrection;
+      parameters.mColor      = getParameterVector(lightObject, LIGHT_COLOR);
+      switch (parameters.mType) {
+        case IDD_LIGHT_TYPE_POINT:
+          break;
+        case IDD_LIGHT_TYPE_SPOT:
+          parameters.mInnerAngle = getParameterReal(lightObject, LIGHT_DETAILS_INNERANGLE);
+          parameters.mOuterAngle = getParameterReal(lightObject, LIGHT_DETAILS_OUTERANGLE);
+          break;
+        case IDD_LIGHT_TYPE_DISTANT:
+          break;
+        case IDD_LIGHT_TYPE_AREA:
+          parameters.mSamples        = 1;
+          parameters.mFlippedNormals = FALSE;
+          parameters.mShapeType      = c4dShape2LuxShape(getParameterLong(lightObject, LIGHT_AREADETAILS_SHAPE));
+          parameters.mShapeObject    = (PolygonObject*)getParameterLink(lightObject,
+                                                                        LIGHT_AREADETAILS_OBJECT,
+                                                                        Opolygon);
+          parameters.mShapeSize      = Vector(getParameterReal(lightObject, LIGHT_AREADETAILS_SIZEX),
+                                              getParameterReal(lightObject, LIGHT_AREADETAILS_SIZEY),
+                                              getParameterReal(lightObject, LIGHT_AREADETAILS_SIZEZ));
+          break;
+        default:
+          ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): invalid light type determined from light object");
+      }
+      return TRUE;
+    }
+
+  // if the object is a sky object, we handle it completely differently:
+  } else if (lightObject.GetType() == Osky) {
+
+    // find texture tag with valid link and obtain material from it
+    BaseMaterial* material = 0;
+    for (BaseTag* tag=lightObject.GetFirstTag(); tag; tag=tag->GetNext()) {
+      if (tag->GetType() == Ttexture) {
+        material = (BaseMaterial*)getParameterLink(*tag, TEXTURETAG_MATERIAL, Mbase);
+        if (!material) { continue; }
+        break;
+      }
+    }
+
+    // if we found a material -> get colour/texture from it
+    if (material) {
+      if (material->IsInstanceOf(Mmaterial)) {
+        LONG shaderId=0, colourId=0, brightnessId=0;
+        if (getParameterLong(*material, MATERIAL_USE_LUMINANCE)) {
+          shaderId     = MATERIAL_LUMINANCE_SHADER;
+          colourId     = MATERIAL_LUMINANCE_COLOR;
+          brightnessId = MATERIAL_LUMINANCE_BRIGHTNESS;
+        } else if (getParameterLong(*material, MATERIAL_USE_COLOR)) {
+          shaderId     = MATERIAL_COLOR_SHADER;
+          colourId     = MATERIAL_COLOR_COLOR;
+          brightnessId = MATERIAL_COLOR_BRIGHTNESS;
+        } else {
+          parameters.mColor      = Vector(0.0);
+          parameters.mBrightness = 0.0;
+        }
+        if (shaderId) {
+          BaseList2D* bitmapLink = getParameterLink(*material, shaderId, Xbitmap);
+          if (bitmapLink) {
+            Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
+            BaseDocument *document = lightObject.GetDocument();
+            if (document) {
+              GenerateTexturePath(document->GetDocumentPath(),
+                                  bitmapPath,
+                                  Filename(),
+                                  &parameters.mSkyTexFilename);
+            }
+            parameters.mColor      = Vector(1.0);
+            parameters.mBrightness = 1.0;
+          } else {
+            parameters.mColor      = getParameterVector(*material, colourId);
+            parameters.mBrightness = getParameterReal(*material, brightnessId, 1.0);
+          }
+        }
+      } else {
+        parameters.mColor      = material->GetAverageColor();
+        parameters.mBrightness = 1.0;
+      }
+
+      // by default we use the auto-option (except the user has chosen a
+      // different type in the light tag (see below)
+      parameters.mInfiniteType = IDD_INFINITE_LIGHT_TYPE_AUTO;
+      
+    // if we couldn't find a material, the colour becomes 80% grey
+    } else {
+      parameters.mColor      = Vector(0.8);
+      parameters.mBrightness = 1.0;
+    }
+
+    // if there is no light tag, just setup the defaults and return
+    if (!lightTag) {
+      parameters.mType         = IDD_LIGHT_TYPE_INFINITE;
+      parameters.mSamples      = 1;
+      parameters.mInfiniteType = IDD_INFINITE_LIGHT_TYPE_AUTO;
+      return TRUE;
+    }
+
+  // if it's neither a light nor a sky object -> return
+  } else {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): passed object is no light object");
   }
   
+
   // if we could find a light tag, we read the parameters from there:
 
   // first obtain tag node and its container
-  LuxC4DLightTag* tagData = (LuxC4DLightTag*)tag->GetNodeData();
-  if (!tagData)  ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): could not obtain node data from tag");
+  LuxC4DLightTag* tagData = (LuxC4DLightTag*)lightTag->GetNodeData();
+  if (!tagData) { ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): could not obtain node data from tag"); }
   BaseContainer* data = tagData->getData();
-  if (!data)  ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): could not obtain base container from tag node");
-  BaseDocument* document = tag->GetDocument();
-  if (!document)  ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): could not obtain document from tag");
+  if (!data) { ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): could not obtain base container from tag node"); }
+  BaseDocument* document = lightTag->GetDocument();
+  if (!document) { ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): could not obtain document from tag"); }
 
   // obtain name of light group
   parameters.mGroup = data->GetString(IDD_LIGHT_GROUP_NAME);
@@ -204,6 +282,11 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
       parameters.mC          = data->GetReal(IDD_SUNSKY_LIGHT_C_CONST);
       parameters.mD          = data->GetReal(IDD_SUNSKY_LIGHT_D_CONST);
       parameters.mE          = data->GetReal(IDD_SUNSKY_LIGHT_E_CONST);
+      break;
+    case IDD_LIGHT_TYPE_INFINITE:
+      parameters.mBrightness   *= data->GetReal(IDD_INFINITE_LIGHT_BRIGHTNESS);
+      parameters.mSamples      = data->GetLong(IDD_INFINITE_LIGHT_SAMPLES);
+      parameters.mInfiniteType = data->GetLong(IDD_INFINITE_LIGHT_TYPE);
       break;
     default:
       ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): invalid light type determined from light tag");
@@ -288,6 +371,11 @@ Bool LuxC4DLightTag::Init(GeListNode* node)
   data->SetReal(IDD_SUNSKY_LIGHT_D_CONST,    1.0);
   data->SetReal(IDD_SUNSKY_LIGHT_E_CONST,    1.0);
 
+  // set infinite light defaults
+  data->SetReal(IDD_INFINITE_LIGHT_BRIGHTNESS, 1.0);
+  data->SetLong(IDD_INFINITE_LIGHT_SAMPLES,    1);
+  data->SetLong(IDD_INFINITE_LIGHT_TYPE,       IDD_INFINITE_LIGHT_TYPE_AUTO);
+
   return TRUE;
 }
 
@@ -345,12 +433,26 @@ Bool LuxC4DLightTag::GetDDescription(GeListNode*  node,
   showParameter(description, IDG_SUN_LIGHT,       params, lightType == IDD_LIGHT_TYPE_SUN);
   showParameter(description, IDG_SKY_LIGHT,       params, lightType == IDD_LIGHT_TYPE_SKY);
   showParameter(description, IDG_SUNSKY_LIGHT,    params, lightType == IDD_LIGHT_TYPE_SUNSKY);
+  showParameter(description, IDG_INFINITE_LIGHT,  params, lightType == IDD_LIGHT_TYPE_INFINITE);
 
-  // show falloff toggle depending on the falloff type
-  LONG falloffType = getParameterLong(*object, LIGHT_DETAILS_FALLOFF);
-  showParameter(description, IDD_LIGHT_IGNORE_FALLOFF_RADIUS, params,
-                (falloffType == LIGHT_DETAILS_FALLOFF_INVERSE) ||
-                (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE));
+  // if it's a light object, show falloff toggle depending on the falloff type
+  switch (object->GetType()) {
+    case Olight:
+      {
+        LONG falloffType = getParameterLong(*object, LIGHT_DETAILS_FALLOFF);
+        showParameter(description,
+                      IDD_LIGHT_IGNORE_FALLOFF_RADIUS,
+                      params,
+                      (falloffType == LIGHT_DETAILS_FALLOFF_INVERSE) ||
+                        (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE));
+      }
+      break;
+    case Osky:
+      showParameter(description, IDD_LIGHT_TYPE,                  params, FALSE);
+      showParameter(description, IDD_LIGHT_IGNORE_FALLOFF_RADIUS, params, FALSE);
+      showParameter(description, IDB_COPY_PARAMETERS,             params, FALSE);
+      break;
+  }
 
   // show/hide advanced settings for sky light
   if (lightType == IDD_LIGHT_TYPE_SKY) {
@@ -431,6 +533,13 @@ BaseContainer* LuxC4DLightTag::getData(void)
 ///   IDD_LIGHT_TYPE_POINT) or -1, if we couldn't determine it.
 LONG LuxC4DLightTag::getLightType(BaseObject& lightObject)
 {
+  // if the object is actually not a light, but a sky object, return the light
+  // type "infinite"
+  if (lightObject.GetType() == Osky) {
+    return IDD_LIGHT_TYPE_INFINITE;
+  }
+
+  // otherwise check the light type parameter and return the according Lux light type
   switch (getParameterLong(lightObject, LIGHT_TYPE, -1)) {
     case LIGHT_TYPE_OMNI:
       return IDD_LIGHT_TYPE_POINT;
@@ -516,12 +625,15 @@ LONG LuxC4DLightTag::c4dShape2LuxShape(LONG c4dShapeType)
 ///   TRUE if executed successfully, otherwise FALSE.
 Bool LuxC4DLightTag::copyFromObject(Bool allTypes)
 {
-  // get container for easy access to current values
-  BaseContainer* data = getData();
-  if (!data)  return -1;
-
   // get light type
   LONG lightType = getLightType();
+
+  // if the light is actually a sky object, don't do anything
+  if (lightType == IDD_LIGHT_TYPE_INFINITE) { return TRUE; }
+
+  // get container for easy access to current values
+  BaseContainer* data = getData();
+  if (!data) { return FALSE; }
 
   // get tag list node
   BaseTag* tag = static_cast<BaseTag*>(Get());
