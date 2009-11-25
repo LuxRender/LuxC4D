@@ -72,7 +72,8 @@ public:
   void getSampler(const char*& name,
                   LuxParamSet& paramSet);
   void getSurfaceIntegrator(const char*& name,
-                            LuxParamSet& paramSet);
+                            LuxParamSet& paramSet,
+                            Bool&        isBidirectional);
   void getAccelerator(const char*& name,
                       LuxParamSet& paramSet);
   void getExportFilename(BaseDocument& document,

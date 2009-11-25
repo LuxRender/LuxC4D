@@ -139,7 +139,7 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document,
       !exportLights() ||
       !exportStandardMaterial() ||
       !exportGeometry() ||
-      !exportInfinite() ||
+      !exportInfiniteLight() ||
       !exportAutoLight() ||
       !mReceiver->worldEnd())
   {
@@ -251,19 +251,20 @@ Bool LuxAPIConverter::Do(void*         data,
 void LuxAPIConverter::clearTemporaryData(void)
 {
   mTempParamSet.clear();
-  mCamera         = 0;
-  mSkyObject      = 0;
-  mPortalCount    = 0;
-  mLightCount     = 0;
+  mIsBidirectional = FALSE;
+  mCamera          = 0;
+  mSkyObject       = 0;
+  mPortalCount     = 0;
+  mLightCount      = 0;
   mAreaLightObjects.erase();
   mReusableMaterials.erase();
   mMaterialUsage.erase();
-  mCachedObject   = 0;
+  mCachedObject    = 0;
   mPolygonCache.erase();
   mPointCache.erase();
   mNormalCache.erase();
   mUVCache.erase();
-  mDo             = 0;
+  mDo              = 0;
 }
 
 
@@ -382,8 +383,10 @@ Bool LuxAPIConverter::exportFilm(void)
 
   // if no settings object found, use defaults
   if (!mLuxC4DSettings) {
-    LuxBool writePNG = TRUE;
-    mTempParamSet.addParam(LUX_BOOL, "write_png", &writePNG);
+    LuxBool   writePNG(TRUE);
+    mTempParamSet.addParam(LUX_BOOL,   "write_png",     &writePNG);
+    LuxString toneMapKernel("maxwhite");
+    mTempParamSet.addParam(LUX_STRING, "tonemapkernel", &toneMapKernel);
     return mReceiver->film("fleximage", mTempParamSet);
   }
   
@@ -542,7 +545,7 @@ Bool LuxAPIConverter::exportSampler(void)
 }
 
 
-/// Exports the surface integrator of the LuxC4D settings, if vailable. If not,
+/// Exports the surface integrator of the LuxC4D settings, if available. If not,
 /// we use the default integrator (path, maxdepth=10).
 ///
 /// @return
@@ -556,6 +559,7 @@ Bool LuxAPIConverter::exportSurfaceIntegrator(void)
   // if no settings object found, use defaults
   mTempParamSet.clear();
   if (!mLuxC4DSettings) {
+    mIsBidirectional = FALSE;
     LuxInteger maxDepth = 10;
     mTempParamSet.addParam(LUX_INTEGER, "maxdepth", &maxDepth);
     return mReceiver->surfaceIntegrator("path", mTempParamSet);
@@ -563,14 +567,13 @@ Bool LuxAPIConverter::exportSurfaceIntegrator(void)
 
   // otherwise, obtain settings from object
   const char *name;
-  mLuxC4DSettings->getSurfaceIntegrator(name, mTempParamSet);
+  mLuxC4DSettings->getSurfaceIntegrator(name, mTempParamSet, mIsBidirectional);
   return mReceiver->surfaceIntegrator(name, mTempParamSet);
 }
 
 
-/// TODO ...
-/// Will export the geometry accelerator used by Lux. (at the moment it's
-/// exporting only "kdtree").
+/// Exports the accelerator of the LuxC4D settings, if available. If not,
+/// we use the default accelerator (kd-Tree).
 ///
 /// @return
 ///   TRUE, if successful, FALSE otherwise
@@ -736,7 +739,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         AreaLightData data;
         data.mColor          = parameters.mColor;
-        data.mGain           = parameters.mBrightness * 50.0;
+        data.mGain           = parameters.mBrightness * 100.0;
         data.mFlippedNormals = (parameters.mFlippedNormals != 0);
         data.mSamples        = parameters.mSamples;
         data.mLightMatrix    = lightObject.GetMg();
@@ -999,6 +1002,14 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
   LuxMatrix  transformMatrix(data.mLightMatrix, mC4D2LuxScale);
   if (!mReceiver->transform(transformMatrix))  return FALSE;
 
+  // export black matte material
+  mTempParamSet.clear();
+  LuxColor black(0.0);
+  mTempParamSet.addParam(LUX_COLOR, "Kd",    &black);
+  LuxFloat sigma(0);
+  mTempParamSet.addParam(LUX_FLOAT, "sigma", &sigma);
+  if (!mReceiver->material("matte", mTempParamSet)) { return FALSE; }
+
   // export area light
   mTempParamSet.clear();
   mTempParamSet.addParam(LUX_COLOR,   "L",        &data.mColor);
@@ -1092,8 +1103,7 @@ Bool LuxAPIConverter::exportSunSkyLight(SunSkyLightData& data)
 Bool LuxAPIConverter::exportAutoLight(void)
 {
   // safety checks
-  GeAssert(mDocument);
-  GeAssert(mReceiver);
+  GeAssert(mCamera);
 
   // we export the auto light only, if no other light has been exported
   if (mLightCount) {
@@ -1102,24 +1112,18 @@ Bool LuxAPIConverter::exportAutoLight(void)
 
   debugLog("exporting auto light ...");
 
-  // calculate slightly rotated matrix based on camera matrix
-  Matrix lightMatrix    = mCamera->GetMgn() * MatrixRotY(Rad(-20.0));
-  Vector scaledPosition = lightMatrix.off * mC4D2LuxScale;
-  Vector direction      = lightMatrix.v3;
-  normalize(direction);
-
-  // setup distant (parallel) light and export it
-  DistantLightData data;
+  // setup and export point light at the position of the camera (works with all
+  // integrators)
+  PointLightData data;
   data.mColor = Vector(1.0);
   data.mGain  = 0.1;
-  data.mFrom  = scaledPosition;
-  data.mTo    = scaledPosition + direction;
-  return exportDistantLight(data);
+  data.mFrom  = mCamera->GetMg().off * mC4D2LuxScale;
+  return exportPointLight(data);
 }
 
 
 ///
-Bool LuxAPIConverter::exportInfinite(void)
+Bool LuxAPIConverter::exportInfiniteLight(void)
 {
   // return early if there is no sky object to export
   if (!mSkyObject) { return TRUE; }
@@ -1129,7 +1133,7 @@ Bool LuxAPIConverter::exportInfinite(void)
   if (!LuxC4DLightTag::getLightParameters(*mSkyObject, mC4D2LuxScale, parameters) ||
       (parameters.mType != IDD_LIGHT_TYPE_INFINITE))
   {
-    ERRLOG_RETURN_VALUE(FALSE, "Could not obtain correct light parameters for sky object.");
+    ERRLOG_RETURN_VALUE(FALSE, " LuxAPIConverter::exportInfiniteLight(): Could not obtain correct light parameters for sky object.");
   }
 
   // if the light has no brightness at all, don't export it
@@ -1166,7 +1170,8 @@ Bool LuxAPIConverter::exportInfinite(void)
 
   // if light "infinitesample" add "L" and "nsamples"
   if ((parameters.mInfiniteType == IDD_INFINITE_LIGHT_TYPE_INFINITE_IMPORTANCE) ||
-      ((parameters.mInfiniteType == IDD_INFINITE_LIGHT_TYPE_AUTO) && !mPortalCount))
+      ((parameters.mInfiniteType == IDD_INFINITE_LIGHT_TYPE_AUTO) &&
+       !mPortalCount && !mIsBidirectional))
   {
     l *= parameters.mBrightness * 0.05;
     mTempParamSet.addParam(LUX_COLOR,   "L",        &l);
@@ -1326,7 +1331,7 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
     if (hierarchyData.mMaterialIsEmissive) {
       LuxParamSet areaParamSet(3);
       LuxString   textureName = hierarchyData.mMaterialName + ".L";
-      LuxFloat    gain = 50.0;
+      LuxFloat    gain = 100.0;
       areaParamSet.addParam(LUX_TEXTURE, "L",    &textureName);
       areaParamSet.addParam(LUX_FLOAT,   "gain", &gain);
       if (!mReceiver->areaLightSource("area", areaParamSet))  return FALSE;
@@ -1800,9 +1805,6 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                   MATERIAL_REFLECTION_COLOR,
                                                   MATERIAL_REFLECTION_BRIGHTNESS,
                                                   MATERIAL_REFLECTION_TEXTURESTRENGTH));
-    } else {
-      materialData.setChannel(LUX_GLASS_REFLECTION,
-                              gNewNC LuxConstantTextureData(LuxColor(0.0)));
     }
 
     // obtain transparency channel
@@ -1847,9 +1849,6 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                   MATERIAL_REFLECTION_COLOR,
                                                   MATERIAL_REFLECTION_BRIGHTNESS,
                                                   MATERIAL_REFLECTION_TEXTURESTRENGTH));
-    } else {
-      materialData.setChannel(LUX_GLASS_REFLECTION,
-                              gNewNC LuxConstantTextureData(LuxColor(0.0f)));
     }
 
     // obtain transparency channel + roughness

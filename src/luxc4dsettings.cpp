@@ -159,21 +159,21 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetReal(IDD_TRIANGLE_FILTER_HEIGHT, 2.0);
 
   // set accelerator defaults
-  data->SetLong(IDD_ACCELERATION_TYPE,              IDD_ACCELERATION_KDTREE);
-  data->SetBool(IDD_ACCELERATION_ADVANCED,          FALSE);
-  data->SetLong(IDD_KDTREE_INTERSECTION_COST, 80);
-  data->SetLong(IDD_KDTREE_TRAVERSAL_COST,    1);
-  data->SetReal(IDD_KDTREE_EMPTY_BONUS,       0.2);
-  data->SetLong(IDD_KDTREE_MAX_PRIMITIVES,    1);
-  data->SetLong(IDD_KDTREE_MAX_DEPTH,         -1);
-  data->SetLong(IDD_BVH_TREE_TYPE,                  IDD_BVH_QUAD_TREE);
-  data->SetLong(IDD_BVH_COST_SAMPLES,               0);
-  data->SetLong(IDD_BVH_INTERSECTION_COST,          80);
-  data->SetLong(IDD_BVH_TRAVERSAL_COST,             10);
-  data->SetReal(IDD_BVH_EMPTY_BONUS,                0.5);
-  data->SetLong(IDD_QBVH_MAX_PRIMITIVES,            4);
-  data->SetReal(IDD_QBVH_FULL_SWEEP_THRESHOLD,      16);
-  data->SetLong(IDD_QBVH_SKIP_FACTOR,               1);
+  data->SetLong(IDD_ACCELERATION_TYPE,         IDD_ACCELERATION_KDTREE);
+  data->SetBool(IDD_ACCELERATION_ADVANCED,     FALSE);
+  data->SetLong(IDD_KDTREE_INTERSECTION_COST,  80);
+  data->SetLong(IDD_KDTREE_TRAVERSAL_COST,     1);
+  data->SetReal(IDD_KDTREE_EMPTY_BONUS,        0.2);
+  data->SetLong(IDD_KDTREE_MAX_PRIMITIVES,     1);
+  data->SetLong(IDD_KDTREE_MAX_DEPTH,          -1);
+  data->SetLong(IDD_BVH_TREE_TYPE,             IDD_BVH_QUAD_TREE);
+  data->SetLong(IDD_BVH_COST_SAMPLES,          0);
+  data->SetLong(IDD_BVH_INTERSECTION_COST,     80);
+  data->SetLong(IDD_BVH_TRAVERSAL_COST,        10);
+  data->SetReal(IDD_BVH_EMPTY_BONUS,           0.5);
+  data->SetLong(IDD_QBVH_MAX_PRIMITIVES,       4);
+  data->SetReal(IDD_QBVH_FULL_SWEEP_THRESHOLD, 16);
+  data->SetLong(IDD_QBVH_SKIP_FACTOR,          1);
 
 
   // set film parameters
@@ -185,7 +185,7 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetReal(IDD_FLEXIMAGE_WRITE_INTERVAL,         120);
   data->SetLong(IDD_FLEXIMAGE_CLAMP_METHOD,           IDD_CLAMP_METHOD_LUM);
   data->SetLong(IDD_FLEXIMAGE_REJECT_WARMUP,          128);
-  data->SetLong(IDD_FLEXIMAGE_TONEMAP_KERNEL,         IDD_TONEMAP_KERNEL_REINHARD);
+  data->SetLong(IDD_FLEXIMAGE_TONEMAP_KERNEL,         IDD_TONEMAP_KERNEL_MAXWHITE);
   data->SetReal(IDD_FLEXIMAGE_REINHARD_PRESCALE,      1.0);
   data->SetReal(IDD_FLEXIMAGE_REINHARD_POSTSCALE,     1.0);
   data->SetReal(IDD_FLEXIMAGE_REINHARD_BURN,          6.0);
@@ -757,7 +757,8 @@ void LuxC4DSettings::getSampler(const char*& name,
 /// @param[out]  paramSet
 ///   The set to which the parameters get added.
 void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
-                                          LuxParamSet& paramSet)
+                                          LuxParamSet& paramSet,
+                                          Bool&        isBidirectional)
 {
   // the different sampler names
   static const char* sIntegratorNames[IDD_INTEGRATOR_NUMBER] = {
@@ -817,6 +818,7 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
 
   // set default integrator
   name = sIntegratorNames[IDD_INTEGRATOR_PATH];
+  isBidirectional = FALSE;
 
   // get base container of this node
   BaseContainer* data = getData();
@@ -868,6 +870,7 @@ void LuxC4DSettings::getSurfaceIntegrator(const char*& name,
         copyParam(sBidirectionalEyeRRThreshold,      paramSet);
         copyParam(sBidirectionalLightRRThreshold,    paramSet);
       }
+      isBidirectional = TRUE;
       break;
     // direct lighting integrator
     case IDD_INTEGRATOR_DIRECT_LIGHTING:

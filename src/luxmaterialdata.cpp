@@ -116,6 +116,9 @@ Bool LuxMaterialData::hasEmissionChannel(void)
 }
 
 
+/// Sets the bump map sample distance of the material which is 0.0 by default
+/// and therefore the parameter doesn't get exported. Only if you set it to
+/// a value > 0.000000000001, the parameter gets exported.
 void LuxMaterialData::setBumpSampleDistance(LuxFloat bumpSampleDistance)
 {
   mBumpSampleDistance = bumpSampleDistance;
@@ -138,7 +141,8 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
                                 const LuxParamSet* addParams)
 {
   // initialise parameter set (the maximum possible number of parameters is
-  // channel count + 1 (for the material type))
+  // channel count + 2 (material type, bumpsampledistance) + number of
+  // additional parameters)
   LuxParamSet paramSet(mInfo->mChannelCount + 2 +
                        (addParams ? addParams->paramNumber() : 0));
 
@@ -158,20 +162,27 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
   for (ULONG channelIx=0; channelIx<mInfo->mChannelCount; ++channelIx) {
 
     // for convenience, store reference to channel in variable
-    LuxMaterialChannel& channel(mChannels[channelIx]);
+    LuxMaterialChannel&   channel(mChannels[channelIx]);
+    const LuxChannelInfo& channelInfo(mInfo->mChannelInfos[channelIx]);
 
-    // only handle active channels:
+    // if channel is active, export it
     if (channel.mEnabled) {
-      textureNames[textureNameCount] =
-        name + "." + mInfo->mChannelInfos[channelIx].mTextureSuffix;
+      textureNames[textureNameCount] = name + "." + channelInfo.mTextureSuffix;
       if (!channel.mTexture->sendToAPIAndAddToParamSet(receiver,
                                                        paramSet,
-                                                       mInfo->mChannelInfos[channelIx].mName,
+                                                       channelInfo.mName,
                                                        textureNames[textureNameCount]))
       {
         ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::sendToAPI(): texture export failed");
       }
       ++textureNameCount;
+    // otherwise: export deefaults, if we should export defaults
+    } else if (channelInfo.mExportDefault) {
+      if (channelInfo.mType == LUX_COLOR_TEXTURE) {
+        paramSet.addParam(LUX_COLOR, channelInfo.mName, (void*)&channelInfo.mDefaultColor);
+      } else {
+        paramSet.addParam(LUX_FLOAT, channelInfo.mName, (void*)&channelInfo.mDefaultFloat);
+      }
     }
   }
 

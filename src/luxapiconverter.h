@@ -237,6 +237,7 @@ private:
   // temporary data stored during the conversion and shared between
   // several functions
   LuxParamSet        mTempParamSet;
+  Bool               mIsBidirectional;
   CameraObject*      mCamera;
   BaseObject*        mSkyObject;
   ULONG              mPortalCount;
@@ -293,7 +294,7 @@ private:
   
   Bool exportAutoLight(void);
 
-  Bool exportInfinite(void);
+  Bool exportInfiniteLight(void);
 
   Bool exportStandardMaterial(void);
 
