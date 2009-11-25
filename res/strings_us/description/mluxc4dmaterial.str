@@ -37,36 +37,98 @@ STRINGTABLE Mluxc4dmaterial
     IDD_MATERIAL_TYPE_MIRROR              "Mirror";
     IDD_MATERIAL_TYPE_CAR_PAINT           "Car Paint";
 
-  IDT_CHANNELS              "Channels:";
-  IDD_TOGGLE_DIFFUSE        "Diffuse";
-  IDD_TOGGLE_SPECULAR       "Specular";
-  IDD_TOGGLE_IOR            "IOR";
-  IDD_TOGGLE_REFLECTION     "Reflection";
-  IDD_TOGGLE_TRANSMISSION   "Transmission";
-  IDD_TOGGLE_EMISSION       "Emission";
-  IDD_TOGGLE_BUMP           "Bump";
-  
-  IDG_DIFFUSE                   "Diffuse";
-  IDD_DIFFUSE_COLOR             "Color";
-  IDD_DIFFUSE_BRIGHTNESS        "Brightness";
-  IDD_DIFFUSE_SHADER            "Texture";
-  IDD_DIFFUSE_SHADER_STRENGTH   "Mix Strength";
+  IDD_TOGGLE_DIFFUSE            "Diffuse";
+  IDD_TOGGLE_REFLECTION         "Reflection";
+  IDD_TOGGLE_COATING_ABSORPTION "Absorption";
+  IDD_TOGGLE_TRANSMISSION       "Transmission";
+  IDD_TOGGLE_CARPAINT_SPECULAR1 "Specular 1";
+  IDD_TOGGLE_CARPAINT_SPECULAR2 "Specular 2";
+  IDD_TOGGLE_CARPAINT_SPECULAR3 "Specular 3";
+  IDD_TOGGLE_ROUGHNESS          "Roughness";
+  IDD_TOGGLE_THIN_FILM          "Thin Film";
+  IDD_TOGGLE_EMISSION           "Emission";
+  IDD_TOGGLE_BUMP               "Bump";
 
-  IDG_SPECULAR                  "Specular";
-  IDD_SPECULAR_COLOR            "Color";
-  IDD_SPECULAR_BRIGHTNESS       "Brightness";
-  IDD_SPECULAR_SHADER           "Texture";
-  IDD_SPECULAR_SHADER_STRENGTH  "Mix Strength";
+  IDG_DIFFUSE                 "Diffuse";
+  IDD_DIFFUSE_COLOR           "Color";
+  IDD_DIFFUSE_SHADER_STRENGTH "Tex. Strength";
+  IDD_DIFFUSE_SHADER          "Texture";
+  IDD_DIFFUSE_BRIGHTNESS      "Brightness";
+
+  IDG_REFLECTION                  "Reflection";
+  IDD_REFLECTION_COLOR            "Color";
+  IDD_REFLECTION_SHADER_STRENGTH  "Tex. Strength";
+  IDD_REFLECTION_SHADER           "Texture";
+  IDD_REFLECTION_BRIGHTNESS       "Brightness";
   
-  IDG_IOR         "IOR";
-  IDD_IOR_VALUE   "Refraction Index";
-  IDD_IOR_SHADER  "Texture";
+  IDG_COATING_ABSORPTION                 "Absorption";
+  IDD_COATING_ABSORPTION_COLOR           "Color";
+  IDD_COATING_ABSORPTION_SHADER_STRENGTH "Tex. Strength";
+  IDD_COATING_ABSORPTION_SHADER          "Texture";
+  IDD_COATING_ABSORPTION_STRENGTH        "Brightness";
+
+  IDG_TRANSMISSION                  "Transmission";
+  IDD_TRANSMISSION_COLOR            "Color";
+  IDD_TRANSMISSION_SHADER_STRENGTH  "Tex. Strength";
+  IDD_TRANSMISSION_SHADER           "Texture";
+  IDD_TRANSMISSION_BRIGHTNESS       "Brightness";
+  IDD_TRANSMISSION_ARCHITECTURAL    "Architectural";
+  IDD_TRANSMISSION_CAUCHYB          "Dispersion Cauchy B";
+
+    IDD_IOR_VALUE                     "IOR";
+    IDD_IOR_SHADER                    "* Texture";
   
-  IDG_REFLECTION   "Reflection";
+  IDG_CARPAINT_SPECULAR1                  "Specular 1";
+  IDD_CARPAINT_SPECULAR_COLOR1            "Color";
+  IDD_CARPAINT_SPECULAR_SHADER_STRENGTH1  "Tex. Strength";
+  IDD_CARPAINT_SPECULAR_SHADER1           "Texture";
+  IDD_CARPAINT_SPECULAR_BRIGHTNESS1       "Brightness";
+  IDD_CARPAINT_R1                         "R1";
+  IDD_CARPAINT_M1                         "M1";
+
+  IDG_CARPAINT_SPECULAR2                  "Specular 2";
+  IDD_CARPAINT_SPECULAR_COLOR2            "Color";
+  IDD_CARPAINT_SPECULAR_SHADER_STRENGTH2  "Tex. Strength";
+  IDD_CARPAINT_SPECULAR_SHADER2           "Texture";
+  IDD_CARPAINT_SPECULAR_BRIGHTNESS2       "Brightness";
+  IDD_CARPAINT_R2                         "R2";
+  IDD_CARPAINT_M2                         "M2";
+
+  IDG_CARPAINT_SPECULAR3                  "Specular 3";
+  IDD_CARPAINT_SPECULAR_COLOR3            "Color";
+  IDD_CARPAINT_SPECULAR_SHADER_STRENGTH3  "Tex. Strength";
+  IDD_CARPAINT_SPECULAR_SHADER3           "Texture";
+  IDD_CARPAINT_SPECULAR_BRIGHTNESS3       "Brightness";
+  IDD_CARPAINT_R3                         "R3";
+  IDD_CARPAINT_M3                         "M3";
+
+  IDG_ROUGHNESS           "Roughness";
+  IDD_ROUGHNESS_ASYMETRIC "Asymetric";
+
+    IDD_ROUGHNESS_VALUE     "Strength";
+    IDD_ROUGHNESS_SHADER    "* Texture";
+
+    IDD_ROUGHNESS_U_VALUE   "Strength";
+    IDD_ROUGHNESS_U_SHADER  "* Texture";
+
+    IDD_ROUGHNESS_V_VALUE   "Strength";
+    IDD_ROUGHNESS_V_SHADER  "* Texture";
+
+  IDG_THIN_FILM                   "Thin Film";
+  IDD_THIN_FILM_THICKNESS         "Thickness (nm)";
+  IDD_THIN_FILM_THICKNESS_SHADER  "* Texture";
+  IDD_THIN_FILM_IOR               "IOR";
+  IDD_THIN_FILM_IOR_SHADER        "* Texture";
   
-  IDG_TRANSMISSION   "Transmission";
-  
-  IDG_EMISSION   "Emission";
-  
-  IDG_BUMP   "Bump";
+  IDG_BUMP                  "Bump";
+  IDD_BUMP_HEIGHT           "Height";
+  IDD_BUMP_SHADER           "* Texture";
+  IDD_BUMP_SAMPLE_DISTANCE  "Sample Distance";
+
+  IDG_EMISSION                  "Emission";
+  IDD_EMISSION_COLOR            "Color";
+  IDD_EMISSION_SHADER_STRENGTH  "Tex. Strength";
+  IDD_EMISSION_SHADER           "Texture";
+  IDD_EMISSION_BRIGHTNESS       "Brightness";
+
 }

@@ -87,7 +87,7 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
   }
 
   // allocate empty atom array, which can be used for passing parameters into GetParameterI()
-  AutoAlloc<AtomArray> params;
+/*  AutoAlloc<AtomArray> params;
   if (!params) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxC4DMaterial::GetDDescription(): could not allocate empty AtomArray");
   }
@@ -121,7 +121,7 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
     case IDD_MATERIAL_TYPE_CAR_PAINT:
       break;
   }
-
+*/
   // set flag and return
   flags |= DESCFLAGS_DESC_LOADED;
   return SUPER::GetDDescription(node, description, flags);
