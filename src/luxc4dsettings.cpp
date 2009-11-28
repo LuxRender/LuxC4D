@@ -101,7 +101,6 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetLong(IDD_RANDOM_PIXELSAMPLES,            4);
   data->SetLong(IDD_LOWDISCREPANCY_PIXELSAMPLER,    IDD_PIXELSAMPLER_LOWDISCREPANCY);
   data->SetLong(IDD_LOWDISCREPANCY_PIXELSAMPLES,    4);
-  data->SetLong(IDD_METROPOLIS_INIT_SAMPLES,        100000);
   data->SetLong(IDD_METROPOLIS_MAX_CONSEC_REJECTS,  512);
   data->SetReal(IDD_METROPOLIS_LARGE_MUTATION_PROB, 0.4);
   data->SetReal(IDD_METROPOLIS_MICRO_MUTATION_PROB, 0.0);
@@ -159,7 +158,7 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetReal(IDD_TRIANGLE_FILTER_HEIGHT, 2.0);
 
   // set accelerator defaults
-  data->SetLong(IDD_ACCELERATION_TYPE,         IDD_ACCELERATION_KDTREE);
+  data->SetLong(IDD_ACCELERATION_TYPE,         IDD_ACCELERATION_QBVH);
   data->SetBool(IDD_ACCELERATION_ADVANCED,     FALSE);
   data->SetLong(IDD_KDTREE_INTERSECTION_COST,  80);
   data->SetLong(IDD_KDTREE_TRAVERSAL_COST,     1);
@@ -270,7 +269,6 @@ Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
     showParameter(description, IDD_METROPOLIS_LARGE_MUTATION_PROB, params, advanced);
     showParameter(description, IDD_METROPOLIS_MAX_CONSEC_REJECTS,  params, advanced);
     showParameter(description, IDD_METROPOLIS_MICRO_MUTATION_PROB, params, advanced);
-    showParameter(description, IDD_METROPOLIS_INIT_SAMPLES,        params, advanced);
     showParameter(description, IDD_METROPOLIS_USE_VARIANCE,        params, advanced);
   }
 
@@ -688,7 +686,6 @@ void LuxC4DSettings::getSampler(const char*& name,
   static Descr2Param<LuxFloat>   sMetroLargeMutationProb(IDD_METROPOLIS_LARGE_MUTATION_PROB, "largemutationprob");
   static Descr2Param<LuxInteger> sMetroMaxConsecRejects (IDD_METROPOLIS_MAX_CONSEC_REJECTS,  "maxconsecrejects");
   static Descr2Param<LuxFloat>   sMetroMicroMutationProb(IDD_METROPOLIS_MICRO_MUTATION_PROB, "micromutationprob");
-  static Descr2Param<LuxInteger> sMetroInitSamples      (IDD_METROPOLIS_INIT_SAMPLES,        "initsamples");
   static Descr2Param<LuxBool>    sMetroUseVariance      (IDD_METROPOLIS_USE_VARIANCE,        "usevariance");
 
   // parameters for ERPT sampler
@@ -728,7 +725,6 @@ void LuxC4DSettings::getSampler(const char*& name,
       if (data->GetBool(IDD_ADVANCED_SAMPLER)) {
         copyParam(sMetroMaxConsecRejects,  paramSet);
         copyParam(sMetroMicroMutationProb, paramSet);
-        copyParam(sMetroInitSamples,       paramSet);
         copyParam(sMetroUseVariance,       paramSet);
       }
       break;

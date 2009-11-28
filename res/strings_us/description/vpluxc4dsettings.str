@@ -50,7 +50,6 @@ STRINGTABLE VPluxc4dsettings
       IDD_PIXELSAMPLER_LINEAR             "Linear";
       IDD_PIXELSAMPLER_TILE               "Tile";
 
-    IDD_METROPOLIS_INIT_SAMPLES         "Initial Samples";
     IDD_METROPOLIS_MAX_CONSEC_REJECTS   "Max. Consecutive Rejects";
     IDD_METROPOLIS_LARGE_MUTATION_PROB  "Large Mutation Probability";
     IDD_METROPOLIS_MICRO_MUTATION_PROB  "Small Mutation Probability";
