@@ -55,28 +55,14 @@ STRINGTABLE Mluxc4dmaterial
   IDD_DIFFUSE_SHADER          "Texture";
   IDD_DIFFUSE_BRIGHTNESS      "Brightness";
 
+    IDD_DIFFUSE_SIGMA_VALUE     "Sigma";
+	  IDD_DIFFUSE_SIGMA_SHADER    "Scale Tex.";
+
   IDG_REFLECTION                  "Reflection";
   IDD_REFLECTION_COLOR            "Color";
   IDD_REFLECTION_SHADER_STRENGTH  "Tex. Strength";
   IDD_REFLECTION_SHADER           "Texture";
   IDD_REFLECTION_BRIGHTNESS       "Brightness";
-  
-  IDG_COATING_ABSORPTION                 "Absorption";
-  IDD_COATING_ABSORPTION_COLOR           "Color";
-  IDD_COATING_ABSORPTION_SHADER_STRENGTH "Tex. Strength";
-  IDD_COATING_ABSORPTION_SHADER          "Texture";
-  IDD_COATING_ABSORPTION_STRENGTH        "Brightness";
-
-  IDG_TRANSMISSION                  "Transmission";
-  IDD_TRANSMISSION_COLOR            "Color";
-  IDD_TRANSMISSION_SHADER_STRENGTH  "Tex. Strength";
-  IDD_TRANSMISSION_SHADER           "Texture";
-  IDD_TRANSMISSION_BRIGHTNESS       "Brightness";
-  IDD_TRANSMISSION_ARCHITECTURAL    "Architectural";
-  IDD_TRANSMISSION_CAUCHYB          "Dispersion Cauchy B";
-
-    IDD_IOR_VALUE                     "IOR";
-    IDD_IOR_SHADER                    "* Texture";
   
   IDG_CARPAINT_SPECULAR1                  "Specular 1";
   IDD_CARPAINT_SPECULAR_COLOR1            "Color";
@@ -103,27 +89,43 @@ STRINGTABLE Mluxc4dmaterial
   IDD_CARPAINT_M3                         "M3";
 
   IDG_ROUGHNESS           "Roughness";
+  IDG_COATING_ABSORPTION                 "Absorption";
+  IDD_COATING_ABSORPTION_COLOR           "Color";
+  IDD_COATING_ABSORPTION_SHADER_STRENGTH "Tex. Strength";
+  IDD_COATING_ABSORPTION_SHADER          "Texture";
+  IDD_COATING_ABSORPTION_STRENGTH        "Brightness";
+
+  IDG_TRANSMISSION                  "Transmission";
+  IDD_TRANSMISSION_COLOR            "Color";
+  IDD_TRANSMISSION_SHADER_STRENGTH  "Tex. Strength";
+  IDD_TRANSMISSION_SHADER           "Texture";
+  IDD_TRANSMISSION_BRIGHTNESS       "Brightness";
+  IDD_TRANSMISSION_ARCHITECTURAL    "Architectural";
+  IDD_TRANSMISSION_CAUCHYB          "Dispersion Cauchy B";
+
+    IDD_IOR_VALUE                     "IOR";
+    IDD_IOR_SHADER                    "Scale Tex.";
+  
   IDD_ROUGHNESS_ASYMETRIC "Asymetric";
 
     IDD_ROUGHNESS_VALUE     "Strength";
-    IDD_ROUGHNESS_SHADER    "* Texture";
+    IDD_ROUGHNESS_SHADER    "Scale Tex.";
 
     IDD_ROUGHNESS_U_VALUE   "Strength";
-    IDD_ROUGHNESS_U_SHADER  "* Texture";
+    IDD_ROUGHNESS_U_SHADER  "Scale Tex.";
 
     IDD_ROUGHNESS_V_VALUE   "Strength";
-    IDD_ROUGHNESS_V_SHADER  "* Texture";
+    IDD_ROUGHNESS_V_SHADER  "Scale Tex.";
 
   IDG_THIN_FILM                   "Thin Film";
   IDD_THIN_FILM_THICKNESS         "Thickness (nm)";
-  IDD_THIN_FILM_THICKNESS_SHADER  "* Texture";
+  IDD_THIN_FILM_THICKNESS_SHADER  "Scale Tex.";
   IDD_THIN_FILM_IOR               "IOR";
-  IDD_THIN_FILM_IOR_SHADER        "* Texture";
+  IDD_THIN_FILM_IOR_SHADER        "Scale Tex.";
   
-  IDG_BUMP                  "Bump";
-  IDD_BUMP_HEIGHT           "Height";
-  IDD_BUMP_SHADER           "* Texture";
-  IDD_BUMP_SAMPLE_DISTANCE  "Sample Distance";
+  IDG_BUMP                        "Bump";
+  IDD_BUMP_HEIGHT                 "Height";
+  IDD_BUMP_SHADER                 "Scale Tex.";
 
   IDG_EMISSION                  "Emission";
   IDD_EMISSION_COLOR            "Color";

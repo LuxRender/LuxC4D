@@ -87,7 +87,7 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
   }
 
   // allocate empty atom array, which can be used for passing parameters into GetParameterI()
-/*  AutoAlloc<AtomArray> params;
+  AutoAlloc<AtomArray> params;
   if (!params) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxC4DMaterial::GetDDescription(): could not allocate empty AtomArray");
   }
@@ -96,19 +96,35 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
   LONG materialType = data->GetLong(IDD_MATERIAL_TYPE);
   switch (materialType) {
     case IDD_MATERIAL_TYPE_GLASS:
-      toggleChannel(IDD_TOGGLE_DIFFUSE,      IDG_DIFFUSE,      FALSE, data, description, params);
-      toggleChannel(IDD_TOGGLE_SPECULAR,     IDG_SPECULAR,     FALSE, data, description, params);
-      toggleChannel(IDD_TOGGLE_IOR,          IDG_IOR,          TRUE,  data, description, params);
-      toggleChannel(IDD_TOGGLE_REFLECTION,   IDG_REFLECTION,   TRUE,  data, description, params);
-      toggleChannel(IDD_TOGGLE_TRANSMISSION, IDG_TRANSMISSION, TRUE,  data, description, params);
-      toggleChannel(IDD_TOGGLE_EMISSION,     IDG_EMISSION,     TRUE,  data, description, params);
-      toggleChannel(IDD_TOGGLE_BUMP,         IDG_BUMP,         TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR1, IDG_CARPAINT_SPECULAR1, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR2, IDG_CARPAINT_SPECULAR2, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR3, IDG_CARPAINT_SPECULAR3, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_COATING_ABSORPTION, IDG_COATING_ABSORPTION, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_TRANSMISSION,       IDG_TRANSMISSION,       TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_ROUGHNESS,          IDG_ROUGHNESS,          FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_BUMP,               IDG_BUMP,               TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_EMISSION,           IDG_EMISSION,           TRUE,  data, description, params);
       break;
     case IDD_MATERIAL_TYPE_ROUGH_GLASS:
       break;
     case IDD_MATERIAL_TYPE_GLOSSY:
       break;
     case IDD_MATERIAL_TYPE_MATTE:
+      showParameter(description, IDG_SIGMA, params, TRUE);
+      toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR1, IDG_CARPAINT_SPECULAR1, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR2, IDG_CARPAINT_SPECULAR2, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR3, IDG_CARPAINT_SPECULAR3, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_COATING_ABSORPTION, IDG_COATING_ABSORPTION, TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_TRANSMISSION,       IDG_TRANSMISSION,       TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_ROUGHNESS,          IDG_ROUGHNESS,          FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_BUMP,               IDG_BUMP,               TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_EMISSION,           IDG_EMISSION,           TRUE,  data, description, params);
       break;
     case IDD_MATERIAL_TYPE_MATTE_TRANSLUCENT:
       break;
@@ -119,9 +135,21 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
     case IDD_MATERIAL_TYPE_MIRROR:
       break;
     case IDD_MATERIAL_TYPE_CAR_PAINT:
+      showParameter(description, IDG_SIGMA, params, FALSE);
+      toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR1, IDG_CARPAINT_SPECULAR1, TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR2, IDG_CARPAINT_SPECULAR2, TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR3, IDG_CARPAINT_SPECULAR3, TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_COATING_ABSORPTION, IDG_COATING_ABSORPTION, TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_TRANSMISSION,       IDG_TRANSMISSION,       FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_ROUGHNESS,          IDG_ROUGHNESS,          FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_BUMP,               IDG_BUMP,               TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_EMISSION,           IDG_EMISSION,           TRUE,  data, description, params);
       break;
   }
-*/
+
   // set flag and return
   flags |= DESCFLAGS_DESC_LOADED;
   return SUPER::GetDDescription(node, description, flags);
