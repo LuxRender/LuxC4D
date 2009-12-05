@@ -4,7 +4,7 @@
 //*                                                                      *
 //* Author:                                                              *
 //* Marcus Spranger (abstrax)                                            *
-//* Trad. FR: Patrick Depoix (spirou4D)                                  *
+//*                                                                      *
 //************************************************************************
 //*                                                                      *
 //* This file is part of LuxC4D.                                         *
@@ -25,21 +25,22 @@
 
 STRINGTABLE Tluxc4dlighttag
 {
-  Tluxc4dlighttag "Lumière LuxC4D";
+  Tluxc4dlighttag "LuxC4D Light Tag";
   
   
   IDD_LIGHT_TYPE                  "Type de Lumière";
   IDD_LIGHT_IGNORE_FALLOFF_RADIUS "Ignorer le Rayon d'atténuation C4D";
-  IDD_LIGHT_GROUP_NAME            "Groupe de Lumière";  
+  IDD_LIGHT_GROUP_NAME            "Groupe de Lumière";
   
     IDD_LIGHT_TYPE_AS_OBJECT  "Identique à l'Objet";
     IDD_LIGHT_TYPE_POINT      "Lumière Ponctuelle";
     IDD_LIGHT_TYPE_SPOT       "Lumière Spot";
-    IDD_LIGHT_TYPE_DISTANT    "Lumière Infinie";
+    IDD_LIGHT_TYPE_DISTANT    "Lumière Distante";
     IDD_LIGHT_TYPE_AREA       "Surface Lumineuse";
     IDD_LIGHT_TYPE_SUN        "Soleil";
     IDD_LIGHT_TYPE_SKY        "Ciel";
     IDD_LIGHT_TYPE_SUNSKY     "Soleil + Ciel";
+    IDD_LIGHT_TYPE_INFINITE   "Lumière Infinie";
 
   IDG_POINT_LIGHT                 "Réglages de Lumière ponctuelle";
   IDD_POINT_LIGHT_COLOR           "Couleur";
@@ -51,7 +52,7 @@ STRINGTABLE Tluxc4dlighttag
   IDD_SPOT_LIGHT_INNERANGLE         "Angle interne";
   IDD_SPOT_LIGHT_OUTERANGLE         "Angle externe";
   
-  IDG_DISTANT_LIGHT                 "Réglages de Lumière Infinie";
+  IDG_DISTANT_LIGHT                 "Réglages de Lumière distante";
   IDD_DISTANT_LIGHT_COLOR           "Couleur";
   IDD_DISTANT_LIGHT_BRIGHTNESS      "Luminosité";
 
@@ -100,6 +101,15 @@ STRINGTABLE Tluxc4dlighttag
   IDD_SUNSKY_LIGHT_C_CONST          "C";
   IDD_SUNSKY_LIGHT_D_CONST          "D";
   IDD_SUNSKY_LIGHT_E_CONST          "E";
+
+  IDG_INFINITE_LIGHT                "Réglages de lumière infinie";
+  IDD_INFINITE_LIGHT_BRIGHTNESS     "Luminosité";
+  IDD_INFINITE_LIGHT_SAMPLES        "Echantillons";
+  IDD_INFINITE_LIGHT_TYPE           "Type";
+
+    IDD_INFINITE_LIGHT_TYPE_AUTO                "Auto";
+    IDD_INFINITE_LIGHT_TYPE_INFINITE            "Infinie";
+    IDD_INFINITE_LIGHT_TYPE_INFINITE_IMPORTANCE "Importance d'une infinie échantillonnée";
 
   IDB_COPY_PARAMETERS               "Copier les réglages de l'Objet";
 }
