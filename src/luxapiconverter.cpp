@@ -1206,10 +1206,10 @@ Bool LuxAPIConverter::exportInfiniteLight(void)
 ///   TRUE, if successful, FALSE otherwise
 Bool LuxAPIConverter::exportStandardMaterial(void)
 {
-  LuxMaterialData materialData(gLuxMatteInfo);
-  materialData.setChannel(LUX_MATTE_DIFFUSE,
+  LuxMatteData materialData;
+  materialData.setChannel(LuxMatteData::DIFFUSE,
                           gNewNC LuxConstantTextureData(LuxColor(0.8, 0.8, 0.8)));
-  return materialData.sendToAPI(*mReceiver, "_default", 0);
+  return materialData.sendToAPI(*mReceiver, "_default");
 }
 
 
@@ -1555,10 +1555,10 @@ Bool LuxAPIConverter::exportDummyMaterial(BaseMaterial& material,
                                           Bool&         hasEmissionChannel)
 {
   // export dummy matte material with average colour of input material
-  LuxMaterialData materialData(gLuxMatteInfo);
-  materialData.setChannel(LUX_MATTE_DIFFUSE,
+  LuxMatteData materialData;
+  materialData.setChannel(LuxMatteData::DIFFUSE,
                           gNewNC LuxConstantTextureData(material.GetAverageColor()));
-  return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
+  return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
 
 
@@ -1580,11 +1580,11 @@ Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
                                             LuxString&            materialName,
                                             Bool&                 hasEmissionChannel)
 {
-  LuxMaterialData materialData(gLuxMatteInfo);
+  LuxMatteData materialData;
 
   // obtain diffuse channel
   if (getParameterLong(material, MATERIAL_USE_COLOR)) {
-    materialData.setChannel(LUX_MATTE_DIFFUSE,
+    materialData.setChannel(LuxMatteData::DIFFUSE,
                             convertColorChannel(mapping,
                                                 material,
                                                 MATERIAL_COLOR_SHADER,
@@ -1599,16 +1599,16 @@ Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
   {
     LuxFloat roughness = getParameterReal(material, MATERIAL_ILLUMINATION_ROUGHNESS);
     if (roughness > 0.001) {
-      materialData.setChannel(LUX_MATTE_SIGMA,
+      materialData.setChannel(LuxMatteData::SIGMA,
                               gNewNC LuxConstantTextureData(roughness * 180.0));
     }
   }
 
   // obtain bump and emission channels
-  addBumpChannel(mapping, material, materialData, LUX_MATTE_BUMP);
+  addBumpChannel(mapping, material, materialData, LuxMatteData::BUMP);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-  return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
+  return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
 
 
@@ -1630,11 +1630,11 @@ Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
                                            LuxString&            materialName,
                                            Bool&                 hasEmissionChannel)
 {
-  LuxMaterialData materialData(gLuxGlossyInfo);
+  LuxGlossyData materialData;
 
   // obtain diffuse channel
   if (getParameterLong(material, MATERIAL_USE_COLOR)) {
-    materialData.setChannel(LUX_GLOSSY_DIFFUSE,
+    materialData.setChannel(LuxGlossyData::DIFFUSE,
                             convertColorChannel(mapping,
                                                 material,
                                                 MATERIAL_COLOR_SHADER,
@@ -1645,7 +1645,7 @@ Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
 
   // obtain specular reflection channel + dispersion
   if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
-    materialData.setChannel(LUX_GLOSSY_SPECULAR,
+    materialData.setChannel(LuxGlossyData::SPECULAR,
                             convertColorChannel(mapping,
                                                 material,
                                                 MATERIAL_REFLECTION_SHADER,
@@ -1656,17 +1656,17 @@ Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
                                           MATERIAL_REFLECTION_DISPERSION,
                                           0.0);
     roughness = c4dDispersionToLuxRoughness(roughness);
-    materialData.setChannel(LUX_GLOSSY_UROUGHNESS,
+    materialData.setChannel(LuxGlossyData::UROUGHNESS,
                             gNewNC LuxConstantTextureData(roughness));
-    materialData.setChannel(LUX_GLOSSY_VROUGHNESS,
+    materialData.setChannel(LuxGlossyData::VROUGHNESS,
                             gNewNC LuxConstantTextureData(roughness));
   }
 
   // obtain bump and emission channels
-  addBumpChannel(mapping, material, materialData, LUX_GLOSSY_BUMP);
+  addBumpChannel(mapping, material, materialData, LuxGlossyData::BUMP);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-  return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
+  return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
 
 
@@ -1700,11 +1700,11 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
   // if roughness nearly or equal 0, we convert to a mirror material
   if (roughness < 0.001) {
 
-    LuxMaterialData materialData(gLuxMirrorInfo);
+    LuxMirrorData materialData;
 
     // obtain specular reflection channel + dispersion
     if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
-      materialData.setChannel(LUX_MIRROR_REFLECTION,
+      materialData.setChannel(LuxMirrorData::REFLECTION,
                               convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_REFLECTION_SHADER,
@@ -1714,18 +1714,18 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
     }
 
     // obtain bump and emission channels
-    addBumpChannel(mapping, material, materialData, LUX_MIRROR_BUMP);
+    addBumpChannel(mapping, material, materialData, LuxMirrorData::BUMP);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-    return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
+    return materialData.sendToAPI(*mReceiver, materialName.c_str());
 
   // if roughness is not nearly or equal 0, we convert to a shiny metal material
   } else {
 
-    LuxMaterialData materialData(gLuxShinyMetalInfo);
+    LuxShinyMetalData materialData;
 
     // set reflection channel to 0
-    if (!materialData.setChannel(LUX_SHINY_METAL_REFLECTION,
+    if (!materialData.setChannel(LuxShinyMetalData::REFLECTION,
                                  gNewNC LuxConstantTextureData(LuxColor(0.0))))
     {
       ERRLOG_RETURN_VALUE(FALSE, ("LuxAPIConverter::exportShinyMetalMaterial(): could not set reflection channel for material "
@@ -1734,7 +1734,7 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
 
     // obtain specular reflection channel + dispersion
     if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
-      materialData.setChannel(LUX_SHINY_METAL_SPECULAR,
+      materialData.setChannel(LuxShinyMetalData::SPECULAR,
                               convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_REFLECTION_SHADER,
@@ -1742,17 +1742,17 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
                                                   MATERIAL_REFLECTION_BRIGHTNESS,
                                                   MATERIAL_REFLECTION_TEXTURESTRENGTH));
       roughness = c4dDispersionToLuxRoughness(roughness);
-      materialData.setChannel(LUX_SHINY_METAL_UROUGHNESS,
+      materialData.setChannel(LuxShinyMetalData::UROUGHNESS,
                               gNewNC LuxConstantTextureData(roughness));
-      materialData.setChannel(LUX_SHINY_METAL_VROUGHNESS,
+      materialData.setChannel(LuxShinyMetalData::VROUGHNESS,
                               gNewNC LuxConstantTextureData(roughness));
     }
 
     // obtain bump and emission channels
-    addBumpChannel(mapping, material, materialData, LUX_SHINY_METAL_BUMP);
+    addBumpChannel(mapping, material, materialData, LuxShinyMetalData::BUMP);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-    return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
+    return materialData.sendToAPI(*mReceiver, materialName.c_str());
   }
 }
 
@@ -1792,13 +1792,11 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
   // if roughness nearly or equal 0, we convert to a glass material
   if (roughness < 0.001) {
 
-    LuxMaterialData materialData(gLuxGlassInfo);
-    LuxParamSet     addParams(1);
-    Bool            architectural = TRUE;
+    LuxGlassData materialData;
 
     // obtain reflection channel
     if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
-      materialData.setChannel(LUX_GLASS_REFLECTION,
+      materialData.setChannel(LuxGlassData::REFLECTION,
                               convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_REFLECTION_SHADER,
@@ -1809,7 +1807,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
 
     // obtain transparency channel
     if (getParameterLong(material, MATERIAL_USE_TRANSPARENCY)) {
-      materialData.setChannel(LUX_GLASS_TRANSMISSION,
+      materialData.setChannel(LuxGlassData::TRANSMISSION,
                               convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_TRANSPARENCY_SHADER,
@@ -1821,28 +1819,29 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
     // setup IOR texture: if IOR=1.0 we enable the architectural glass option,
     // but still export with an IOR of 1.5, to get some reflections at least
     if (fabsf(ior - 1.0) < 0.0001) {
-      addParams.addParam(LUX_BOOL, "architectural", &architectural);
-      materialData.setChannel(LUX_GLASS_IOR,
+      materialData.mArchitectural = TRUE;
+      materialData.setChannel(LuxGlassData::IOR,
                               gNewNC LuxConstantTextureData(1.5));
     } else {
-      materialData.setChannel(LUX_GLASS_IOR,
+      materialData.mArchitectural = FALSE;
+      materialData.setChannel(LuxGlassData::IOR,
                               gNewNC LuxConstantTextureData(ior));
     }
 
     // obtain bump and emission channels
-    addBumpChannel(mapping, material, materialData, LUX_GLASS_BUMP);
+    addBumpChannel(mapping, material, materialData, LuxGlassData::BUMP);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-    return materialData.sendToAPI(*mReceiver, materialName.c_str(), &addParams);
+    return materialData.sendToAPI(*mReceiver, materialName.c_str());
 
   // if roughness is not nearly or equal 0, we convert to a rough glass material
   } else {
 
-    LuxMaterialData materialData(gLuxRoughGlassInfo);
+    LuxRoughGlassData materialData;
 
     // obtain reflection channel
     if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
-      materialData.setChannel(LUX_ROUGH_GLASS_REFLECTION,
+      materialData.setChannel(LuxRoughGlassData::REFLECTION,
                               convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_REFLECTION_SHADER,
@@ -1853,7 +1852,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
 
     // obtain transparency channel + roughness
     if (getParameterLong(material, MATERIAL_USE_TRANSPARENCY)) {
-      materialData.setChannel(LUX_ROUGH_GLASS_TRANSMISSION,
+      materialData.setChannel(LuxRoughGlassData::TRANSMISSION,
                               convertColorChannel(mapping,
                                                   material,
                                                   MATERIAL_TRANSPARENCY_SHADER,
@@ -1861,21 +1860,21 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                                                   MATERIAL_TRANSPARENCY_BRIGHTNESS,
                                                   MATERIAL_TRANSPARENCY_TEXTURESTRENGTH));
       roughness = c4dDispersionToLuxRoughness(roughness);
-      materialData.setChannel(LUX_ROUGH_GLASS_UROUGHNESS,
+      materialData.setChannel(LuxRoughGlassData::UROUGHNESS,
                               gNewNC LuxConstantTextureData(roughness));
-      materialData.setChannel(LUX_ROUGH_GLASS_VROUGHNESS,
+      materialData.setChannel(LuxRoughGlassData::VROUGHNESS,
                               gNewNC LuxConstantTextureData(roughness));
     }
 
     // setup IOR texture
-    materialData.setChannel(LUX_ROUGH_GLASS_IOR,
+    materialData.setChannel(LuxRoughGlassData::IOR,
                             gNewNC LuxConstantTextureData(ior));
 
     // obtain bump and emission channel
-    addBumpChannel(mapping, material, materialData, LUX_GLASS_BUMP);
+    addBumpChannel(mapping, material, materialData, LuxRoughGlassData::BUMP);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-    return materialData.sendToAPI(*mReceiver, materialName.c_str(), NULL);
+    return materialData.sendToAPI(*mReceiver, materialName.c_str());
   }
 }
 
@@ -1898,11 +1897,11 @@ Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
                                                 LuxString&            materialName,
                                                 Bool&                 hasEmissionChannel)
 {
-  LuxMaterialData materialData(gLuxMatteTranslucentInfo);
+  LuxMatteTranslucentData materialData;
 
   // obtain diffuse channel
   if (getParameterLong(material, MATERIAL_USE_COLOR)) {
-    materialData.setChannel(LUX_MATTE_DIFFUSE,
+    materialData.setChannel(LuxMatteTranslucentData::DIFFUSE,
                             convertColorChannel(mapping,
                                                 material,
                                                 MATERIAL_COLOR_SHADER,
@@ -1913,7 +1912,7 @@ Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
 
   // obtain transmission channel
   if (getParameterLong(material, MATERIAL_USE_TRANSPARENCY)) {
-    materialData.setChannel(LUX_MATTE_TRANSLUCENT_TRANSMISSION,
+    materialData.setChannel(LuxMatteTranslucentData::TRANSMISSION,
                             convertColorChannel(mapping,
                                                 material,
                                                 MATERIAL_TRANSPARENCY_SHADER,
@@ -1928,16 +1927,16 @@ Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
   {
     LuxFloat roughness = getParameterReal(material, MATERIAL_ILLUMINATION_ROUGHNESS);
     if (roughness > 0.001) {
-      materialData.setChannel(LUX_MATTE_SIGMA,
+      materialData.setChannel(LuxMatteTranslucentData::SIGMA,
                               gNewNC LuxConstantTextureData(roughness * 180.0));
     }
   }
 
   // obtain bump and emission channels
-  addBumpChannel(mapping, material, materialData, LUX_MATTE_BUMP);
+  addBumpChannel(mapping, material, materialData, LuxMatteTranslucentData::BUMP);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
-  return materialData.sendToAPI(*mReceiver, materialName.c_str(), 0);
+  return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
 
 

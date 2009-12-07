@@ -27,7 +27,11 @@
 
 
 
-/// Constructs aan empty Lux material container by passing in a material
+/*****************************************************************************
+ * Implementation of LuxMaterialData.
+ *****************************************************************************/
+
+/// Constructs an empty Lux material container by passing in a material
 /// info structure which describes the available channels and their
 /// attributes.
 ///
@@ -35,12 +39,13 @@
 ///   The info structure that describes the properties/channels of the
 ///   material.
 LuxMaterialData::LuxMaterialData(const LuxMaterialInfo& info)
-: mInfo(&info),
+: mInfo(info),
   mBumpSampleDistance(0.0)
 {
-  if (!mChannels.init(mInfo->mChannelCount)) {
-    ERRLOG(String("LuxMaterialData::LuxMaterialData(): could not initialise channels for material '")
-                  + mInfo->mName + "'");
+  // get info and setup channels
+  if (!mChannels.init(mInfo.mChannelCount)) {
+    ERRLOG(String("LuxMaterialData::init(): could not initialise channels for material '")
+             + mInfo.mName + "'");
   }
 }
 
@@ -70,7 +75,7 @@ Bool LuxMaterialData::setChannel(ULONG           channelId,
 
   // make sure that the data type of the texture matches the data type of the
   // material channel
-  if (mInfo->mChannelInfos[channelId].mType != texture->mType) {
+  if (mInfo.mChannelInfos[channelId].mType != texture->mType) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setChannel(): type mismatch -> can't set texture in channel with ID " +
                                LongToString(channelId));
   }
@@ -125,6 +130,14 @@ void LuxMaterialData::setBumpSampleDistance(LuxFloat bumpSampleDistance)
 }
 
 
+///
+Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
+                                const LuxString& name)
+{
+  return LuxMaterialData::sendToAPI(receiver, name, 0);
+}
+
+
 /// Sends the complete material and its textures to a Lux API receiver.
 ///
 /// @param[in]  receiver
@@ -132,7 +145,7 @@ void LuxMaterialData::setBumpSampleDistance(LuxFloat bumpSampleDistance)
 /// @param[in]  name
 ///   The name under which the material will be exported. It can then later be
 ///   referenced by it.
-/// @param[in]  addParams
+/// @param[in]  addParams (optional)
 ///   Pointer to an additional set of parameters for the material (can be NULL).
 /// @return
 ///   TRUE if successful, FALSE otherwise.
@@ -143,11 +156,11 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
   // initialise parameter set (the maximum possible number of parameters is
   // channel count + 2 (material type, bumpsampledistance) + number of
   // additional parameters)
-  LuxParamSet paramSet(mInfo->mChannelCount + 2 +
-                       (addParams ? addParams->paramNumber() : 0));
+  LuxParamSet paramSet(mInfo.mChannelCount + 2 +
+                         (addParams ? addParams->paramNumber() : 0));
 
   // add material type to parameter set
-  LuxString type(mInfo->mName);
+  LuxString type(mInfo.mName);
   paramSet.addParam(LUX_STRING, "type", &type);
 
   // add additional parameters
@@ -157,13 +170,13 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
 
   // loop over active channels, export their textures and add them to parameter
   // set
-  FixArray1D<LuxString> textureNames(mInfo->mChannelCount);
+  FixArray1D<LuxString> textureNames(mChannels.size());
   ULONG textureNameCount = 0;
-  for (ULONG channelIx=0; channelIx<mInfo->mChannelCount; ++channelIx) {
+  for (ULONG channelIx=0; channelIx<mChannels.size(); ++channelIx) {
 
     // for convenience, store reference to channel in variable
     LuxMaterialChannel&   channel(mChannels[channelIx]);
-    const LuxChannelInfo& channelInfo(mInfo->mChannelInfos[channelIx]);
+    const LuxChannelInfo& channelInfo(mInfo.mChannelInfos[channelIx]);
 
     // if channel is active, export it
     if (channel.mEnabled) {
@@ -176,7 +189,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
         ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::sendToAPI(): texture export failed");
       }
       ++textureNameCount;
-    // otherwise: export deefaults, if we should export defaults
+    // otherwise: export defaults, if we should export defaults
     } else if (channelInfo.mExportDefault) {
       if (channelInfo.mType == LUX_COLOR_TEXTURE) {
         paramSet.addParam(LUX_COLOR, channelInfo.mName, (void*)&channelInfo.mDefaultColor);
@@ -205,3 +218,240 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
 
   return TRUE;
 }
+
+
+
+/*****************************************************************************
+ * Implementation of LuxGlassData.
+ *****************************************************************************/
+
+const LuxChannelInfo LuxGlassData::sChannelInfos[CHANNEL_COUNT] = 
+  {
+    { LUX_COLOR_TEXTURE, "Kr",        "refl",    TRUE, 0.0, LuxColor(0.0) },  // REFLECTION
+    { LUX_COLOR_TEXTURE, "Kt",        "trans",   TRUE, 0.0, LuxColor(0.0) },  // TRANSMISSION
+    { LUX_FLOAT_TEXTURE, "index",     "ior",     TRUE, 1.5 },                 // IOR
+    { LUX_FLOAT_TEXTURE, "cauchyb",   "disp",    FALSE },                     // CAUCHY_B
+    { LUX_FLOAT_TEXTURE, "film",      "film",    FALSE },                     // FILM_THICKNESS,
+    { LUX_FLOAT_TEXTURE, "filmindex", "filmior", FALSE },                     // FILM_IOR,
+    { LUX_FLOAT_TEXTURE, "bumpmap",   "bump",    FALSE }                      // BUMP
+  };
+
+const LuxMaterialInfo LuxGlassData::sMaterialInfo =
+  { "glass", CHANNEL_COUNT, sChannelInfos };
+
+
+LuxGlassData::LuxGlassData()
+: LuxMaterialData(sMaterialInfo),
+  mArchitectural(FALSE)
+{}
+
+
+Bool LuxGlassData::sendToAPI(LuxAPI&          receiver,
+                             const LuxString& name)
+{
+  LuxParamSet extraParams(1);
+  return (extraParams.addParam(LUX_BOOL, "architectural", &mArchitectural) &&
+          LuxMaterialData::sendToAPI(receiver, name, &extraParams));
+}
+
+
+
+/*****************************************************************************
+ * Implementation of LuxRoughGlassData.
+ *****************************************************************************/
+
+const LuxChannelInfo LuxRoughGlassData::sChannelInfos[CHANNEL_COUNT] = 
+  {
+    { LUX_COLOR_TEXTURE, "Kr",         "refl",   TRUE, 0.0, LuxColor(0.0) },  // REFLECTION
+    { LUX_COLOR_TEXTURE, "Kt",         "trans",  TRUE, 0.0, LuxColor(0.0) },  // TRANSMISSION
+    { LUX_FLOAT_TEXTURE, "index",      "ior",    TRUE, 1.5 },                 // IOR
+    { LUX_FLOAT_TEXTURE, "cauchyb",    "disp",   FALSE },                     // CAUCHY_B
+    { LUX_FLOAT_TEXTURE, "uroughness", "urough", TRUE, 0.0 },                 // UROUGHNESS
+    { LUX_FLOAT_TEXTURE, "vroughness", "vrough", TRUE, 0.0 },                 // VROUGHNESS
+    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump",   FALSE }                      // BUMP
+  };
+
+const LuxMaterialInfo LuxRoughGlassData::sMaterialInfo =
+  { "roughglass", CHANNEL_COUNT, sChannelInfos };
+
+
+LuxRoughGlassData::LuxRoughGlassData(void)
+: LuxMaterialData(sMaterialInfo)
+{}
+
+
+
+/*****************************************************************************
+ * Implementation of LuxGlossyData.
+ *****************************************************************************/
+
+const LuxChannelInfo LuxGlossyData::sChannelInfos[CHANNEL_COUNT] = 
+  {
+    { LUX_COLOR_TEXTURE, "Kd",         "diff",   TRUE, 0.0, LuxColor(0.0) },  // DIFFUSE
+    { LUX_COLOR_TEXTURE, "Ks",         "spec",   TRUE, 0.0, LuxColor(0.0) },  // SPECULAR
+    { LUX_FLOAT_TEXTURE, "index",      "ior",    FALSE },                     // SPECULAR_IOR
+    { LUX_COLOR_TEXTURE, "Ka",         "absorp", FALSE },                     // ABSORPTION
+    { LUX_FLOAT_TEXTURE, "d",          "adepth", FALSE },                     // ABSORPTION_DEPTH
+    { LUX_FLOAT_TEXTURE, "uroughness", "urough", TRUE, 0.0 },                 // UROUGHNESS
+    { LUX_FLOAT_TEXTURE, "vroughness", "vrough", TRUE, 0.0 },                 // VROUGHNESS
+    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump"  , FALSE }                      // BUMP
+  };
+
+const LuxMaterialInfo LuxGlossyData::sMaterialInfo =
+  { "glossy", CHANNEL_COUNT, sChannelInfos };
+
+
+LuxGlossyData::LuxGlossyData(void)
+: LuxMaterialData(sMaterialInfo)
+{}
+
+
+
+/*****************************************************************************
+ * Implementation of LuxMatteData.
+ *****************************************************************************/
+
+const LuxChannelInfo LuxMatteData::sChannelInfos[CHANNEL_COUNT] = 
+  {
+    { LUX_COLOR_TEXTURE, "Kd",      "diff",  TRUE, 0.0, LuxColor(0.0) },  // DIFFUSE
+    { LUX_FLOAT_TEXTURE, "sigma",   "sigma", TRUE, 0.0 },                 // SIGMA
+    { LUX_FLOAT_TEXTURE, "bumpmap", "bump",  FALSE }                      // BUMP
+  };
+
+const LuxMaterialInfo LuxMatteData::sMaterialInfo =
+  { "matte", CHANNEL_COUNT, sChannelInfos };
+
+
+LuxMatteData::LuxMatteData(void)
+: LuxMaterialData(sMaterialInfo)
+{}
+
+
+
+/*****************************************************************************
+ * Implementation of LuxMatteTranslucentData.
+ *****************************************************************************/
+
+const LuxChannelInfo LuxMatteTranslucentData::sChannelInfos[CHANNEL_COUNT] = 
+  {
+    { LUX_COLOR_TEXTURE, "Kr",      "diff",  TRUE, 0.0, LuxColor(0.0)  }, // DIFFUSE
+    { LUX_COLOR_TEXTURE, "Kt",      "trans", TRUE, 0.0, LuxColor(0.0) },  // TRANSMISSION
+    { LUX_FLOAT_TEXTURE, "sigma",   "sigma", TRUE, 0.0 },                 // SIGMA
+    { LUX_FLOAT_TEXTURE, "bumpmap", "bump",  FALSE }                      // BUMP
+  };
+
+const LuxMaterialInfo LuxMatteTranslucentData::sMaterialInfo =
+  { "mattetranslucent", CHANNEL_COUNT, sChannelInfos };
+
+
+LuxMatteTranslucentData::LuxMatteTranslucentData(void)
+: LuxMaterialData(sMaterialInfo)
+{}
+
+
+
+/*****************************************************************************
+ * Implementation of LuxMetalData.
+ *****************************************************************************/
+
+const LuxChannelInfo LuxMetalData::sChannelInfos[CHANNEL_COUNT] = 
+  {
+    { LUX_FLOAT_TEXTURE, "uroughness", "urough", TRUE, 0.0 },   // UROUGHNESS
+    { LUX_FLOAT_TEXTURE, "vroughness", "vrough", TRUE, 0.0 },   // VROUGHNESS
+    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump",   FALSE }        // BUMP
+  };
+
+const LuxMaterialInfo LuxMetalData::sMaterialInfo =
+  { "metal", CHANNEL_COUNT, sChannelInfos };
+
+
+LuxMetalData::LuxMetalData(void)
+: LuxMaterialData(sMaterialInfo)
+{}
+
+
+Bool LuxMetalData::sendToAPI(LuxAPI&          receiver,
+                             const LuxString& name)
+{
+  LuxParamSet extraParams(1);
+  return (extraParams.addParam(LUX_STRING, "name", &mName) &&
+          LuxMaterialData::sendToAPI(receiver, name, &extraParams));
+}
+
+
+
+/*****************************************************************************
+ * Implementation of LuxShinyMetalData.
+ *****************************************************************************/
+
+const LuxChannelInfo LuxShinyMetalData::sChannelInfos[CHANNEL_COUNT] = 
+  {
+    { LUX_COLOR_TEXTURE, "Kr",         "refl",    TRUE, 0.0, LuxColor(0.0) }, // REFLECTION
+    { LUX_COLOR_TEXTURE, "Ks",         "spec",    TRUE, 0.0, LuxColor(0.0) }, // SPECULAR
+    { LUX_FLOAT_TEXTURE, "uroughness", "urough",  TRUE, 0.0 },                // UROUGHNESS
+    { LUX_FLOAT_TEXTURE, "vroughness", "vrough",  TRUE, 0.0 },                // VROUGHNESS
+    { LUX_FLOAT_TEXTURE, "film",       "film",    FALSE },                    // FILM_THICKNESS,
+    { LUX_FLOAT_TEXTURE, "filmindex",  "filmior", FALSE },                    // FILM_IOR,
+    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump",    FALSE }                     // BUMP
+  };
+
+const LuxMaterialInfo LuxShinyMetalData::sMaterialInfo =
+  { "shinymetal", CHANNEL_COUNT, sChannelInfos };
+
+
+LuxShinyMetalData::LuxShinyMetalData(void)
+: LuxMaterialData(sMaterialInfo)
+{}
+
+
+
+/*****************************************************************************
+ * Implementation of LuxMirrorData.
+ *****************************************************************************/
+
+const LuxChannelInfo LuxMirrorData::sChannelInfos[CHANNEL_COUNT] = 
+  {
+    { LUX_COLOR_TEXTURE, "Kr",        "refl",    TRUE, 0.0, LuxColor(0.0) },  // REFLECTION
+    { LUX_FLOAT_TEXTURE, "film",      "film",    FALSE },                     // FILM_THICKNESS,
+    { LUX_FLOAT_TEXTURE, "filmindex", "filmior", FALSE },                     // FILM_IOR,
+    { LUX_FLOAT_TEXTURE, "bumpmap",   "bump",    FALSE }                      // BUMP
+  };
+
+const LuxMaterialInfo LuxMirrorData::sMaterialInfo =
+  { "mirror", CHANNEL_COUNT, sChannelInfos };
+
+
+LuxMirrorData::LuxMirrorData(void)
+: LuxMaterialData(sMaterialInfo)
+{}
+
+
+
+/*****************************************************************************
+ * Implementation of LuxCarPaintData.
+ *****************************************************************************/
+
+const LuxChannelInfo LuxCarPaintData::sChannelInfos[CHANNEL_COUNT] = 
+  {
+    { LUX_COLOR_TEXTURE, "Kd",      "diff",   TRUE, 0.0, LuxColor(0.0) }, // DIFFUSE
+    { LUX_COLOR_TEXTURE, "Ks1",     "spec1",  TRUE, 0.0, LuxColor(0.0) }, // SPECULAR_1
+    { LUX_FLOAT_TEXTURE, "R1",      "r1",     TRUE, 0.0, LuxColor(0.0) }, // R_1
+    { LUX_FLOAT_TEXTURE, "M1",      "m1",     TRUE, 0.0, LuxColor(0.0) }, // M_1
+    { LUX_COLOR_TEXTURE, "Ks2",     "spec2",  TRUE, 0.0, LuxColor(0.0) }, // SPECULAR_2
+    { LUX_FLOAT_TEXTURE, "R2",      "r2",     TRUE, 0.0, LuxColor(0.0) }, // R_2
+    { LUX_FLOAT_TEXTURE, "M2",      "m2",     TRUE, 0.0, LuxColor(0.0) }, // M2
+    { LUX_COLOR_TEXTURE, "Ks3",     "spec3",  TRUE, 0.0, LuxColor(0.0) }, // SPECULAR_3
+    { LUX_FLOAT_TEXTURE, "R3",      "r3",     TRUE, 0.0, LuxColor(0.0) }, // R_3
+    { LUX_FLOAT_TEXTURE, "M3",      "m3",     TRUE, 0.0, LuxColor(0.0) }, // M_3
+    { LUX_COLOR_TEXTURE, "Ka",      "absorp", FALSE },                    // ABSORPTION
+    { LUX_FLOAT_TEXTURE, "d",       "adepth", FALSE },                    // ABSORPTION_DEPTH
+    { LUX_FLOAT_TEXTURE, "bumpmap", "bump",   FALSE }                     // BUMP
+  };
+
+const LuxMaterialInfo LuxCarPaintData::sMaterialInfo =
+  { "carpaint", CHANNEL_COUNT, sChannelInfos };
+
+
+LuxCarPaintData::LuxCarPaintData(void)
+: LuxMaterialData(sMaterialInfo)
+{}

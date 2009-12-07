@@ -52,11 +52,11 @@ class AutoRef
     inline AutoRef(const AutoRef& src);
     inline ~AutoRef(void);
 
-    void Allocate(SizeT nmb=1);
-    void Clear(void);
+    Bool allocate(SizeT nmb=1);
+    void clear(void);
 
-    inline Bool Bad(void) const;
-    inline ULONG Count(void) const;
+    inline Bool bad(void) const;
+    inline ULONG count(void) const;
 
     inline operator Bool(void) const;
 
@@ -66,8 +66,8 @@ class AutoRef
     inline const T* operator->(void) const;
     inline T*       operator->(void);
 
-    inline const T* Ptr(void) const;
-    inline T*       Ptr(void);
+    inline const T* ptr(void) const;
+    inline T*       ptr(void);
 
     AutoRef& operator=(T* data);
     AutoRef& operator=(const AutoRef& src);
@@ -144,7 +144,7 @@ inline AutoRef<T,array>::AutoRef(const AutoRef& other)
 template<class T, Bool array>
 inline AutoRef<T,array>::~AutoRef()
 {
-  Clear();
+  clear();
 }
 
 
@@ -153,17 +153,20 @@ inline AutoRef<T,array>::~AutoRef()
 /// @param[in]  nmb
 ///   The number of objects to create. If the template parameter ARRAY is FALSE,
 ///   the parameter NMB will be ignored.
+/// @return
+///   TRUE if successful (bad() will return FALSE), FALSE otherwise (bad() will
+///   return TRUE).
 template<class T, Bool array>
-void AutoRef<T,array>::Allocate(SizeT nmb)
+Bool AutoRef<T,array>::allocate(SizeT nmb)
 {
-  Clear();
+  clear();
   if (array) {
     if (!(mData = gNewNC T[nmb])) {
-      ERRLOG_RETURN("AutoRef::Allocate(): Could not allocate data array.");
+      ERRLOG_RETURN_VALUE(FALSE, "AutoRef::allocate(): Could not allocate data array.");
     }
   } else {
     if (!(mData = gNewNC T)) {
-      ERRLOG_RETURN("AutoRef::Allocate(): Could not allocate data.");
+      ERRLOG_RETURN_VALUE(FALSE, "AutoRef::allocate(): Could not allocate data.");
     }
   }
   if (!(mRefCount = gNewNC ULONG(1))) {
@@ -172,8 +175,9 @@ void AutoRef<T,array>::Allocate(SizeT nmb)
     } else {
       gDelete(mData);
     }
-    ERRLOG_RETURN("AutoRef::Allocate(): Could not allocate reference counter.");
+    ERRLOG_RETURN_VALUE(FALSE, "AutoRef::allocate(): Could not allocate reference counter.");
   }
+  return TRUE;
 }
 
 
@@ -181,7 +185,7 @@ void AutoRef<T,array>::Allocate(SizeT nmb)
 /// referenced object. If the reference counter reaches zero the referenced
 /// data is deallocated. The internal data pointer is always NULL afterwards.
 template<class T, Bool array>
-void AutoRef<T,array>::Clear(void)
+void AutoRef<T,array>::clear(void)
 {
   if (!mRefCount) {
     return;
@@ -199,7 +203,7 @@ void AutoRef<T,array>::Clear(void)
 
 /// Returns TRUE if the reference counter is not set and the handle is free.
 template<class T, Bool array>
-inline Bool AutoRef<T,array>::Bad(void) const
+inline Bool AutoRef<T,array>::bad(void) const
 {
   return (!mRefCount);
 }
@@ -207,7 +211,7 @@ inline Bool AutoRef<T,array>::Bad(void) const
 
 /// Returns the internal reference count.
 template<class T, Bool array>
-inline ULONG AutoRef<T,array>::Count(void) const
+inline ULONG AutoRef<T,array>::count(void) const
 {
   return (mRefCount) ? (*mRefCount) : 0;
 }
@@ -218,7 +222,7 @@ inline ULONG AutoRef<T,array>::Count(void) const
 template<class T, Bool array>
 inline AutoRef<T,array>::operator Bool(void) const
 {
-  return !Bad();
+  return !bad();
 }
 
 
@@ -260,7 +264,7 @@ inline T* AutoRef<T,array>::operator->(void)
 
 /// Returns the internally stored pointer as constant.
 template<class T, Bool array>
-inline const T* AutoRef<T,array>::Ptr(void) const
+inline const T* AutoRef<T,array>::ptr(void) const
 {
   return mData;
 }
@@ -268,7 +272,7 @@ inline const T* AutoRef<T,array>::Ptr(void) const
 
 /// Returns the internally stored pointer.
 template<class T, Bool array>
-inline T* AutoRef<T,array>::Ptr(void)
+inline T* AutoRef<T,array>::ptr(void)
 {
   return mData;
 }
@@ -279,7 +283,7 @@ template<class T, Bool array>
 AutoRef<T,array>& AutoRef<T,array>::operator=(const AutoRef& src)
 {
   if (src.mData != mData) {
-    Clear();
+    clear();
     mData     = src.mData;
     mRefCount = src.mRefCount;
     if (mRefCount) {
@@ -304,7 +308,7 @@ template<class T, Bool array>
 AutoRef<T,array>& AutoRef<T,array>::operator=(T* data)
 {
   if (data != mData) {
-    Clear();
+    clear();
     if (!data)  {
       return *this;
     }

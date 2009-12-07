@@ -37,17 +37,31 @@ STRINGTABLE Mluxc4dmaterial
     IDD_MATERIAL_TYPE_MIRROR              "Mirror";
     IDD_MATERIAL_TYPE_CAR_PAINT           "Car Paint";
 
+  IDD_TOGGLE_METAL              "Metal";
   IDD_TOGGLE_DIFFUSE            "Diffuse";
   IDD_TOGGLE_REFLECTION         "Reflection";
-  IDD_TOGGLE_COATING_ABSORPTION "Absorption";
-  IDD_TOGGLE_TRANSMISSION       "Transmission";
+  IDD_TOGGLE_SPECULAR           "Specular";
   IDD_TOGGLE_CARPAINT_SPECULAR1 "Specular 1";
   IDD_TOGGLE_CARPAINT_SPECULAR2 "Specular 2";
   IDD_TOGGLE_CARPAINT_SPECULAR3 "Specular 3";
+  IDD_TOGGLE_COATING_ABSORPTION "Absorption";
+  IDD_TOGGLE_TRANSMISSION       "Transmission";
   IDD_TOGGLE_ROUGHNESS          "Roughness";
   IDD_TOGGLE_THIN_FILM          "Thin Film";
-  IDD_TOGGLE_EMISSION           "Emission";
   IDD_TOGGLE_BUMP               "Bump";
+  IDD_TOGGLE_EMISSION           "Emission";
+
+
+  IDG_METAL                       "Metal";
+  IDD_METAL_TYPE                  "Type";
+  IDD_METAL_FILENAME              "nk-Data File";
+
+    IDD_METAL_TYPE_ALUMINIUM        "Aluminium";
+    IDD_METAL_TYPE_AMORPHOUS_CARBON "Amorphous Carbon";
+    IDD_METAL_TYPE_COPPER           "Copper";
+    IDD_METAL_TYPE_GOLD             "Gold";
+    IDD_METAL_TYPE_SILVER           "Silver";
+    IDD_METAL_TYPE_NK_FILE          "nk-Data File";
 
   IDG_DIFFUSE                 "Diffuse";
   IDD_DIFFUSE_COLOR           "Color";
@@ -63,6 +77,15 @@ STRINGTABLE Mluxc4dmaterial
   IDD_REFLECTION_SHADER_STRENGTH  "Tex. Strength";
   IDD_REFLECTION_SHADER           "Texture";
   IDD_REFLECTION_BRIGHTNESS       "Brightness";
+
+  IDG_SPECULAR                  "Specular";
+  IDD_SPECULAR_COLOR            "Color";
+  IDD_SPECULAR_SHADER_STRENGTH  "Tex. Strength";
+  IDD_SPECULAR_SHADER           "Texture";
+  IDD_SPECULAR_BRIGHTNESS       "Brightness";
+
+    IDD_SPECULAR_IOR_VALUE        "IOR";
+    IDD_SPECULAR_IOR_SHADER       "Scale Tex.";
   
   IDG_CARPAINT_SPECULAR1                  "Specular 1";
   IDD_CARPAINT_SPECULAR_COLOR1            "Color";
@@ -88,24 +111,26 @@ STRINGTABLE Mluxc4dmaterial
   IDD_CARPAINT_R3                         "R3";
   IDD_CARPAINT_M3                         "M3";
 
-  IDG_ROUGHNESS           "Roughness";
   IDG_COATING_ABSORPTION                 "Absorption";
   IDD_COATING_ABSORPTION_COLOR           "Color";
   IDD_COATING_ABSORPTION_SHADER_STRENGTH "Tex. Strength";
   IDD_COATING_ABSORPTION_SHADER          "Texture";
-  IDD_COATING_ABSORPTION_STRENGTH        "Brightness";
+  IDD_COATING_ABSORPTION_STRENGTH        "Strength";
+  IDD_COATING_ABSORPTION_DEPTH_VALUE     "Depth";
+  IDD_COATING_ABSORPTION_DEPTH_SHADER    "Scale Tex.";
 
   IDG_TRANSMISSION                  "Transmission";
   IDD_TRANSMISSION_COLOR            "Color";
   IDD_TRANSMISSION_SHADER_STRENGTH  "Tex. Strength";
   IDD_TRANSMISSION_SHADER           "Texture";
-  IDD_TRANSMISSION_BRIGHTNESS       "Brightness";
+  IDD_TRANSMISSION_STRENGTH         "Strength";
   IDD_TRANSMISSION_ARCHITECTURAL    "Architectural";
   IDD_TRANSMISSION_CAUCHYB          "Dispersion Cauchy B";
 
     IDD_IOR_VALUE                     "IOR";
     IDD_IOR_SHADER                    "Scale Tex.";
   
+  IDG_ROUGHNESS           "Roughness";
   IDD_ROUGHNESS_ASYMETRIC "Asymetric";
 
     IDD_ROUGHNESS_VALUE     "Strength";

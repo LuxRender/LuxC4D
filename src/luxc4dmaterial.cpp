@@ -65,8 +65,53 @@ Bool LuxC4DMaterial::Init(GeListNode* node)
   BaseContainer* data = getData();
   if (!data)  return FALSE;
 
-  // TODO ...
-
+  data->SetLong  (IDD_METAL_TYPE,                         IDD_METAL_TYPE_ALUMINIUM);
+  data->SetVector(IDD_DIFFUSE_COLOR,                      Vector(0.8));
+  data->SetReal  (IDD_DIFFUSE_SHADER_STRENGTH,            1.0);
+  data->SetReal  (IDD_DIFFUSE_BRIGHTNESS,                 1.0);
+  data->SetReal  (IDD_DIFFUSE_SIGMA_VALUE,                0.0);
+  data->SetVector(IDD_REFLECTION_COLOR,                   Vector(0.5));
+  data->SetReal  (IDD_REFLECTION_SHADER_STRENGTH,         1.0);
+  data->SetReal  (IDD_REFLECTION_BRIGHTNESS,              1.0);
+  data->SetVector(IDD_SPECULAR_COLOR,                     Vector(0.5));
+  data->SetReal  (IDD_SPECULAR_SHADER_STRENGTH,           1.0);
+  data->SetReal  (IDD_SPECULAR_BRIGHTNESS,                1.0);
+  data->SetReal  (IDD_SPECULAR_IOR_VALUE,                 0.0);
+  data->SetVector(IDD_CARPAINT_SPECULAR_COLOR1,           Vector(0.0003, 0.0003, 0.0003));
+  data->SetReal  (IDD_CARPAINT_SPECULAR_SHADER_STRENGTH1, 1.0);
+  data->SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS1,      1.0);
+  data->SetReal  (IDD_CARPAINT_R1,                        0.049);
+  data->SetReal  (IDD_CARPAINT_M1,                        1.0);
+  data->SetVector(IDD_CARPAINT_SPECULAR_COLOR2,           Vector(0.013, 0.011, 0.0083));
+  data->SetReal  (IDD_CARPAINT_SPECULAR_SHADER_STRENGTH2, 1.0);
+  data->SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS2,      1.0);
+  data->SetReal  (IDD_CARPAINT_R2,                        0.45);
+  data->SetReal  (IDD_CARPAINT_M2,                        0.15);
+  data->SetVector(IDD_CARPAINT_SPECULAR_COLOR3,           Vector(0.049, 0.042, 0.037));
+  data->SetReal  (IDD_CARPAINT_SPECULAR_SHADER_STRENGTH3, 1.0);
+  data->SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS3,      1.0);
+  data->SetReal  (IDD_CARPAINT_R3,                        0.17);
+  data->SetReal  (IDD_CARPAINT_M3,                        0.015);
+  data->SetVector(IDD_COATING_ABSORPTION_COLOR,           Vector(0.0));
+  data->SetReal  (IDD_COATING_ABSORPTION_SHADER_STRENGTH, 1.0);
+  data->SetReal  (IDD_COATING_ABSORPTION_STRENGTH,        1.0);
+  data->SetReal  (IDD_COATING_ABSORPTION_DEPTH_VALUE,     0.0);
+  data->SetVector(IDD_TRANSMISSION_COLOR,                 Vector(0.8));
+  data->SetReal  (IDD_TRANSMISSION_SHADER_STRENGTH,       1.0);
+  data->SetReal  (IDD_TRANSMISSION_STRENGTH,              1.0);
+  data->SetBool  (IDD_TRANSMISSION_ARCHITECTURAL,         FALSE);
+  data->SetReal  (IDD_TRANSMISSION_CAUCHYB,               0.0);
+  data->SetReal  (IDD_IOR_VALUE,                          1.5);
+  data->SetBool  (IDD_ROUGHNESS_ASYMETRIC,                FALSE);
+  data->SetReal  (IDD_ROUGHNESS_VALUE,                    0.1);
+  data->SetReal  (IDD_ROUGHNESS_U_VALUE,                  0.1);
+  data->SetReal  (IDD_ROUGHNESS_V_VALUE,                  0.1);
+  data->SetReal  (IDD_THIN_FILM_THICKNESS,                500.0);
+  data->SetReal  (IDD_THIN_FILM_IOR,                      1.5);
+  data->SetReal  (IDD_BUMP_HEIGHT,                        1.0);
+  data->SetVector(IDD_EMISSION_COLOR,                     Vector(1.0));
+  data->SetReal  (IDD_EMISSION_SHADER_STRENGTH,           1.0);
+  data->SetReal  (IDD_EMISSION_BRIGHTNESS,                1.0);
 
   return TRUE;
 }
@@ -96,8 +141,10 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
   LONG materialType = data->GetLong(IDD_MATERIAL_TYPE);
   switch (materialType) {
     case IDD_MATERIAL_TYPE_GLASS:
+      toggleChannel(IDD_TOGGLE_METAL,              IDG_METAL,              FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_SPECULAR,           IDG_SPECULAR,           FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR1, IDG_CARPAINT_SPECULAR1, FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR2, IDG_CARPAINT_SPECULAR2, FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR3, IDG_CARPAINT_SPECULAR3, FALSE, data, description, params);
@@ -114,14 +161,16 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       break;
     case IDD_MATERIAL_TYPE_MATTE:
       showParameter(description, IDG_SIGMA, params, TRUE);
+      toggleChannel(IDD_TOGGLE_METAL,              IDG_METAL,              FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            TRUE,  data, description, params);
-      toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_SPECULAR,           IDG_SPECULAR,           FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR1, IDG_CARPAINT_SPECULAR1, FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR2, IDG_CARPAINT_SPECULAR2, FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR3, IDG_CARPAINT_SPECULAR3, FALSE, data, description, params);
-      toggleChannel(IDD_TOGGLE_COATING_ABSORPTION, IDG_COATING_ABSORPTION, TRUE,  data, description, params);
-      toggleChannel(IDD_TOGGLE_TRANSMISSION,       IDG_TRANSMISSION,       TRUE,  data, description, params);
-      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_COATING_ABSORPTION, IDG_COATING_ABSORPTION, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_TRANSMISSION,       IDG_TRANSMISSION,       FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_ROUGHNESS,          IDG_ROUGHNESS,          FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_BUMP,               IDG_BUMP,               TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_EMISSION,           IDG_EMISSION,           TRUE,  data, description, params);
@@ -136,8 +185,10 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       break;
     case IDD_MATERIAL_TYPE_CAR_PAINT:
       showParameter(description, IDG_SIGMA, params, FALSE);
+      toggleChannel(IDD_TOGGLE_METAL,              IDG_METAL,              FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_SPECULAR,           IDG_SPECULAR,           FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR1, IDG_CARPAINT_SPECULAR1, TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR2, IDG_CARPAINT_SPECULAR2, TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR3, IDG_CARPAINT_SPECULAR3, TRUE,  data, description, params);
@@ -317,6 +368,93 @@ void LuxC4DMaterial::CalcSurface(PluginMaterial* mat,
   //if (volumeData->col.x < 0)  volumeData->col.x = 0.0;
   //if (volumeData->col.y < 0)  volumeData->col.y = 0.0;
   //if (volumeData->col.z < 0)  volumeData->col.z = 0.0;
+}
+
+
+LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(void)
+{
+  // obtain container from node
+  BaseContainer* data = getData();
+  if (!data) { return FALSE; }
+
+  // get material type and enable channels depending on it
+  LONG materialType = data->GetLong(IDD_MATERIAL_TYPE);
+  switch (materialType) {
+    case IDD_MATERIAL_TYPE_GLASS:
+      {
+        LuxGlassDataH materialData;
+        if (materialData.allocate()) {
+          // TODO ...
+        }
+        return materialData;
+      }
+    case IDD_MATERIAL_TYPE_ROUGH_GLASS:
+      {
+        LuxRoughGlassDataH materialData;
+        if (materialData.allocate()) {
+          // TODO ...
+        }
+        return materialData;
+      }
+    case IDD_MATERIAL_TYPE_GLOSSY:
+      {
+        LuxRoughGlassDataH materialData;
+        if (materialData.allocate()) {
+          // TODO ...
+        }
+        return materialData;
+      }
+    case IDD_MATERIAL_TYPE_MATTE:
+      {
+        LuxRoughGlassDataH materialData;
+        if (materialData.allocate()) {
+          // TODO ...
+        }
+        return materialData;
+      }
+    case IDD_MATERIAL_TYPE_MATTE_TRANSLUCENT:
+      {
+        LuxMatteTranslucentDataH materialData;
+        if (materialData.allocate()) {
+          // TODO ...
+        }
+        return materialData;
+      }
+    case IDD_MATERIAL_TYPE_METAL:
+      {
+        LuxMetalDataH materialData;
+        if (materialData.allocate()) {
+          // TODO ...
+        }
+        return materialData;
+      }
+    case IDD_MATERIAL_TYPE_SHINY_METAL:
+      {
+        LuxShinyMetalDataH materialData;
+        if (materialData.allocate()) {
+          // TODO ...
+        }
+        return materialData;
+      }
+    case IDD_MATERIAL_TYPE_MIRROR:
+      {
+        LuxMirrorDataH materialData;
+        if (materialData.allocate()) {
+          // TODO ...
+        }
+        return materialData;
+      }
+    case IDD_MATERIAL_TYPE_CAR_PAINT:
+      {
+        LuxCarPaintDataH materialData;
+        if (materialData.allocate()) {
+          // TODO ...
+        }
+        return materialData;
+      }
+  }
+  
+  return LuxMaterialDataH();
 }
 
 

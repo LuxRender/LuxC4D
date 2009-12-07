@@ -73,41 +73,41 @@ struct TextureMapping {
 *//****************************************************************************/
 class LuxTextureData
 {
-  public:
+public:
 
-    const LuxTextureType mType;
-    TextureMapping       mMapping;
-
-
-    inline LuxTextureData(LuxTextureType type) : mType(type) {}
-    virtual ~LuxTextureData() {}
-
-    virtual Bool sendToAPI(LuxAPI&          receiver,
-                           const LuxString& name) =0;
-    Bool sendToAPIAndAddToParamSet(LuxAPI&                receiver,
-                                   LuxParamSet&           paramSet,
-                                   LuxAPI::IdentifierName paramName,
-                                   const LuxString&       textureName);
-
-    virtual Bool isConstant() const;
-    virtual const LuxFloat& constantFloat();
-    virtual const LuxColor& constantColor();
+  const LuxTextureType mType;
+  TextureMapping       mMapping;
 
 
-  protected:
+  inline LuxTextureData(LuxTextureType type) : mType(type) {}
+  virtual ~LuxTextureData() {}
 
-    void add2DMapping(LuxParamSet& paramSet);
+  virtual Bool sendToAPI(LuxAPI&          receiver,
+                         const LuxString& name) =0;
+  Bool sendToAPIAndAddToParamSet(LuxAPI&                receiver,
+                                 LuxParamSet&           paramSet,
+                                 LuxAPI::IdentifierName paramName,
+                                 const LuxString&       textureName);
 
-    Bool sendToAPIHelper(LuxAPI&                receiver,
-                         const LuxString&       name,
-                         LuxAPI::IdentifierName typeName,
-                         const LuxParamSet&     paramSet) const;
+  virtual Bool isConstant() const;
+  virtual const LuxFloat& constantFloat();
+  virtual const LuxColor& constantColor();
 
 
-  private:
+protected:
 
-    /// We don't need and don't want a copy operator.
-    LuxTextureData& operator=(const LuxTextureData& other) {}
+  void add2DMapping(LuxParamSet& paramSet);
+
+  Bool sendToAPIHelper(LuxAPI&                receiver,
+                       const LuxString&       name,
+                       LuxAPI::IdentifierName typeName,
+                       const LuxParamSet&     paramSet) const;
+
+
+private:
+
+  /// We don't need and don't want a copy operator.
+  LuxTextureData& operator=(const LuxTextureData& other) {}
 };
 
 typedef AutoRef<LuxTextureData>  LuxTextureDataH;
@@ -118,26 +118,26 @@ typedef AutoRef<LuxTextureData>  LuxTextureDataH;
 *//****************************************************************************/
 class LuxScaleTextureData : public LuxTextureData
 {
-  public:
+public:
 
-    LuxTextureDataH mTexture1;
-    LuxTextureDataH mTexture2;
-
-
-    LuxScaleTextureData(LuxTextureType type);
-
-    virtual Bool isConstant() const;
-    virtual const LuxFloat& constantFloat();
-    virtual const LuxColor& constantColor();
+  LuxTextureDataH mTexture1;
+  LuxTextureDataH mTexture2;
 
 
-  protected:
+  LuxScaleTextureData(LuxTextureType type);
 
-    LuxFloat mConstantFloat;
-    LuxColor mConstantColor;
+  virtual Bool isConstant() const;
+  virtual const LuxFloat& constantFloat();
+  virtual const LuxColor& constantColor();
 
-    virtual Bool sendToAPI(LuxAPI&          receiver,
-                           const LuxString& name);
+
+protected:
+
+  LuxFloat mConstantFloat;
+  LuxColor mConstantColor;
+
+  virtual Bool sendToAPI(LuxAPI&          receiver,
+                         const LuxString& name);
 };
 
 typedef AutoRef<LuxScaleTextureData>  LuxScaleTextureDataH;
@@ -148,27 +148,27 @@ typedef AutoRef<LuxScaleTextureData>  LuxScaleTextureDataH;
 *//****************************************************************************/
 class LuxMixTextureData : public LuxTextureData
 {
-  public:
+public:
 
-    LuxTextureDataH mTexture1;
-    LuxTextureDataH mTexture2;
-    LuxFloat        mAmount;
-
-
-    LuxMixTextureData(LuxTextureType type);
-
-    virtual Bool isConstant() const;
-    virtual const LuxFloat& constantFloat();
-    virtual const LuxColor& constantColor();
+  LuxTextureDataH mTexture1;
+  LuxTextureDataH mTexture2;
+  LuxFloat        mAmount;
 
 
-  protected:
+  LuxMixTextureData(LuxTextureType type);
 
-    LuxFloat mConstantFloat;
-    LuxColor mConstantColor;
+  virtual Bool isConstant() const;
+  virtual const LuxFloat& constantFloat();
+  virtual const LuxColor& constantColor();
 
-    virtual Bool sendToAPI(LuxAPI&          receiver,
-                           const LuxString& name);
+
+protected:
+
+  LuxFloat mConstantFloat;
+  LuxColor mConstantColor;
+
+  virtual Bool sendToAPI(LuxAPI&          receiver,
+                         const LuxString& name);
 };
 
 typedef AutoRef<LuxMixTextureData>  LuxMixTextureDataH;
@@ -179,25 +179,25 @@ typedef AutoRef<LuxMixTextureData>  LuxMixTextureDataH;
 *//****************************************************************************/
 class LuxConstantTextureData : public LuxTextureData
 {
-  public:
+public:
 
-    LuxFloat mFloat;
-    LuxColor mColor;
-
-
-    LuxConstantTextureData(LuxTextureType type);
-    LuxConstantTextureData(LuxFloat value);
-    LuxConstantTextureData(const LuxColor& color);
-
-    virtual Bool isConstant() const;
-    virtual const LuxFloat& constantFloat();
-    virtual const LuxColor& constantColor();
+  LuxFloat mFloat;
+  LuxColor mColor;
 
 
-  protected:
+  LuxConstantTextureData(LuxTextureType type);
+  LuxConstantTextureData(LuxFloat value);
+  LuxConstantTextureData(const LuxColor& color);
 
-    virtual Bool sendToAPI(LuxAPI&          receiver,
-                           const LuxString& name);
+  virtual Bool isConstant() const;
+  virtual const LuxFloat& constantFloat();
+  virtual const LuxColor& constantColor();
+
+
+protected:
+
+  virtual Bool sendToAPI(LuxAPI&          receiver,
+                         const LuxString& name);
 };
 
 typedef AutoRef<LuxConstantTextureData>  LuxConstantTextureDataH;
@@ -208,23 +208,23 @@ typedef AutoRef<LuxConstantTextureData>  LuxConstantTextureDataH;
 *//****************************************************************************/
 class LuxImageMapData : public LuxTextureData
 {
-  public:
+public:
 
-    LuxString mImagePath;
-    LuxFloat  mGamma;
-
-
-    LuxImageMapData(LuxTextureType type);
-    LuxImageMapData(LuxTextureType        type,
-                    const TextureMapping& mapping,
-                    const FilePath&       imagePath,
-                    LuxFloat              gamma = 1.0);
+  LuxString mImagePath;
+  LuxFloat  mGamma;
 
 
-  protected:
+  LuxImageMapData(LuxTextureType type);
+  LuxImageMapData(LuxTextureType        type,
+                  const TextureMapping& mapping,
+                  const FilePath&       imagePath,
+                  LuxFloat              gamma = 1.0);
 
-    virtual Bool sendToAPI(LuxAPI&          receiver,
-                           const LuxString& name);
+
+protected:
+
+  virtual Bool sendToAPI(LuxAPI&          receiver,
+                         const LuxString& name);
 };
 
 typedef AutoRef<LuxImageMapData>  LuxImageMapDataH;

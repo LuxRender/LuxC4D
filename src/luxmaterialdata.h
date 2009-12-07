@@ -55,30 +55,37 @@ struct LuxChannelInfo
 *//****************************************************************************/
 class LuxMaterialChannel
 {
-  public:
+public:
 
-    LuxTextureDataH mTexture;
-    Bool            mEnabled;
+  LuxTextureDataH mTexture;
+  Bool            mEnabled;
 
 
-    /// Default constructor which disables this channel by default.
-    inline LuxMaterialChannel()
-    : mEnabled(FALSE)
-    {}
+  /// Default constructor which disables this channel by default.
+  inline LuxMaterialChannel()
+  : mEnabled(FALSE)
+  {}
 
-    /// Copy constructor.
-    inline LuxMaterialChannel(const LuxMaterialChannel& other)
-    {
-      *this = other;
-    }
+  /// Copy constructor.
+  inline LuxMaterialChannel(const LuxMaterialChannel& other)
+  {
+    *this = other;
+  }
 
-    /// Copy operator.
-    inline LuxMaterialChannel& operator=(const LuxMaterialChannel& other)
-    {
-      mTexture = other.mTexture;
-      mEnabled = other.mEnabled;
-      return *this;
-    }
+  /// Copy operator.
+  inline LuxMaterialChannel& operator=(const LuxMaterialChannel& other)
+  {
+    mTexture = other.mTexture;
+    mEnabled = other.mEnabled;
+    return *this;
+  }
+
+  /// Clears the texture and disables the channel.
+  inline void clear(void)
+  {
+    mTexture.clear();
+    mEnabled = FALSE;
+  }
 };
 
 
@@ -96,273 +103,326 @@ struct LuxMaterialInfo
 
 
 /***************************************************************************//*!
- This generic class stores a Lux material. By constructing it with a specific
- material description we define the properties of a the wanted Lux material.
+ This generic class is the base class for storing a Lux material. It implements
+ most of the functionality for handling channel settings as they are always the
+ same. The derived classes only contain the explicit description of the channels
+ and additional parameters (if available).
 *//****************************************************************************/
 class LuxMaterialData
 {
-  public:
+public:
 
-    LuxMaterialData(const LuxMaterialInfo& info);
+  Bool setChannel(ULONG           channelId,
+                  LuxTextureDataH texture);
+  Bool setEmissionChannel(LuxTextureDataH texture);
+  Bool hasEmissionChannel(void);
+  void setBumpSampleDistance(LuxFloat bumpSampleDistance);
 
-    Bool setChannel(ULONG           channelId,
-                    LuxTextureDataH texture);
-    Bool setEmissionChannel(LuxTextureDataH texture);
-    Bool hasEmissionChannel(void);
-    void setBumpSampleDistance(LuxFloat bumpSampleDistance);
-
-    Bool sendToAPI(LuxAPI&            receiver,
-                   const LuxString&   name,
-                   const LuxParamSet* addParams);
+  virtual Bool sendToAPI(LuxAPI&          receiver,
+                         const LuxString& name);
 
 
-  protected:
+protected:
 
-    const LuxMaterialInfo*         mInfo;
-    FixArray1D<LuxMaterialChannel> mChannels;
-    LuxMaterialChannel             mEmissionChannel;
-    LuxFloat                       mBumpSampleDistance;
+  const LuxMaterialInfo&         mInfo;
+  FixArray1D<LuxMaterialChannel> mChannels;
+  LuxMaterialChannel             mEmissionChannel;
+  LuxFloat                       mBumpSampleDistance;
+
+  LuxMaterialData(const LuxMaterialInfo& info);
+
+  Bool sendToAPI(LuxAPI&            receiver,
+                 const LuxString&   name,
+                 const LuxParamSet* addParams);
 
 
-  private:
+private:
 
-    LuxMaterialData(const LuxMaterialData& other)  {}
-    LuxMaterialData& operator=(const LuxMaterialData& other)  {}
+  LuxMaterialData(const LuxMaterialData& other) : mInfo(other.mInfo) {}
+  LuxMaterialData& operator=(const LuxMaterialData& other)  {}
 };
 
+typedef AutoRef<LuxMaterialData>  LuxMaterialDataH;
 
 
-/*****************************************************************************
- * DESCRIPTION OF THE LUX GLASS MATERIAL
- *****************************************************************************/
 
-enum LuxGlassChannelId {
-    LUX_GLASS_REFLECTION = 0,
-    LUX_GLASS_TRANSMISSION,
-    LUX_GLASS_IOR,
-    LUX_GLASS_BUMP,
-    LUX_GLASS_CHANNEL_COUNT
+/***************************************************************************//*!
+ This class stores the parameters of a Lux glass material.
+*//****************************************************************************/
+class LuxGlassData : public LuxMaterialData
+{
+public:
+
+  enum ChannelId {
+    REFLECTION = 0,   // LUX_COLOR_TEXTURE
+    TRANSMISSION,     // LUX_COLOR_TEXTURE
+    IOR,              // LUX_FLOAT_TEXTURE
+    CAUCHY_B,         // LUX_FLOAT_TEXTURE
+    FILM_THICKNESS,   // LUX_FLOAT_TEXTURE
+    FILM_IOR,         // LUX_FLOAT_TEXTURE
+    BUMP,             // LUX_FLOAT_TEXTURE
+    CHANNEL_COUNT
   };
 
-static const LuxChannelInfo gLuxGlassChannelInfos[LUX_GLASS_CHANNEL_COUNT] = 
-  {
-    // LUX_GLASS_REFLECTION
-    { LUX_COLOR_TEXTURE, "Kr",      "refl",  TRUE, 0.0, LuxColor(0.0) },
-    // LUX_GLASS_TRANSMISSION
-    { LUX_COLOR_TEXTURE, "Kt",      "trans", TRUE, 0.0, LuxColor(0.0) },
-    // LUX_GLASS_IOR
-    { LUX_FLOAT_TEXTURE, "index",   "ior",   TRUE, 1.5 },
-    // LUX_GLASS_BUMP
-    { LUX_FLOAT_TEXTURE, "bumpmap", "bump",  FALSE }
+  LuxBool mArchitectural;
+
+  LuxGlassData(void);
+  virtual Bool sendToAPI(LuxAPI&          receiver,
+                         const LuxString& name);
+
+
+private:
+
+  static const LuxChannelInfo  sChannelInfos[CHANNEL_COUNT];
+  static const LuxMaterialInfo sMaterialInfo;
+};
+
+typedef AutoRef<LuxGlassData>  LuxGlassDataH;
+
+
+
+/***************************************************************************//*!
+ This class stores the parameters of a Lux glass material.
+*//****************************************************************************/
+class LuxRoughGlassData : public LuxMaterialData
+{
+public:
+
+  enum ChannelId {
+    REFLECTION = 0,   // LUX_COLOR_TEXTURE
+    TRANSMISSION,     // LUX_COLOR_TEXTURE
+    IOR,              // LUX_FLOAT_TEXTURE
+    CAUCHY_B,         // LUX_FLOAT_TEXTURE
+    UROUGHNESS,       // LUX_FLOAT_TEXTURE
+    VROUGHNESS,       // LUX_FLOAT_TEXTURE
+    BUMP,             // LUX_FLOAT_TEXTURE
+    CHANNEL_COUNT
   };
 
-static const LuxMaterialInfo gLuxGlassInfo =
-  {
-    "glass",
-    LUX_GLASS_CHANNEL_COUNT,
-    gLuxGlassChannelInfos
+  LuxRoughGlassData(void);
+
+
+private:
+
+  static const LuxChannelInfo  sChannelInfos[CHANNEL_COUNT];
+  static const LuxMaterialInfo sMaterialInfo;
+};
+
+typedef AutoRef<LuxRoughGlassData>  LuxRoughGlassDataH;
+
+
+
+/***************************************************************************//*!
+ This class stores the parameters of a Lux glossy material.
+*//****************************************************************************/
+class LuxGlossyData : public LuxMaterialData
+{
+public:
+
+  enum ChannelId {
+    DIFFUSE = 0,        // LUX_COLOR_TEXTURE
+    SPECULAR,           // LUX_COLOR_TEXTURE
+    SPECULAR_IOR,       // LUX_FLOAT_TEXTURE
+    ABSORPTION,         // LUX_COLOR_TEXTURE
+    ABSORPTION_DEPTH,   // LUX_FLOAT_TEXTURE
+    UROUGHNESS,         // LUX_FLOAT_TEXTURE
+    VROUGHNESS,         // LUX_FLOAT_TEXTURE
+    BUMP,               // LUX_FLOAT_TEXTURE
+    CHANNEL_COUNT
   };
 
+  LuxGlossyData(void);
 
 
-/*****************************************************************************
- * DESCRIPTION OF THE LUX ROUGH GLASS MATERIAL
- *****************************************************************************/
+private:
 
-enum LuxRoughGlassChannelId {
-    LUX_ROUGH_GLASS_REFLECTION = 0,
-    LUX_ROUGH_GLASS_TRANSMISSION,
-    LUX_ROUGH_GLASS_IOR,
-    LUX_ROUGH_GLASS_UROUGHNESS,
-    LUX_ROUGH_GLASS_VROUGHNESS,
-    LUX_ROUGH_GLASS_BUMP,
-    LUX_ROUGH_GLASS_CHANNEL_COUNT
+  static const LuxChannelInfo  sChannelInfos[CHANNEL_COUNT];
+  static const LuxMaterialInfo sMaterialInfo;
+};
+
+typedef AutoRef<LuxGlossyData>  LuxGlossyDataH;
+
+
+
+/***************************************************************************//*!
+ This class stores the parameters of a Lux matte material.
+*//****************************************************************************/
+class LuxMatteData : public LuxMaterialData
+{
+public:
+
+  enum ChannelId {
+    DIFFUSE = 0,    // LUX_COLOR_TEXTURE
+    SIGMA,          // LUX_FLOAT_TEXTURE
+    BUMP,           // LUX_FLOAT_TEXTURE
+    CHANNEL_COUNT
   };
 
-static const LuxChannelInfo gLuxRoughGlassChannelInfos[LUX_ROUGH_GLASS_CHANNEL_COUNT] = 
-  {
-    // LUX_ROUGH_GLASS_REFLECTION
-    { LUX_COLOR_TEXTURE, "Kr",         "refl",   TRUE, 0.0, LuxColor(0.0) },
-    // LUX_ROUGH_GLASS_TRANSMISSION
-    { LUX_COLOR_TEXTURE, "Kt",         "trans",  TRUE, 0.0, LuxColor(0.0) },
-    // LUX_ROUGH_GLASS_IOR
-    { LUX_FLOAT_TEXTURE, "index",      "ior",    TRUE, 1.5 },
-    // LUX_ROUGH_GLASS_UROUGHNESS
-    { LUX_FLOAT_TEXTURE, "uroughness", "urough", TRUE, 0.0 },
-    // LUX_ROUGH_GLASS_VROUGHNESS
-    { LUX_FLOAT_TEXTURE, "vroughness", "vrough", TRUE, 0.0 },
-    // LUX_ROUGH_GLASS_BUMP
-    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump",   FALSE }
+  LuxMatteData(void);
+
+
+private:
+
+  static const LuxChannelInfo  sChannelInfos[CHANNEL_COUNT];
+  static const LuxMaterialInfo sMaterialInfo;
+};
+
+typedef AutoRef<LuxMatteData>  LuxMatteDataH;
+
+
+
+/***************************************************************************//*!
+ This class stores the parameters of a Lux matte translucent material.
+*//****************************************************************************/
+class LuxMatteTranslucentData : public LuxMaterialData
+{
+public:
+
+  enum ChannelId {
+    DIFFUSE = 0,    // LUX_COLOR_TEXTURE
+    TRANSMISSION,   // LUX_COLOR_TEXTURE
+    SIGMA,          // LUX_FLOAT_TEXTURE
+    BUMP,           // LUX_FLOAT_TEXTURE
+    CHANNEL_COUNT
   };
 
-static const LuxMaterialInfo gLuxRoughGlassInfo =
-  {
-    "roughglass",
-    LUX_ROUGH_GLASS_CHANNEL_COUNT,
-    gLuxRoughGlassChannelInfos
+  LuxMatteTranslucentData(void);
+
+
+private:
+
+  static const LuxChannelInfo  sChannelInfos[CHANNEL_COUNT];
+  static const LuxMaterialInfo sMaterialInfo;
+};
+
+typedef AutoRef<LuxMatteTranslucentData>  LuxMatteTranslucentDataH;
+
+
+
+/***************************************************************************//*!
+ This class stores the parameters of a Lux metal material.
+*//****************************************************************************/
+class LuxMetalData : public LuxMaterialData
+{
+public:
+
+  enum ChannelId {
+    UROUGHNESS = 0,   // LUX_FLOAT_TEXTURE
+    VROUGHNESS,       // LUX_FLOAT_TEXTURE
+    BUMP,             // LUX_FLOAT_TEXTURE
+    CHANNEL_COUNT
   };
 
+  LuxString mName;
+
+  LuxMetalData(void);
+  virtual Bool sendToAPI(LuxAPI&          receiver,
+                         const LuxString& name);
 
 
-/*****************************************************************************
- * DESCRIPTION OF THE LUX GLOSSY MATERIAL
- *****************************************************************************/
+private:
 
-enum LuxGlossyChannelId {
-    LUX_GLOSSY_DIFFUSE = 0,
-    LUX_GLOSSY_SPECULAR,
-    LUX_GLOSSY_UROUGHNESS,
-    LUX_GLOSSY_VROUGHNESS,
-    LUX_GLOSSY_BUMP,
-    LUX_GLOSSY_CHANNEL_COUNT
+  static const LuxChannelInfo  sChannelInfos[CHANNEL_COUNT];
+  static const LuxMaterialInfo sMaterialInfo;
+};
+
+typedef AutoRef<LuxMetalData>  LuxMetalDataH;
+
+
+
+/***************************************************************************//*!
+ This class stores the parameters of a Lux shiny metal material.
+*//****************************************************************************/
+class LuxShinyMetalData : public LuxMaterialData
+{
+public:
+
+  enum ChannelId {
+    REFLECTION = 0,   // LUX_COLOR_TEXTURE
+    SPECULAR,         // LUX_COLOR_TEXTURE
+    UROUGHNESS,       // LUX_FLOAT_TEXTURE
+    VROUGHNESS,       // LUX_FLOAT_TEXTURE
+    FILM_THICKNESS,   // LUX_FLOAT_TEXTURE
+    FILM_IOR,         // LUX_FLOAT_TEXTURE
+    BUMP,             // LUX_FLOAT_TEXTURE
+    CHANNEL_COUNT
   };
 
-static const LuxChannelInfo gLuxGlossyChannelInfos[LUX_GLOSSY_CHANNEL_COUNT] = 
-  {
-    // LUX_GLOSSY_DIFFUSE
-    { LUX_COLOR_TEXTURE, "Kd",         "diff",   TRUE, 0.0, LuxColor(0.0) },
-    // LUX_GLOSSY_SPECULAR
-    { LUX_COLOR_TEXTURE, "Ks",         "spec",   TRUE, 0.0, LuxColor(0.0) },
-    // LUX_GLOSSY_UROUGHNESS
-    { LUX_FLOAT_TEXTURE, "uroughness", "urough", TRUE, 0.0 },
-    // LUX_GLOSSY_UROUGHNESS
-    { LUX_FLOAT_TEXTURE, "vroughness", "vrough", TRUE, 0.0 },
-    // LUX_GLOSSY_BUMP
-    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump"  , FALSE }
+  LuxShinyMetalData(void);
+
+
+private:
+
+  static const LuxChannelInfo  sChannelInfos[CHANNEL_COUNT];
+  static const LuxMaterialInfo sMaterialInfo;
+};
+
+typedef AutoRef<LuxShinyMetalData>  LuxShinyMetalDataH;
+
+
+
+/***************************************************************************//*!
+ This class stores the parameters of a Lux mirror material.
+*//****************************************************************************/
+class LuxMirrorData : public LuxMaterialData
+{
+public:
+
+  enum ChannelId {
+    REFLECTION = 0,   // LUX_COLOR_TEXTURE
+    FILM_THICKNESS,   // LUX_FLOAT_TEXTURE
+    FILM_IOR,         // LUX_FLOAT_TEXTURE
+    BUMP,             // LUX_FLOAT_TEXTURE
+    CHANNEL_COUNT
   };
 
-static const LuxMaterialInfo gLuxGlossyInfo =
-  {
-    "glossy",
-    LUX_GLOSSY_CHANNEL_COUNT,
-    gLuxGlossyChannelInfos
+  LuxMirrorData(void);
+
+
+private:
+
+  static const LuxChannelInfo  sChannelInfos[CHANNEL_COUNT];
+  static const LuxMaterialInfo sMaterialInfo;
+};
+
+typedef AutoRef<LuxMirrorData>  LuxMirrorDataH;
+
+
+
+/***************************************************************************//*!
+ This class stores the parameters of a Lux car paint material.
+*//****************************************************************************/
+class LuxCarPaintData : public LuxMaterialData
+{
+public:
+
+  enum ChannelId {
+    DIFFUSE = 0,      // LUX_COLOR_TEXTURE
+    SPECULAR_1,       // LUX_COLOR_TEXTURE
+    R1,               // LUX_FLOAT_TEXTURE
+    M1,               // LUX_FLOAT_TEXTURE
+    SPECULAR_2,       // LUX_COLOR_TEXTURE
+    R2,               // LUX_FLOAT_TEXTURE
+    M2,               // LUX_FLOAT_TEXTURE
+    SPECULAR_3,       // LUX_COLOR_TEXTURE
+    R3,               // LUX_FLOAT_TEXTURE
+    M3,               // LUX_FLOAT_TEXTURE
+    ABSORPTION,       // LUX_COLOR_TEXTURE
+    ABSORPTION_DEPTH, // LUX_FLOAT_TEXTURE
+    BUMP,             // LUX_FLOAT_TEXTURE
+    CHANNEL_COUNT
   };
 
+  LuxCarPaintData(void);
 
 
-/*****************************************************************************
- * DESCRIPTION OF THE LUX MATTE MATERIAL
- *****************************************************************************/
+private:
 
-enum LuxMatteChannelId {
-    LUX_MATTE_DIFFUSE = 0,
-    LUX_MATTE_SIGMA,
-    LUX_MATTE_BUMP,
-    LUX_MATTE_CHANNEL_COUNT
-  };
+  static const LuxChannelInfo  sChannelInfos[CHANNEL_COUNT];
+  static const LuxMaterialInfo sMaterialInfo;
+};
 
-static const LuxChannelInfo gLuxMatteChannelInfos[LUX_MATTE_CHANNEL_COUNT] = 
-  {
-    // LUX_MATTE_DIFFUSE
-    { LUX_COLOR_TEXTURE, "Kd",      "diff",  TRUE, 0.0, LuxColor(0.0) },
-    // LUX_MATTE_SIGMA
-    { LUX_FLOAT_TEXTURE, "sigma",   "sigma", TRUE, 0.0 },
-    // LUX_MATTE_BUMP
-    { LUX_FLOAT_TEXTURE, "bumpmap", "bump",  FALSE }
-  };
-
-static const LuxMaterialInfo gLuxMatteInfo =
-  {
-    "matte",
-    LUX_MATTE_CHANNEL_COUNT,
-    gLuxMatteChannelInfos
-  };
-
-
-
-/*****************************************************************************
- * DESCRIPTION OF THE LUX MATTE TRANSLUCENT MATERIAL
- *****************************************************************************/
-
-enum LuxMatteTranslucentChannelId {
-    LUX_MATTE_TRANSLUCENT_DIFFUSE = 0,
-    LUX_MATTE_TRANSLUCENT_TRANSMISSION,
-    LUX_MATTE_TRANSLUCENT_SIGMA,
-    LUX_MATTE_TRANSLUCENT_BUMP,
-    LUX_MATTE_TRANSLUCENT_CHANNEL_COUNT
-  };
-
-static const LuxChannelInfo gLuxMatteTranslucentChannelInfos[LUX_MATTE_TRANSLUCENT_CHANNEL_COUNT] = 
-  {
-    // LUX_MATTE_TRANSLUCENT_DIFFUSE
-    { LUX_COLOR_TEXTURE, "Kr",      "diff",  TRUE, 0.0, LuxColor(0.0)  },
-    // LUX_MATTE_TRANSLUCENT_TRANSMISSION
-    { LUX_COLOR_TEXTURE, "Kt",      "trans", TRUE, 0.0, LuxColor(0.0) },
-    // LUX_MATTE_TRANSLUCENT_SIGMA
-    { LUX_FLOAT_TEXTURE, "sigma",   "sigma", TRUE, 0.0 },
-    // LUX_MATTE_TRANSLUCENT_BUMP
-    { LUX_FLOAT_TEXTURE, "bumpmap", "bump",  FALSE }
-  };
-
-static const LuxMaterialInfo gLuxMatteTranslucentInfo =
-  {
-    "mattetranslucent",
-    LUX_MATTE_TRANSLUCENT_CHANNEL_COUNT,
-    gLuxMatteTranslucentChannelInfos
-  };
-
-
-
-/*****************************************************************************
- * DESCRIPTION OF THE LUX MIRROR MATERIAL
- *****************************************************************************/
-
-enum LuxMirrorChannelId {
-    LUX_MIRROR_REFLECTION = 0,
-    LUX_MIRROR_BUMP,
-    LUX_MIRROR_CHANNEL_COUNT
-  };
-
-static const LuxChannelInfo gLuxMirrorChannelInfos[LUX_MIRROR_CHANNEL_COUNT] = 
-  {
-    // LUX_MIRROR_REFLECTION
-    { LUX_COLOR_TEXTURE, "Kr",      "refl", TRUE, 0.0, LuxColor(0.0) },
-    // LUX_MIRROR_BUMP
-    { LUX_FLOAT_TEXTURE, "bumpmap", "bump", FALSE }
-  };
-
-static const LuxMaterialInfo gLuxMirrorInfo =
-  {
-    "mirror",
-    LUX_MIRROR_CHANNEL_COUNT,
-    gLuxMirrorChannelInfos
-  };
-
-
-
-/*****************************************************************************
- * DESCRIPTION OF THE LUX SHINY METAL MATERIAL
- *****************************************************************************/
-
-enum LuxShinyMetalChannelId {
-    LUX_SHINY_METAL_REFLECTION = 0,
-    LUX_SHINY_METAL_SPECULAR,
-    LUX_SHINY_METAL_UROUGHNESS,
-    LUX_SHINY_METAL_VROUGHNESS,
-    LUX_SHINY_METAL_BUMP,
-    LUX_SHINY_METAL_CHANNEL_COUNT
-  };
-
-static const LuxChannelInfo gLuxShinyMetalChannelInfos[LUX_SHINY_METAL_CHANNEL_COUNT] = 
-  {
-    // LUX_SHINY_METAL_REFLECTION
-    { LUX_COLOR_TEXTURE, "Kr",         "refl",   TRUE, 0.0, LuxColor(0.0) },
-    // LUX_SHINY_METAL_SPECULAR
-    { LUX_COLOR_TEXTURE, "Ks",         "spec",   TRUE, 0.0, LuxColor(0.0) },
-    // LUX_SHINY_METAL_UROUGHNESS
-    { LUX_FLOAT_TEXTURE, "uroughness", "urough", TRUE, 0.0 },
-    // LUX_SHINY_METAL_VROUGHNESS
-    { LUX_FLOAT_TEXTURE, "vroughness", "vrough", TRUE, 0.0 },
-    // LUX_MATTE_BUMP
-    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump",   FALSE }
-  };
-
-static const LuxMaterialInfo gLuxShinyMetalInfo =
-  {
-    "shinymetal",
-    LUX_SHINY_METAL_CHANNEL_COUNT,
-    gLuxShinyMetalChannelInfos
-  };
+typedef AutoRef<LuxCarPaintData>  LuxCarPaintDataH;
 
 
 

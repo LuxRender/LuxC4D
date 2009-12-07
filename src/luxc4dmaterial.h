@@ -29,6 +29,7 @@
 
 
 #include <c4d.h>
+#include "luxmaterialdata.h"
 
 
 
@@ -75,6 +76,8 @@ public:
   virtual void CalcSurface(PluginMaterial* mat,
                            VolumeData*     volumeData);
 
+  LuxMaterialDataH getLuxMaterialData(void);
+
 
 private:
 
@@ -87,6 +90,18 @@ private:
                      BaseContainer* data,
                      Description*   description,
                      AtomArray*     params);
+
+  void getColorChannel(LONG             colorId,
+                       LONG             shaderId,
+                       LONG             shaderStrengthId,
+                       LONG             brightnessId,
+                       ULONG            channelIx,
+                       LuxMaterialData& materialData);
+
+  void getFloatChannel(ULONG            channelIx,
+                       LONG             valueId,
+                       LONG             shaderId,
+                       LuxMaterialData& materialData);
 };
 
 
