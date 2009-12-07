@@ -20,7 +20,6 @@ rm -fR "$DISTRI_DIR"
 mkdir -p "$DISTRI_DIR/LuxC4D"
 cp -R ../../res "$DISTRI_DIR/LuxC4D"
 cp -R ../../license "$DISTRI_DIR/LuxC4D"
-rm -fR "$DISTRI_DIR/LuxC4D/res/strings_fr"
 
 
 BuildAndPack "macosx10.4" "R9.6_Debug"    "r9.6_debug"

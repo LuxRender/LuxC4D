@@ -26,13 +26,13 @@
 STRINGTABLE VPluxc4dsettings
 {
   VPluxc4dsettings "Réglages LuxC4D";
-  
+
   IDG_RENDER                          "Rendu";
-  
+
     IDG_SAMPLING                        "ECHANTILLONNAGE";
     IDD_SAMPLER                         "Echantillonneur";
     IDD_ADVANCED_SAMPLER                "Réglages avancés";
-    
+
       IDD_SAMPLER_LOWDISCREPANCY          "Basse Divergence";
       IDD_SAMPLER_METROPOLIS              "Metropolis";
       IDD_SAMPLER_ERPT                    "ERPT";
@@ -50,7 +50,6 @@ STRINGTABLE VPluxc4dsettings
       IDD_PIXELSAMPLER_LINEAR             "Linéaire";
       IDD_PIXELSAMPLER_TILE               "Mosaïque";
 
-    IDD_METROPOLIS_INIT_SAMPLES         "Echantillons Initiaux";
     IDD_METROPOLIS_MAX_CONSEC_REJECTS   "Rejets Consécutifs Max.";
     IDD_METROPOLIS_LARGE_MUTATION_PROB  "Probabilité de grande Mutation";
     IDD_METROPOLIS_MICRO_MUTATION_PROB  "Probabilité de petite Mutation";
@@ -66,12 +65,12 @@ STRINGTABLE VPluxc4dsettings
     IDG_INTEGRATION                     "INTEGRATION";
     IDD_INTEGRATOR                      "Intégrateur de surface";
     IDD_ADVANCED_INTEGRATOR             "Réglages avancés";
-    
+
       IDD_INTEGRATOR_PATH                 "Chemin";
       IDD_INTEGRATOR_DISTRIBUTED_PATH     "Chemin distribué";
       IDD_INTEGRATOR_BIDIRECTIONAL        "Bidirectionel";
       IDD_INTEGRATOR_DIRECT_LIGHTING      "Illumination Directe";
-    
+
     IDD_PATH_MAX_DEPTH                  "Rebonds Max.";
     IDD_PATH_DIRECT_LIGHT_STRATEGY      "Stratégie d'Illumination Directe";
     IDD_PATH_RR_STRATEGY                "Stratégie de la Roulette Russe";
@@ -99,7 +98,7 @@ STRINGTABLE VPluxc4dsettings
     IDD_DISTRIBUTED_PATH_GLOSSY_REFRACT_SAMPLES         "Echantillons";
     IDD_DISTRIBUTED_PATH_SPECULAR_REFLECT_DEPTH         "Rebonds de Réflexion Spéculaire";
     IDD_DISTRIBUTED_PATH_SPECULAR_REFRACT_DEPTH         "Rebonds de Réfraction Spéculaire";
-    
+
     IDD_BIDIRECTIONAL_EYE_DEPTH             "Rebonds de l'oeil";
     IDD_BIDIRECTIONAL_LIGHT_DEPTH           "Rebonds de la lumière";
     IDD_BIDIRECTIONAL_DIRECT_LIGHT_STRATEGY "Stratégie d'Illumination Directe";
@@ -113,7 +112,7 @@ STRINGTABLE VPluxc4dsettings
 
     IDG_FILTERING                       "FILTRAGE";
     IDD_PIXEL_FILTER                    "Filtrage des Pixels";
-    
+
       IDD_PIXEL_FILTER_BOX                "Boite";
       IDD_PIXEL_FILTER_GAUSSIAN           "Gaussien";
       IDD_PIXEL_FILTER_MITCHELL           "Mitchell";
@@ -140,6 +139,35 @@ STRINGTABLE VPluxc4dsettings
     IDD_TRIANGLE_FILTER_HEIGHT          "Hauteur";
 
 
+    IDG_ACCELERATION                    "Accélération";
+    IDD_ACCELERATION_TYPE               "Structure des données";
+    IDD_ACCELERATION_ADVANCED           "Réglages avancés";
+
+      IDD_ACCELERATION_KDTREE             "Kd-Tree";
+      IDD_ACCELERATION_BVH                "BVH";
+      IDD_ACCELERATION_QBVH               "QBVH";
+
+    IDD_KDTREE_INTERSECTION_COST        "Compte des intersections";
+    IDD_KDTREE_TRAVERSAL_COST           "Compte des traversée";
+    IDD_KDTREE_EMPTY_BONUS              "Bonus pour cellule vide";
+    IDD_KDTREE_MAX_PRIMITIVES           "Primitives max.";
+    IDD_KDTREE_MAX_DEPTH                "Profondeur max.";
+
+    IDD_BVH_TREE_TYPE                   "Type";
+    IDD_BVH_COST_SAMPLES                "Echantillons du compte";
+    IDD_BVH_INTERSECTION_COST           "Compte des intersections";
+    IDD_BVH_TRAVERSAL_COST              "Compte des traversées";
+    IDD_BVH_EMPTY_BONUS                 "Bonus pour cellule vide";
+
+      IDD_BVH_BINARY_TREE                 "Arbre binaire";
+      IDD_BVH_QUAD_TREE                   "Arbre quaternaire";
+      IDD_BVH_OCT_TREE                    "Octree";
+
+    IDD_QBVH_MAX_PRIMITIVES             "Primitives max.";
+    IDD_QBVH_FULL_SWEEP_THRESHOLD       "Seuil de balayage entier";
+    IDD_QBVH_SKIP_FACTOR                "Facteur de saut";
+
+
   IDG_OUTPUT                          "Sortie";
 
     IDG_FILM                            "FILM";
@@ -161,11 +189,11 @@ STRINGTABLE VPluxc4dsettings
       IDD_FLEXIMAGE_REINHARD_POSTSCALE    "Post-ajustement";
       IDD_FLEXIMAGE_REINHARD_BURN         "Combustion";
       IDD_FLEXIMAGE_LINEAR_SENSITIVITY    "Sensitivité (ISO)";
-      IDD_FLEXIMAGE_LINEAR_EXPOSURE       "Exposition (msec)";
+      IDD_FLEXIMAGE_LINEAR_EXPOSURE       "Exposition (sec)";
       IDD_FLEXIMAGE_LINEAR_FSTOP          "F-Stop";
       IDD_FLEXIMAGE_LINEAR_GAMMA          "Gamma";
       IDD_FLEXIMAGE_CONTRAST_YWA          "Luminosité adaptée de l'Affichage/Monde";
-      
+
       IDG_FLEXIMAGE_FILE_FORMATS          "FORMATAGE";
       IDD_FLEXIMAGE_WRITE_EXR             "Ecrire une image EXR";
       IDD_FLEXIMAGE_WRITE_PNG             "Ecrire une image PNG";
@@ -182,7 +210,7 @@ STRINGTABLE VPluxc4dsettings
       IDD_FLEXIMAGE_PNG_GAMUT_CLAMP       "Clamper le Gamut";
       IDD_FLEXIMAGE_TGA_CHANNELS          "Canaux";
       IDD_FLEXIMAGE_TGA_GAMUT_CLAMP       "Clamper le Gamut";
-    
+
         IDD_CLAMP_METHOD_LUM                "Luminosité";
         IDD_CLAMP_METHOD_HUE                "Teinte";
         IDD_CLAMP_METHOD_CUT                "Coupe";
@@ -198,24 +226,25 @@ STRINGTABLE VPluxc4dsettings
         IDD_WRITE_CHANNELS_RGBA             "RVB + alpha";
 
         IDD_ZBUF_NORM_TYPE_NONE             "Aucun";
-        IDD_ZBUF_NORM_TYPE_CAMERA           "Début/Fin de la Caméra";
-        IDD_ZBUF_NORM_TYPE_SCENE            "Min/Max. de la Scène";
+        IDD_ZBUF_NORM_TYPE_CAMERA           "Début/Fin de la caméra";
+        IDD_ZBUF_NORM_TYPE_SCENE            "Min/Max. de la scène";
 
         IDD_EXR_COMPRESSION_RLE             "RLE (Le moins de perte)";
         IDD_EXR_COMPRESSION_PIZ             "PIZ (Le moins de perte)";
         IDD_EXR_COMPRESSION_ZIP             "ZIP (Le moins de perte)";
         IDD_EXR_COMPRESSION_PXR24           "Pxr24 (Perte)";
         IDD_EXR_COMPRESSION_NONE            "Aucune";
-    
-      IDD_FLEXIMAGE_FILENAME_TYPE           "Output Filename";
 
-        IDD_FLEXIMAGE_FILENAME_AS_SCENE_FILE      "Like Scene File";
-        IDD_FLEXIMAGE_FILENAME_AS_C4D_OUTPUT_FILE "Like C4D Output File";
-        IDD_FLEXIMAGE_FILENAME_DEFINE_HERE        "Define Filename Here";
+      IDD_FLEXIMAGE_FILENAME_TYPE           "Nom du fichier de sortie";
+      IDD_FLEXIMAGE_OUTPUT_FILENAME         "";
 
-    
+        IDD_FLEXIMAGE_FILENAME_AS_SCENE_FILE      "Comme le fichier de la scène";
+        IDD_FLEXIMAGE_FILENAME_AS_C4D_OUTPUT_FILE "Comme le fichier de sortie C4D";
+        IDD_FLEXIMAGE_FILENAME_DEFINE_HERE        "Definir le nom de fichier içi";
+
+
   IDG_EXPORT                          "Exportation";
-    
+
     IDD_WHICH_EXPORT_FILENAME           "Nom du fichier à exporter";
     IDD_EXPORT_FILENAME                 "";
     IDD_ALLOW_OVERWRITING               "Autoriser l'écrasement";
@@ -224,10 +253,12 @@ STRINGTABLE VPluxc4dsettings
       IDD_USE_C4D_EXPORT_FILENAME         "Même nom que le fichier C4D";
       IDD_DEFINE_EXPORT_FILENAME          "Definir le nom du fichier";
 
-    IDD_SCALE_FACTOR                    "How many cm is 1 C4D unit?";
-    IDD_EXPORT_BUMP_SAMPLE_DISTANCE     "Export Bump Sample Distance";
-    IDD_BUMP_SAMPLE_DISTANCE            "Bump Sample Distance";
-    IDD_TEXTURE_GAMMA_CORRECTION        "Texture Gamma Correction";
-    IDD_USE_RELATIVE_PATHS              "Use Relative Paths";
+    IDD_SCALE_FACTOR                    "Facteur d'Echelle C4D -> LuxRender";
+
+    IDD_SCALE_FACTOR                    "1 unité C4D en cm";
+    IDD_EXPORT_BUMP_SAMPLE_DISTANCE     "Exportez la Distance d'échantillon de relief";
+    IDD_BUMP_SAMPLE_DISTANCE            "Distance d'échantillon de relief";
+    IDD_TEXTURE_GAMMA_CORRECTION        "Correction du Gamma de la texture";
+    IDD_USE_RELATIVE_PATHS              "Utilisez des chemins relatifs";
 
 }
