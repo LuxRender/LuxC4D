@@ -33,7 +33,6 @@ rem  of LuxC4D
 rmdir /s /q %DISTRI_DIR%
 mkdir %DISTRI_DIR%
 xcopy /q /s /i ..\..\res %DISTRI_DIR%\LuxC4D\res
-rmdir /s /q %DISTRI_DIR%\LuxC4D\res\strings_fr
 xcopy /q /s /i ..\..\license %DISTRI_DIR%\LuxC4D\license
 
 rem  Bulild all the different configurations
