@@ -210,14 +210,14 @@ class LuxImageMapData : public LuxTextureData
 {
 public:
 
-  LuxString mImagePath;
-  LuxFloat  mGamma;
+  Filename mImagePath;
+  LuxFloat mGamma;
 
 
   LuxImageMapData(LuxTextureType type);
   LuxImageMapData(LuxTextureType        type,
                   const TextureMapping& mapping,
-                  const FilePath&       imagePath,
+                  const Filename&       imagePath,
                   LuxFloat              gamma = 1.0);
 
 

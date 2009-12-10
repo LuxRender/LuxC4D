@@ -116,6 +116,8 @@ public:
                   LuxTextureDataH texture);
   Bool setEmissionChannel(LuxTextureDataH texture);
   Bool hasEmissionChannel(void);
+  Bool setBumpChannel(LuxTextureDataH texture);
+  Bool hasBumpChannel(void);
   void setBumpSampleDistance(LuxFloat bumpSampleDistance);
 
   virtual Bool sendToAPI(LuxAPI&          receiver,
@@ -127,6 +129,7 @@ protected:
   const LuxMaterialInfo&         mInfo;
   FixArray1D<LuxMaterialChannel> mChannels;
   LuxMaterialChannel             mEmissionChannel;
+  LuxMaterialChannel             mBumpChannel;
   LuxFloat                       mBumpSampleDistance;
 
   LuxMaterialData(const LuxMaterialInfo& info);
@@ -160,7 +163,6 @@ public:
     CAUCHY_B,         // LUX_FLOAT_TEXTURE
     FILM_THICKNESS,   // LUX_FLOAT_TEXTURE
     FILM_IOR,         // LUX_FLOAT_TEXTURE
-    BUMP,             // LUX_FLOAT_TEXTURE
     CHANNEL_COUNT
   };
 
@@ -195,7 +197,6 @@ public:
     CAUCHY_B,         // LUX_FLOAT_TEXTURE
     UROUGHNESS,       // LUX_FLOAT_TEXTURE
     VROUGHNESS,       // LUX_FLOAT_TEXTURE
-    BUMP,             // LUX_FLOAT_TEXTURE
     CHANNEL_COUNT
   };
 
@@ -227,7 +228,6 @@ public:
     ABSORPTION_DEPTH,   // LUX_FLOAT_TEXTURE
     UROUGHNESS,         // LUX_FLOAT_TEXTURE
     VROUGHNESS,         // LUX_FLOAT_TEXTURE
-    BUMP,               // LUX_FLOAT_TEXTURE
     CHANNEL_COUNT
   };
 
@@ -254,7 +254,6 @@ public:
   enum ChannelId {
     DIFFUSE = 0,    // LUX_COLOR_TEXTURE
     SIGMA,          // LUX_FLOAT_TEXTURE
-    BUMP,           // LUX_FLOAT_TEXTURE
     CHANNEL_COUNT
   };
 
@@ -282,7 +281,6 @@ public:
     DIFFUSE = 0,    // LUX_COLOR_TEXTURE
     TRANSMISSION,   // LUX_COLOR_TEXTURE
     SIGMA,          // LUX_FLOAT_TEXTURE
-    BUMP,           // LUX_FLOAT_TEXTURE
     CHANNEL_COUNT
   };
 
@@ -309,11 +307,11 @@ public:
   enum ChannelId {
     UROUGHNESS = 0,   // LUX_FLOAT_TEXTURE
     VROUGHNESS,       // LUX_FLOAT_TEXTURE
-    BUMP,             // LUX_FLOAT_TEXTURE
     CHANNEL_COUNT
   };
 
-  LuxString mName;
+  String mName;
+  Bool   mIsFilename;
 
   LuxMetalData(void);
   virtual Bool sendToAPI(LuxAPI&          receiver,
@@ -344,7 +342,6 @@ public:
     VROUGHNESS,       // LUX_FLOAT_TEXTURE
     FILM_THICKNESS,   // LUX_FLOAT_TEXTURE
     FILM_IOR,         // LUX_FLOAT_TEXTURE
-    BUMP,             // LUX_FLOAT_TEXTURE
     CHANNEL_COUNT
   };
 
@@ -372,7 +369,6 @@ public:
     REFLECTION = 0,   // LUX_COLOR_TEXTURE
     FILM_THICKNESS,   // LUX_FLOAT_TEXTURE
     FILM_IOR,         // LUX_FLOAT_TEXTURE
-    BUMP,             // LUX_FLOAT_TEXTURE
     CHANNEL_COUNT
   };
 
@@ -409,7 +405,6 @@ public:
     M3,               // LUX_FLOAT_TEXTURE
     ABSORPTION,       // LUX_COLOR_TEXTURE
     ABSORPTION_DEPTH, // LUX_FLOAT_TEXTURE
-    BUMP,             // LUX_FLOAT_TEXTURE
     CHANNEL_COUNT
   };
 

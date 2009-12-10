@@ -121,6 +121,32 @@ Bool LuxMaterialData::hasEmissionChannel(void)
 }
 
 
+Bool LuxMaterialData::setBumpChannel(LuxTextureDataH texture)
+{
+  // make sure that the texture AutoRef is valid
+  if (!texture) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setBumpChannel(): no texture passed");
+  }
+
+  // make sure that the data type of the texture matches the data type of the
+  // material channel
+  if (texture->mType != LUX_FLOAT_TEXTURE) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setBumpChannel(): type mismatch -> can't set bump texture");
+  }
+
+  // store texture and enable channel
+  mBumpChannel.mTexture = texture;
+  mBumpChannel.mEnabled = TRUE;
+  return TRUE;
+}
+
+
+Bool LuxMaterialData::hasBumpChannel(void)
+{
+  return mBumpChannel.mEnabled;
+}
+
+
 /// Sets the bump map sample distance of the material which is 0.0 by default
 /// and therefore the parameter doesn't get exported. Only if you set it to
 /// a value > 0.000000000001, the parameter gets exported.
@@ -170,7 +196,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
 
   // loop over active channels, export their textures and add them to parameter
   // set
-  FixArray1D<LuxString> textureNames(mChannels.size());
+  FixArray1D<LuxString> textureNames(mChannels.size()+1);
   ULONG textureNameCount = 0;
   for (ULONG channelIx=0; channelIx<mChannels.size(); ++channelIx) {
 
@@ -199,12 +225,25 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
     }
   }
 
+  // if bump channel is active, export its texture
+  if (mBumpChannel.mEnabled) {
+    textureNames[textureNameCount] = name + ".bump";
+    if (!mBumpChannel.mTexture->sendToAPIAndAddToParamSet(receiver,
+                                                          paramSet,
+                                                          "bumpmap",
+                                                          textureNames[textureNameCount]))
+    {
+      ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::sendToAPI(): export of bump texture failed");
+    }
+    ++textureNameCount;
+  }
+
   // if emission channel is active, export its texture, but don't add it to
   // material as it will be referenced by an area light command in the object
   // scope
   if (mEmissionChannel.mEnabled) {
     if (!mEmissionChannel.mTexture->sendToAPI(receiver, name + ".L")) {
-      ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::sendToAPI(): texture export failed");
+      ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::sendToAPI(): export of emission texture failed");
     }
   }
 
@@ -233,7 +272,6 @@ const LuxChannelInfo LuxGlassData::sChannelInfos[CHANNEL_COUNT] =
     { LUX_FLOAT_TEXTURE, "cauchyb",   "disp",    FALSE },                     // CAUCHY_B
     { LUX_FLOAT_TEXTURE, "film",      "film",    FALSE },                     // FILM_THICKNESS,
     { LUX_FLOAT_TEXTURE, "filmindex", "filmior", FALSE },                     // FILM_IOR,
-    { LUX_FLOAT_TEXTURE, "bumpmap",   "bump",    FALSE }                      // BUMP
   };
 
 const LuxMaterialInfo LuxGlassData::sMaterialInfo =
@@ -268,7 +306,6 @@ const LuxChannelInfo LuxRoughGlassData::sChannelInfos[CHANNEL_COUNT] =
     { LUX_FLOAT_TEXTURE, "cauchyb",    "disp",   FALSE },                     // CAUCHY_B
     { LUX_FLOAT_TEXTURE, "uroughness", "urough", TRUE, 0.0 },                 // UROUGHNESS
     { LUX_FLOAT_TEXTURE, "vroughness", "vrough", TRUE, 0.0 },                 // VROUGHNESS
-    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump",   FALSE }                      // BUMP
   };
 
 const LuxMaterialInfo LuxRoughGlassData::sMaterialInfo =
@@ -294,7 +331,6 @@ const LuxChannelInfo LuxGlossyData::sChannelInfos[CHANNEL_COUNT] =
     { LUX_FLOAT_TEXTURE, "d",          "adepth", FALSE },                     // ABSORPTION_DEPTH
     { LUX_FLOAT_TEXTURE, "uroughness", "urough", TRUE, 0.0 },                 // UROUGHNESS
     { LUX_FLOAT_TEXTURE, "vroughness", "vrough", TRUE, 0.0 },                 // VROUGHNESS
-    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump"  , FALSE }                      // BUMP
   };
 
 const LuxMaterialInfo LuxGlossyData::sMaterialInfo =
@@ -315,7 +351,6 @@ const LuxChannelInfo LuxMatteData::sChannelInfos[CHANNEL_COUNT] =
   {
     { LUX_COLOR_TEXTURE, "Kd",      "diff",  TRUE, 0.0, LuxColor(0.0) },  // DIFFUSE
     { LUX_FLOAT_TEXTURE, "sigma",   "sigma", TRUE, 0.0 },                 // SIGMA
-    { LUX_FLOAT_TEXTURE, "bumpmap", "bump",  FALSE }                      // BUMP
   };
 
 const LuxMaterialInfo LuxMatteData::sMaterialInfo =
@@ -337,7 +372,6 @@ const LuxChannelInfo LuxMatteTranslucentData::sChannelInfos[CHANNEL_COUNT] =
     { LUX_COLOR_TEXTURE, "Kr",      "diff",  TRUE, 0.0, LuxColor(0.0)  }, // DIFFUSE
     { LUX_COLOR_TEXTURE, "Kt",      "trans", TRUE, 0.0, LuxColor(0.0) },  // TRANSMISSION
     { LUX_FLOAT_TEXTURE, "sigma",   "sigma", TRUE, 0.0 },                 // SIGMA
-    { LUX_FLOAT_TEXTURE, "bumpmap", "bump",  FALSE }                      // BUMP
   };
 
 const LuxMaterialInfo LuxMatteTranslucentData::sMaterialInfo =
@@ -358,7 +392,6 @@ const LuxChannelInfo LuxMetalData::sChannelInfos[CHANNEL_COUNT] =
   {
     { LUX_FLOAT_TEXTURE, "uroughness", "urough", TRUE, 0.0 },   // UROUGHNESS
     { LUX_FLOAT_TEXTURE, "vroughness", "vrough", TRUE, 0.0 },   // VROUGHNESS
-    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump",   FALSE }        // BUMP
   };
 
 const LuxMaterialInfo LuxMetalData::sMaterialInfo =
@@ -366,7 +399,8 @@ const LuxMaterialInfo LuxMetalData::sMaterialInfo =
 
 
 LuxMetalData::LuxMetalData(void)
-: LuxMaterialData(sMaterialInfo)
+: LuxMaterialData(sMaterialInfo),
+  mIsFilename(FALSE)
 {}
 
 
@@ -374,8 +408,18 @@ Bool LuxMetalData::sendToAPI(LuxAPI&          receiver,
                              const LuxString& name)
 {
   LuxParamSet extraParams(1);
-  return (extraParams.addParam(LUX_STRING, "name", &mName) &&
-          LuxMaterialData::sendToAPI(receiver, name, &extraParams));
+  LuxString   metalName;
+  if (!mIsFilename) {
+    convert2LuxString(mName, metalName);
+  } else if (mName.Content()) {
+    FilePath nkFilePath(mName);
+    receiver.processFilePath(nkFilePath);
+    metalName = nkFilePath.getLuxString();
+  }
+  if (metalName.size() && !extraParams.addParam(LUX_STRING, "name", &metalName)) {
+    return FALSE;
+  }
+  return LuxMaterialData::sendToAPI(receiver, name, &extraParams);
 }
 
 
@@ -392,7 +436,6 @@ const LuxChannelInfo LuxShinyMetalData::sChannelInfos[CHANNEL_COUNT] =
     { LUX_FLOAT_TEXTURE, "vroughness", "vrough",  TRUE, 0.0 },                // VROUGHNESS
     { LUX_FLOAT_TEXTURE, "film",       "film",    FALSE },                    // FILM_THICKNESS,
     { LUX_FLOAT_TEXTURE, "filmindex",  "filmior", FALSE },                    // FILM_IOR,
-    { LUX_FLOAT_TEXTURE, "bumpmap",    "bump",    FALSE }                     // BUMP
   };
 
 const LuxMaterialInfo LuxShinyMetalData::sMaterialInfo =
@@ -414,7 +457,6 @@ const LuxChannelInfo LuxMirrorData::sChannelInfos[CHANNEL_COUNT] =
     { LUX_COLOR_TEXTURE, "Kr",        "refl",    TRUE, 0.0, LuxColor(0.0) },  // REFLECTION
     { LUX_FLOAT_TEXTURE, "film",      "film",    FALSE },                     // FILM_THICKNESS,
     { LUX_FLOAT_TEXTURE, "filmindex", "filmior", FALSE },                     // FILM_IOR,
-    { LUX_FLOAT_TEXTURE, "bumpmap",   "bump",    FALSE }                      // BUMP
   };
 
 const LuxMaterialInfo LuxMirrorData::sMaterialInfo =
@@ -445,7 +487,6 @@ const LuxChannelInfo LuxCarPaintData::sChannelInfos[CHANNEL_COUNT] =
     { LUX_FLOAT_TEXTURE, "M3",      "m3",     TRUE, 0.0, LuxColor(0.0) }, // M_3
     { LUX_COLOR_TEXTURE, "Ka",      "absorp", FALSE },                    // ABSORPTION
     { LUX_FLOAT_TEXTURE, "d",       "adepth", FALSE },                    // ABSORPTION_DEPTH
-    { LUX_FLOAT_TEXTURE, "bumpmap", "bump",   FALSE }                     // BUMP
   };
 
 const LuxMaterialInfo LuxCarPaintData::sMaterialInfo =

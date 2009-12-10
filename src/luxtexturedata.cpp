@@ -303,10 +303,10 @@ LuxImageMapData::LuxImageMapData(LuxTextureType type)
 
 LuxImageMapData::LuxImageMapData(LuxTextureType        type,
                                  const TextureMapping& mapping,
-                                 const FilePath&       imagePath,
+                                 const Filename&       imagePath,
                                  LuxFloat              gamma)
 : LuxTextureData(type),
-  mImagePath(imagePath.getLuxString()),
+  mImagePath(imagePath),
   mGamma(gamma)
 {
   mMapping = mapping;
@@ -318,10 +318,20 @@ Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
 {
   LuxParamSet paramSet(10);
 
-  paramSet.addParam(LUX_STRING, "filename", &mImagePath);
+  // convert and clean up image path
+  FilePath processedPath(mImagePath);
+  receiver.processFilePath(processedPath);
+  LuxString processedPathStr(processedPath.getLuxString());
+  paramSet.addParam(LUX_STRING, "filename", &processedPathStr);
+
+  // if gamma != 1.0 then export texture gamma
   if (fabsf(mGamma-1.0) > 0.001) {
     paramSet.addParam(LUX_FLOAT, "gamma", &mGamma);
   }
+
+  // store texture mapping
   add2DMapping(paramSet);
+
+  // send texture to Lux API
   return sendToAPIHelper(receiver, name, "imagemap", paramSet);
 }

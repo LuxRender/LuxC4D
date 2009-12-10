@@ -30,6 +30,7 @@
 #include "luxapiconverter.h"
 #include "luxc4dcameratag.h"
 #include "luxc4dlighttag.h"
+#include "luxc4dmaterial.h"
 #include "luxc4dsettings.h"
 #include "luxmaterialdata.h"
 #include "tluxc4dcameratag.h"
@@ -1348,53 +1349,6 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
 }
 
 
-/// Reads the texture settings from a texture tag and obtains the parameters
-/// that are relevant for Lux.
-///
-/// @param[in]  textureTag
-///   Reference to the C4D texture tag.
-/// @param[out]  luxTexMapping
-///   The structure where the Lux texture mapping parameters will be stored.
-/// @return
-///   TRUE if executed successful, FALSE otherwise.
-Bool LuxAPIConverter::convertTextureMapping(TextureTag&     textureTag,
-                                            TextureMapping& luxTexMapping)
-{
-  // get base container of tag
-  BaseContainer* data = textureTag.GetDataInstance();
-  if (!data) {
-    ERRLOG_RETURN_VALUE(FALSE, "could not obtain container for texture tag");
-  }
-
-  // get UV shift and scale from texture tag
-  luxTexMapping.mUShift = getParameterReal(textureTag, TEXTURETAG_OFFSETX);
-  luxTexMapping.mVShift = getParameterReal(textureTag, TEXTURETAG_OFFSETY);
-  luxTexMapping.mUScale = getParameterReal(textureTag, TEXTURETAG_TILESX);
-  luxTexMapping.mVScale = getParameterReal(textureTag, TEXTURETAG_TILESY);
-
-  // convert to Lux system where everything is inverse
-  luxTexMapping.mUShift *= -luxTexMapping.mUScale;
-  luxTexMapping.mVShift *= -luxTexMapping.mVScale;
-
-  // if there is almost no shift or scale, don't export it
-  if ((fabsf(luxTexMapping.mUShift) < 0.001) &&
-      (fabsf(luxTexMapping.mVShift) < 0.001) &&
-      (fabsf(luxTexMapping.mUScale - 1.0) < 0.001) &&
-      (fabsf(luxTexMapping.mVScale - 1.0) < 0.001))
-  {
-    luxTexMapping.mHasDefaultParams = TRUE;
-  } else {
-    luxTexMapping.mHasDefaultParams = FALSE;
-  }
-
-  // now we have to invert the V scale as we will do the same with the UV coordinates
-  // (this is to avoid a problem in bump shading - don't ask me why ...)
-  luxTexMapping.mVScale = -luxTexMapping.mVScale;
-
-  return TRUE;
-}
-
-
 /// Exports a material including its textures.
 ///
 /// @param[in]  textureTag
@@ -1477,7 +1431,9 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
   // convert standard C4D material to different Lux materials - depending on
   // the used material channels
   Bool success = FALSE;
-  if (material.IsInstanceOf(Mmaterial)) {
+  if (material.IsInstanceOf(PID_LUXC4D_MATERIAL)) {
+    success = exportLuxC4DMaterial(mapping, material, materialName, hasEmissionChannel);
+  } else if (material.IsInstanceOf(Mmaterial)) {
     Bool hasDiffuse = getParameterLong(material, MATERIAL_USE_COLOR);
     Bool hasTransparency = getParameterLong(material, MATERIAL_USE_TRANSPARENCY);
     Bool hasReflection = getParameterLong(material, MATERIAL_USE_REFLECTION);
@@ -1536,6 +1492,70 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
   }
 
   return success;
+}
+
+
+/// Reads the texture settings from a texture tag and obtains the parameters
+/// that are relevant for Lux.
+///
+/// @param[in]  textureTag
+///   Reference to the C4D texture tag.
+/// @param[out]  luxTexMapping
+///   The structure where the Lux texture mapping parameters will be stored.
+/// @return
+///   TRUE if executed successful, FALSE otherwise.
+Bool LuxAPIConverter::convertTextureMapping(TextureTag&     textureTag,
+                                            TextureMapping& luxTexMapping)
+{
+  // get base container of tag
+  BaseContainer* data = textureTag.GetDataInstance();
+  if (!data) {
+    ERRLOG_RETURN_VALUE(FALSE, "could not obtain container for texture tag");
+  }
+
+  // get UV shift and scale from texture tag
+  luxTexMapping.mUShift = getParameterReal(textureTag, TEXTURETAG_OFFSETX);
+  luxTexMapping.mVShift = getParameterReal(textureTag, TEXTURETAG_OFFSETY);
+  luxTexMapping.mUScale = getParameterReal(textureTag, TEXTURETAG_TILESX);
+  luxTexMapping.mVScale = getParameterReal(textureTag, TEXTURETAG_TILESY);
+
+  // convert to Lux system where everything is inverse
+  luxTexMapping.mUShift *= -luxTexMapping.mUScale;
+  luxTexMapping.mVShift *= -luxTexMapping.mVScale;
+
+  // if there is almost no shift or scale, don't export it
+  if ((fabsf(luxTexMapping.mUShift) < 0.001) &&
+      (fabsf(luxTexMapping.mVShift) < 0.001) &&
+      (fabsf(luxTexMapping.mUScale - 1.0) < 0.001) &&
+      (fabsf(luxTexMapping.mVScale - 1.0) < 0.001))
+  {
+    luxTexMapping.mHasDefaultParams = TRUE;
+  } else {
+    luxTexMapping.mHasDefaultParams = FALSE;
+  }
+
+  // now we have to invert the V scale as we will do the same with the UV coordinates
+  // (this is to avoid a problem in bump shading - don't ask me why ...)
+  luxTexMapping.mVScale = -luxTexMapping.mVScale;
+
+  return TRUE;
+}
+
+
+///
+Bool LuxAPIConverter::exportLuxC4DMaterial(const TextureMapping& mapping,
+                                           BaseMaterial&         material,
+                                           LuxString&            materialName,
+                                           Bool&                 hasEmissionChannel)
+{
+  LuxC4DMaterial* luxc4dMaterial = (LuxC4DMaterial*)material.GetNodeData();
+  if (!luxc4dMaterial) { return FALSE; }
+  LuxMaterialDataH materialData = luxc4dMaterial->getLuxMaterialData(mapping,
+                                                                     mC4D2LuxScale,
+                                                                     mTextureGamma);
+  if (!materialData) { return FALSE; }
+  hasEmissionChannel = materialData->hasEmissionChannel();
+  return materialData->sendToAPI(*mReceiver, materialName);
 }
 
 
@@ -1605,7 +1625,7 @@ Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
   }
 
   // obtain bump and emission channels
-  addBumpChannel(mapping, material, materialData, LuxMatteData::BUMP);
+  addBumpChannel(mapping, material, materialData);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
@@ -1663,7 +1683,7 @@ Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
   }
 
   // obtain bump and emission channels
-  addBumpChannel(mapping, material, materialData, LuxGlossyData::BUMP);
+  addBumpChannel(mapping, material, materialData);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
@@ -1714,7 +1734,7 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
     }
 
     // obtain bump and emission channels
-    addBumpChannel(mapping, material, materialData, LuxMirrorData::BUMP);
+    addBumpChannel(mapping, material, materialData);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
@@ -1749,7 +1769,7 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
     }
 
     // obtain bump and emission channels
-    addBumpChannel(mapping, material, materialData, LuxShinyMetalData::BUMP);
+    addBumpChannel(mapping, material, materialData);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
@@ -1829,7 +1849,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
     }
 
     // obtain bump and emission channels
-    addBumpChannel(mapping, material, materialData, LuxGlassData::BUMP);
+    addBumpChannel(mapping, material, materialData);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
@@ -1871,7 +1891,7 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                             gNewNC LuxConstantTextureData(ior));
 
     // obtain bump and emission channel
-    addBumpChannel(mapping, material, materialData, LuxRoughGlassData::BUMP);
+    addBumpChannel(mapping, material, materialData);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
@@ -1933,7 +1953,7 @@ Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
   }
 
   // obtain bump and emission channels
-  addBumpChannel(mapping, material, materialData, LuxMatteTranslucentData::BUMP);
+  addBumpChannel(mapping, material, materialData);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
@@ -1949,23 +1969,19 @@ Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
 ///   The C4D standard material.
 /// @param[out]  materialData
 ///   The Lux material settings to which the bump channel will be added.
-/// @param[in]  channelId
-///   The ID of the bump channel of the Lux material data.
 /// @return
 ///   TRUE if executed successfully, FALSE otherwise.
 Bool LuxAPIConverter::addBumpChannel(const TextureMapping& mapping,
                                      Material&             material,
-                                     LuxMaterialData&      materialData,
-                                     ULONG                 channelId)
+                                     LuxMaterialData&      materialData)
 {
   if (getParameterLong(material, MATERIAL_USE_BUMP)) {
     materialData.setBumpSampleDistance(mBumpSampleDistance);
-    return materialData.setChannel(channelId,
-                                   convertFloatChannel(mapping,
-                                                       material,
-                                                       MATERIAL_BUMP_SHADER,
-                                                       MATERIAL_BUMP_STRENGTH,
-                                                       mC4D2LuxScale));
+    return materialData.setBumpChannel(convertFloatChannel(mapping,
+                                                           material,
+                                                           MATERIAL_BUMP_SHADER,
+                                                           MATERIAL_BUMP_STRENGTH,
+                                                           mC4D2LuxScale));
   }
 
   return TRUE;
@@ -2047,11 +2063,9 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mappi
                       bitmapPath,
                       Filename(),
                       &fullBitmapPath);
-  FilePath processedBitmapPath(fullBitmapPath);
-  mReceiver->processFilePath(processedBitmapPath);
   LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE,
                                                    mapping,
-                                                   processedBitmapPath);
+                                                   fullBitmapPath);
 
   // if strength is not ~1.0, scale texture
   strength *= strengthScale;
@@ -2113,11 +2127,9 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(const TextureMapping& mappi
                       bitmapPath,
                       Filename(),
                       &fullBitmapPath);
-  FilePath processedBitmapPath(fullBitmapPath);
-  mReceiver->processFilePath(processedBitmapPath);
   LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_COLOR_TEXTURE,
                                                    mapping,
-                                                   processedBitmapPath,
+                                                   fullBitmapPath,
                                                    mTextureGamma);
 
   // if the texture strength is < 100%, we mix the colour with the texture

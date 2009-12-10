@@ -310,6 +310,11 @@ private:
                       Bool&         hasEmissionChannel);
   Bool convertTextureMapping(TextureTag&     textureTag,
                              TextureMapping& luxTexMapping);
+
+  Bool exportLuxC4DMaterial(const TextureMapping& mapping,
+                            BaseMaterial&         material,
+                            LuxString&            materialName,
+                            Bool&                 hasEmissionChannel);
   Bool exportDummyMaterial(BaseMaterial& material,
                            LuxString&    materialName,
                            Bool&         hasEmissionChannel);
@@ -336,8 +341,7 @@ private:
 
   Bool addBumpChannel(const TextureMapping& mapping,
                       Material&             material,
-                      LuxMaterialData&      materialData,
-                      ULONG                 channelId);
+                      LuxMaterialData&      materialData);
   Bool addEmissionChannel(const TextureMapping& mapping,
                           Material&             material,
                           LuxMaterialData&      materialData,

@@ -65,6 +65,15 @@ Bool LuxC4DMaterial::Init(GeListNode* node)
   BaseContainer* data = getData();
   if (!data)  return FALSE;
 
+  data->SetLong  (IDD_MATERIAL_TYPE,                      IDD_MATERIAL_TYPE_MATTE);
+  data->SetBool  (IDD_TOGGLE_METAL,                       TRUE);
+  data->SetBool  (IDD_TOGGLE_DIFFUSE,                     TRUE);
+  data->SetBool  (IDD_TOGGLE_REFLECTION,                  TRUE);
+  data->SetBool  (IDD_TOGGLE_SPECULAR,                    TRUE);
+  data->SetBool  (IDD_TOGGLE_CARPAINT_SPECULAR1,          TRUE);
+  data->SetBool  (IDD_TOGGLE_CARPAINT_SPECULAR2,          TRUE);
+  data->SetBool  (IDD_TOGGLE_CARPAINT_SPECULAR3,          TRUE);
+  data->SetBool  (IDD_TOGGLE_TRANSMISSION,                TRUE);
   data->SetLong  (IDD_METAL_TYPE,                         IDD_METAL_TYPE_ALUMINIUM);
   data->SetVector(IDD_DIFFUSE_COLOR,                      Vector(0.8));
   data->SetReal  (IDD_DIFFUSE_SHADER_STRENGTH,            1.0);
@@ -137,11 +146,18 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
     ERRLOG_RETURN_VALUE(FALSE, "LuxC4DMaterial::GetDDescription(): could not allocate empty AtomArray");
   }
 
+  // enable disable groups depending on specific options
+  Bool loadNKFile = (data->GetLong(IDD_METAL_TYPE) == IDD_METAL_TYPE_NK_FILE);
+  showParameter(description, IDD_METAL_FILENAME, params, loadNKFile);
+  Bool asymetricRoughness = data->GetBool(IDD_ROUGHNESS_ASYMETRIC);
+  showParameter(description, IDG_ROUGHNESS_SYM,  params, !asymetricRoughness);
+  showParameter(description, IDG_ROUGHNESS_ASYM, params, asymetricRoughness);
+
   // get material type and enable channels depending on it
   LONG materialType = data->GetLong(IDD_MATERIAL_TYPE);
   switch (materialType) {
     case IDD_MATERIAL_TYPE_GLASS:
-      toggleChannel(IDD_TOGGLE_METAL,              IDG_METAL,              FALSE, data, description, params);
+      showParameter(description, IDG_METAL, params, FALSE);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_SPECULAR,           IDG_SPECULAR,           FALSE, data, description, params);
@@ -150,8 +166,8 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR3, IDG_CARPAINT_SPECULAR3, FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_COATING_ABSORPTION, IDG_COATING_ABSORPTION, FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_TRANSMISSION,       IDG_TRANSMISSION,       TRUE,  data, description, params);
-      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_ROUGHNESS,          IDG_ROUGHNESS,          FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_BUMP,               IDG_BUMP,               TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_EMISSION,           IDG_EMISSION,           TRUE,  data, description, params);
       break;
@@ -160,8 +176,8 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
     case IDD_MATERIAL_TYPE_GLOSSY:
       break;
     case IDD_MATERIAL_TYPE_MATTE:
-      showParameter(description, IDG_SIGMA, params, TRUE);
-      toggleChannel(IDD_TOGGLE_METAL,              IDG_METAL,              FALSE, data, description, params);
+      showParameter(description, IDG_DIFFUSE_SIGMA, params, TRUE);
+      showParameter(description, IDG_METAL, params, FALSE);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_SPECULAR,           IDG_SPECULAR,           FALSE, data, description, params);
@@ -170,22 +186,35 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR3, IDG_CARPAINT_SPECULAR3, FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_COATING_ABSORPTION, IDG_COATING_ABSORPTION, FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_TRANSMISSION,       IDG_TRANSMISSION,       FALSE, data, description, params);
-      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_ROUGHNESS,          IDG_ROUGHNESS,          FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_BUMP,               IDG_BUMP,               TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_EMISSION,           IDG_EMISSION,           TRUE,  data, description, params);
       break;
     case IDD_MATERIAL_TYPE_MATTE_TRANSLUCENT:
       break;
     case IDD_MATERIAL_TYPE_METAL:
+      showParameter(description, IDG_METAL, params, TRUE);
+      toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_SPECULAR,           IDG_SPECULAR,           FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR1, IDG_CARPAINT_SPECULAR1, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR2, IDG_CARPAINT_SPECULAR2, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR3, IDG_CARPAINT_SPECULAR3, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_COATING_ABSORPTION, IDG_COATING_ABSORPTION, FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_TRANSMISSION,       IDG_TRANSMISSION,       FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_ROUGHNESS,          IDG_ROUGHNESS,          TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_BUMP,               IDG_BUMP,               TRUE,  data, description, params);
+      toggleChannel(IDD_TOGGLE_EMISSION,           IDG_EMISSION,           TRUE,  data, description, params);
       break;
     case IDD_MATERIAL_TYPE_SHINY_METAL:
       break;
     case IDD_MATERIAL_TYPE_MIRROR:
       break;
     case IDD_MATERIAL_TYPE_CAR_PAINT:
-      showParameter(description, IDG_SIGMA, params, FALSE);
-      toggleChannel(IDD_TOGGLE_METAL,              IDG_METAL,              FALSE, data, description, params);
+      showParameter(description, IDG_DIFFUSE_SIGMA, params, FALSE);
+      showParameter(description, IDG_METAL, params, FALSE);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_SPECULAR,           IDG_SPECULAR,           FALSE, data, description, params);
@@ -194,8 +223,8 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       toggleChannel(IDD_TOGGLE_CARPAINT_SPECULAR3, IDG_CARPAINT_SPECULAR3, TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_COATING_ABSORPTION, IDG_COATING_ABSORPTION, TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_TRANSMISSION,       IDG_TRANSMISSION,       FALSE, data, description, params);
-      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_ROUGHNESS,          IDG_ROUGHNESS,          FALSE, data, description, params);
+      toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_BUMP,               IDG_BUMP,               TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_EMISSION,           IDG_EMISSION,           TRUE,  data, description, params);
       break;
@@ -371,90 +400,214 @@ void LuxC4DMaterial::CalcSurface(PluginMaterial* mat,
 }
 
 
-LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(void)
+LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mapping,
+                                                    LReal                 c4d2LuxScale,
+                                                    LuxFloat              textureGamma)
 {
+  // the metal types
+  static const char* sMetalTypes[IDD_METAL_TYPE_NUMBER-1] = {
+      "aluminium",
+      "amorphous carbon",
+      "copper",
+      "gold",
+      "silver"
+    };
+
+  LuxMaterialDataH materialData;
+
   // obtain container from node
   BaseContainer* data = getData();
-  if (!data) { return FALSE; }
+  if (!data) { return materialData; }
 
-  // get material type and enable channels depending on it
+  // get material type and read corresponding channels
   LONG materialType = data->GetLong(IDD_MATERIAL_TYPE);
   switch (materialType) {
     case IDD_MATERIAL_TYPE_GLASS:
       {
-        LuxGlassDataH materialData;
-        if (materialData.allocate()) {
-          // TODO ...
-        }
-        return materialData;
+        LuxGlassDataH glassData = gNewNC LuxGlassData;
+        if (!glassData) { return materialData; }
+        glassData->mArchitectural = (data->GetBool(IDD_TRANSMISSION_ARCHITECTURAL) != FALSE);
+        materialData = glassData;
       }
+      getColorChannel(LuxGlassData::REFLECTION,
+                      IDD_TOGGLE_REFLECTION,
+                      IDD_REFLECTION_COLOR,
+                      IDD_REFLECTION_SHADER,
+                      IDD_REFLECTION_SHADER_STRENGTH,
+                      IDD_REFLECTION_BRIGHTNESS,
+                      *data, mapping, textureGamma, *materialData);
+      getColorChannel(LuxGlassData::TRANSMISSION,
+                      IDD_TOGGLE_TRANSMISSION,
+                      IDD_TRANSMISSION_COLOR,
+                      IDD_TRANSMISSION_SHADER,
+                      IDD_TRANSMISSION_SHADER_STRENGTH,
+                      IDD_TRANSMISSION_STRENGTH,
+                      *data, mapping, textureGamma, *materialData);
+      getFloatChannel(LuxGlassData::IOR,
+                      IDD_TOGGLE_TRANSMISSION,
+                      IDD_IOR_VALUE,
+                      IDD_IOR_SHADER,
+                      *data, mapping, *materialData);
+      materialData->setChannel(LuxGlassData::CAUCHY_B,
+                               gNewNC LuxConstantTextureData(data->GetReal(IDD_TRANSMISSION_CAUCHYB)));
+      getFloatChannel(LuxGlassData::FILM_THICKNESS,
+                      IDD_TOGGLE_THIN_FILM,
+                      IDD_THIN_FILM_THICKNESS,
+                      IDD_THIN_FILM_THICKNESS_SHADER,
+                      *data, mapping, *materialData);
+      getFloatChannel(LuxGlassData::FILM_IOR,
+                      IDD_TOGGLE_THIN_FILM,
+                      IDD_THIN_FILM_IOR,
+                      IDD_THIN_FILM_IOR_SHADER,
+                      *data, mapping, *materialData);
+      break;
     case IDD_MATERIAL_TYPE_ROUGH_GLASS:
-      {
-        LuxRoughGlassDataH materialData;
-        if (materialData.allocate()) {
-          // TODO ...
-        }
-        return materialData;
-      }
+      materialData = gNewNC LuxRoughGlassData;
+      if (!materialData) { return materialData; }
+      break;
     case IDD_MATERIAL_TYPE_GLOSSY:
-      {
-        LuxRoughGlassDataH materialData;
-        if (materialData.allocate()) {
-          // TODO ...
-        }
-        return materialData;
-      }
+      materialData = gNewNC LuxGlossyData;
+      if (!materialData) { return materialData; }
+      break;
     case IDD_MATERIAL_TYPE_MATTE:
-      {
-        LuxRoughGlassDataH materialData;
-        if (materialData.allocate()) {
-          // TODO ...
-        }
-        return materialData;
-      }
+      materialData = gNewNC LuxMatteData;
+      if (!materialData) { return materialData; }
+      getColorChannel(LuxMatteData::DIFFUSE,
+                      IDD_TOGGLE_DIFFUSE,
+                      IDD_DIFFUSE_COLOR,
+                      IDD_DIFFUSE_SHADER,
+                      IDD_DIFFUSE_SHADER_STRENGTH,
+                      IDD_DIFFUSE_BRIGHTNESS,
+                      *data, mapping, textureGamma, *materialData);
+      getFloatChannel(LuxMatteData::SIGMA,
+                      IDD_TOGGLE_DIFFUSE,
+                      IDD_DIFFUSE_SIGMA_VALUE,
+                      IDD_DIFFUSE_SIGMA_SHADER,
+                      *data, mapping, *materialData);
+      break;
     case IDD_MATERIAL_TYPE_MATTE_TRANSLUCENT:
-      {
-        LuxMatteTranslucentDataH materialData;
-        if (materialData.allocate()) {
-          // TODO ...
-        }
-        return materialData;
-      }
+      materialData = gNewNC LuxMatteTranslucentData;
+      if (!materialData) { return materialData; }
+      break;
     case IDD_MATERIAL_TYPE_METAL:
       {
-        LuxMetalDataH materialData;
-        if (materialData.allocate()) {
-          // TODO ...
+        LuxMetalDataH metalData = gNewNC LuxMetalData;
+        if (!metalData) { return materialData; }
+        LONG metalType = data->GetLong(IDD_METAL_TYPE);
+        if (metalType < IDD_METAL_TYPE_NK_FILE) {
+          metalData->mName = sMetalTypes[metalType];
+          metalData->mIsFilename = FALSE;
+        } else {
+          Filename nkFilename = data->GetFilename(IDD_METAL_FILENAME);
+          if (nkFilename.Content()) {
+            metalData->mName = nkFilename.GetString();
+            metalData->mIsFilename = TRUE;
+          }
         }
-        return materialData;
+        materialData = metalData;
       }
+      if (data->GetBool(IDD_ROUGHNESS_ASYMETRIC)) {
+        getFloatChannel(LuxMetalData::UROUGHNESS,
+                        IDD_TOGGLE_ROUGHNESS,
+                        IDD_ROUGHNESS_U_VALUE,
+                        IDD_ROUGHNESS_U_SHADER,
+                        *data, mapping, *materialData);
+        getFloatChannel(LuxMetalData::VROUGHNESS,
+                        IDD_TOGGLE_ROUGHNESS,
+                        IDD_ROUGHNESS_V_VALUE,
+                        IDD_ROUGHNESS_V_SHADER,
+                        *data, mapping, *materialData);
+      } else {
+        getFloatChannel(LuxMetalData::UROUGHNESS,
+                        IDD_TOGGLE_ROUGHNESS,
+                        IDD_ROUGHNESS_VALUE,
+                        IDD_ROUGHNESS_SHADER,
+                        *data, mapping, *materialData);
+        getFloatChannel(LuxMetalData::VROUGHNESS,
+                        IDD_TOGGLE_ROUGHNESS,
+                        IDD_ROUGHNESS_VALUE,
+                        IDD_ROUGHNESS_SHADER,
+                        *data, mapping, *materialData);
+      }
+      break;
     case IDD_MATERIAL_TYPE_SHINY_METAL:
-      {
-        LuxShinyMetalDataH materialData;
-        if (materialData.allocate()) {
-          // TODO ...
-        }
-        return materialData;
-      }
+      materialData = gNewNC LuxShinyMetalData;
+      if (!materialData) { return materialData; }
+      break;
     case IDD_MATERIAL_TYPE_MIRROR:
-      {
-        LuxMirrorDataH materialData;
-        if (materialData.allocate()) {
-          // TODO ...
-        }
-        return materialData;
-      }
+      materialData = gNewNC LuxMirrorData;
+      if (!materialData) { return materialData; }
+      break;
     case IDD_MATERIAL_TYPE_CAR_PAINT:
-      {
-        LuxCarPaintDataH materialData;
-        if (materialData.allocate()) {
-          // TODO ...
-        }
-        return materialData;
+      materialData = gNewNC LuxCarPaintData;
+      if (!materialData) { return materialData; }
+      getColorChannel(LuxCarPaintData::DIFFUSE,
+                      IDD_TOGGLE_DIFFUSE,
+                      IDD_DIFFUSE_COLOR,
+                      IDD_DIFFUSE_SHADER,
+                      IDD_DIFFUSE_SHADER_STRENGTH,
+                      IDD_DIFFUSE_BRIGHTNESS,
+                      *data, mapping, textureGamma, *materialData);
+      if (data->GetBool(IDD_TOGGLE_CARPAINT_SPECULAR1)) {
+        getColorChannel(LuxCarPaintData::SPECULAR_1, 0,
+                        IDD_CARPAINT_SPECULAR_COLOR1,
+                        IDD_CARPAINT_SPECULAR_SHADER1,
+                        IDD_CARPAINT_SPECULAR_SHADER_STRENGTH1,
+                        IDD_CARPAINT_SPECULAR_BRIGHTNESS1,
+                        *data, mapping, textureGamma, *materialData);
+        materialData->setChannel(LuxCarPaintData::R1,
+                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R1))));
+        materialData->setChannel(LuxCarPaintData::M1,
+                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_M1))));
       }
+      if (data->GetBool(IDD_TOGGLE_CARPAINT_SPECULAR2)) {
+        getColorChannel(LuxCarPaintData::SPECULAR_2, 0,
+                        IDD_CARPAINT_SPECULAR_COLOR2,
+                        IDD_CARPAINT_SPECULAR_SHADER2,
+                        IDD_CARPAINT_SPECULAR_SHADER_STRENGTH2,
+                        IDD_CARPAINT_SPECULAR_BRIGHTNESS2,
+                        *data, mapping, textureGamma, *materialData);
+        materialData->setChannel(LuxCarPaintData::R2,
+                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R2))));
+        materialData->setChannel(LuxCarPaintData::M2,
+                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_M2))));
+      }
+      if (data->GetBool(IDD_TOGGLE_CARPAINT_SPECULAR3)) {
+        getColorChannel(LuxCarPaintData::SPECULAR_3, 0,
+                        IDD_CARPAINT_SPECULAR_COLOR3,
+                        IDD_CARPAINT_SPECULAR_SHADER3,
+                        IDD_CARPAINT_SPECULAR_SHADER_STRENGTH3,
+                        IDD_CARPAINT_SPECULAR_BRIGHTNESS3,
+                        *data, mapping, textureGamma, *materialData);
+        materialData->setChannel(LuxCarPaintData::R3,
+                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R3))));
+        materialData->setChannel(LuxCarPaintData::M3,
+                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_M3))));
+      }
+      getColorChannel(LuxCarPaintData::ABSORPTION,
+                      IDD_TOGGLE_COATING_ABSORPTION,
+                      IDD_COATING_ABSORPTION_COLOR,
+                      IDD_COATING_ABSORPTION_SHADER,
+                      IDD_COATING_ABSORPTION_SHADER_STRENGTH,
+                      IDD_COATING_ABSORPTION_STRENGTH,
+                      *data, mapping, textureGamma, *materialData);
+      getFloatChannel(LuxCarPaintData::ABSORPTION_DEPTH,
+                      IDD_TOGGLE_COATING_ABSORPTION,
+                      IDD_COATING_ABSORPTION_DEPTH_VALUE,
+                      IDD_COATING_ABSORPTION_DEPTH_SHADER,
+                      *data, mapping, *materialData);
+      break;
+    default:
+      return materialData;
   }
-  
-  return LuxMaterialDataH();
+
+  // get bump channel
+  getBumpChannel(*data, mapping, *materialData, c4d2LuxScale);
+
+  // get emission channel
+  getEmissionChannel(*data, mapping, textureGamma, *materialData);
+
+  return materialData;
 }
 
 
@@ -492,5 +645,183 @@ void LuxC4DMaterial::toggleChannel(LONG           channelToggleId,
   } else {
     showParameter(description, channelToggleId, params, TRUE);
     showParameter(description, channelGroupId,  params, data->GetBool(channelToggleId));
+  }
+}
+
+
+LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&        data,
+                                                     LONG                  shaderId,
+                                                     LuxTextureType        textureType,
+                                                     const TextureMapping& mapping,
+                                                     LuxFloat              textureGamma) const
+{
+  // at the moment we support only the bitmap shader ...
+
+  // get the link to the shader
+  GeListNode* listNode = Get();
+  if (!listNode) { return LuxTextureDataH(); }
+  BaseDocument* doc = listNode->GetDocument();
+  if (!doc) { return LuxTextureDataH(); }
+  BaseList2D* shaderLink = data.GetLink(shaderId, doc, Xbitmap);
+  if (!shaderLink) { return LuxTextureDataH(); }
+
+  // now create an imagemap texture out of it
+  Filename bitmapPath = getParameterFilename(*shaderLink, BITMAPSHADER_FILENAME);
+  Filename fullBitmapPath;
+  GenerateTexturePath(doc->GetDocumentPath(),
+                      bitmapPath,
+                      Filename(),
+                      &fullBitmapPath);
+  return gNewNC LuxImageMapData(textureType,
+                                mapping,
+                                fullBitmapPath,
+                                textureGamma);
+}
+
+
+LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG                  toggleId,
+                                                LONG                  colorId,
+                                                LONG                  shaderId,
+                                                LONG                  shaderStrengthId,
+                                                LONG                  brightnessId,
+                                                BaseContainer&        data,
+                                                const TextureMapping& mapping,
+                                                LuxFloat              textureGamma) const
+{
+  if (toggleId && !data.GetBool(toggleId)) { return LuxTextureDataH(); }
+
+  Real shaderStrength = shaderStrengthId ? data.GetReal(shaderStrengthId, 1.0) : 1.0;
+
+  LuxTextureDataH unscaledTexture;
+  if (shaderStrength < 0.0001) {
+    unscaledTexture = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)));
+  } else {
+    unscaledTexture = getTextureFromShader(data, shaderId, LUX_COLOR_TEXTURE, mapping, textureGamma);
+    if (!unscaledTexture) {
+      unscaledTexture = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)));
+    } else if (shaderStrength < 0.9999) {
+      LuxMixTextureDataH mixedTexture = gNewNC LuxMixTextureData(LUX_COLOR_TEXTURE);
+      mixedTexture->mTexture1 = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)));
+      mixedTexture->mTexture2 = unscaledTexture;
+      mixedTexture->mAmount = shaderStrength;
+      unscaledTexture = mixedTexture;
+    }
+  }
+
+  Real brightness = brightnessId ? data.GetReal(brightnessId, 1.0) : 1.0;
+  if (abs(brightness-1.0) > 0.0001) {
+    LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_COLOR_TEXTURE);
+    scaledTexture->mTexture1 = unscaledTexture;
+    scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(LuxColor(brightness));
+    return scaledTexture;
+  } else {
+    return unscaledTexture;
+  }
+}
+
+
+void LuxC4DMaterial::getColorChannel(ULONG                 channelId,
+                                     LONG                  toggleId,
+                                     LONG                  colorId,
+                                     LONG                  shaderId,
+                                     LONG                  shaderStrengthId,
+                                     LONG                  brightnessId,
+                                     BaseContainer&        data,
+                                     const TextureMapping& mapping,
+                                     LuxFloat              textureGamma,
+                                     LuxMaterialData&      materialData) const
+{
+  LuxTextureDataH texture = getColorTexture(toggleId,
+                                            colorId,
+                                            shaderId,
+                                            shaderStrengthId,
+                                            brightnessId,
+                                            data,
+                                            mapping,
+                                            textureGamma);
+  if (texture) {
+    materialData.setChannel(channelId, texture);
+  }
+}
+
+
+LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                  toggleId,
+                                                LONG                  valueId,
+                                                LONG                  shaderId,
+                                                BaseContainer&        data,
+                                                const TextureMapping& mapping,
+                                                LReal                  scaleFactor) const
+{
+  if (toggleId && !data.GetBool(toggleId)) { return LuxTextureDataH(); }
+
+  Real value = scaleFactor * data.GetReal(valueId);
+  if (value == 0.0) { return LuxTextureDataH(); }
+
+  LuxTextureDataH valueTexture = gNewNC LuxConstantTextureData(value);
+  LuxTextureDataH shaderTexture = getTextureFromShader(data,
+                                                       shaderId,
+                                                       LUX_FLOAT_TEXTURE,
+                                                       mapping,
+                                                       1.0);
+  if (shaderTexture) {
+    LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_FLOAT_TEXTURE);
+    scaledTexture->mTexture1 = shaderTexture;
+    scaledTexture->mTexture2 = valueTexture;
+    return scaledTexture;
+  } else {
+    return valueTexture;
+  }
+}
+
+
+void LuxC4DMaterial::getFloatChannel(ULONG                 channelId,
+                                     LONG                  toggleId,
+                                     LONG                  valueId,
+                                     LONG                  shaderId,
+                                     BaseContainer&        data,
+                                     const TextureMapping& mapping,
+                                     LuxMaterialData&      materialData,
+                                     LReal                  scaleFactor) const
+{
+  LuxTextureDataH texture = getFloatTexture(toggleId,
+                                            valueId,
+                                            shaderId,
+                                            data,
+                                            mapping,
+                                            scaleFactor);
+  if (texture) {
+    materialData.setChannel(channelId, texture);
+  }
+}
+
+
+void LuxC4DMaterial::getBumpChannel(BaseContainer&        data,
+                                    const TextureMapping& mapping,
+                                    LuxMaterialData&      materialData,
+                                    LReal                 scaleFactor) const
+{
+  LuxTextureDataH texture = getFloatTexture(IDD_TOGGLE_BUMP,
+                                            IDD_BUMP_HEIGHT,
+                                            IDD_BUMP_SHADER,
+                                            data, mapping, scaleFactor);
+  if (texture && !texture->isConstant()) {
+    materialData.setBumpChannel(texture);
+  }
+}
+
+
+void LuxC4DMaterial::getEmissionChannel(BaseContainer&        data,
+                                        const TextureMapping& mapping,
+                                        LuxFloat              textureGamma,
+                                        LuxMaterialData&      materialData) const
+{
+  LuxTextureDataH texture = getColorTexture(IDD_TOGGLE_EMISSION,
+                                            IDD_EMISSION_COLOR,
+                                            IDD_EMISSION_SHADER,
+                                            IDD_EMISSION_SHADER_STRENGTH,
+                                            IDD_EMISSION_BRIGHTNESS,
+                                            data, mapping, textureGamma);
+  if (texture) {
+    materialData.setEmissionChannel(texture);
   }
 }
