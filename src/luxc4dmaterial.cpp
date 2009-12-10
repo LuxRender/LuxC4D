@@ -709,7 +709,7 @@ LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG                  toggleId,
   }
 
   Real brightness = brightnessId ? data.GetReal(brightnessId, 1.0) : 1.0;
-  if (abs(brightness-1.0) > 0.0001) {
+  if (fabsf(brightness-1.0) > 0.0001) {
     LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_COLOR_TEXTURE);
     scaledTexture->mTexture1 = unscaledTexture;
     scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(LuxColor(brightness));

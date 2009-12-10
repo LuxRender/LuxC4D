@@ -55,6 +55,9 @@
 		B275CAAB10A9F2C600C9DF77 /* dlist.h in Headers */ = {isa = PBXBuildFile; fileRef = B275CAA910A9F2C600C9DF77 /* dlist.h */; };
 		B27EF62010AC9855009B607E /* filepath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B27EF61E10AC9855009B607E /* filepath.cpp */; };
 		B27EF62110AC9855009B607E /* filepath.h in Headers */ = {isa = PBXBuildFile; fileRef = B27EF61F10AC9855009B607E /* filepath.h */; };
+		B27F57E210D17726008C24D3 /* luxc4dmaterial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B27F57E010D17726008C24D3 /* luxc4dmaterial.cpp */; };
+		B27F57E310D17726008C24D3 /* luxc4dmaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = B27F57E110D17726008C24D3 /* luxc4dmaterial.h */; };
+		B27F57E810D1774B008C24D3 /* mluxc4dmaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = B27F57E610D1774B008C24D3 /* mluxc4dmaterial.h */; };
 		B28A7000109F691700AE738C /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B28A6FFF109F691700AE738C /* CoreFoundation.framework */; };
 /* End PBXBuildFile section */
 
@@ -136,6 +139,11 @@
 		B275CAA910A9F2C600C9DF77 /* dlist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dlist.h; sourceTree = "<group>"; };
 		B27EF61E10AC9855009B607E /* filepath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = filepath.cpp; sourceTree = "<group>"; };
 		B27EF61F10AC9855009B607E /* filepath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = filepath.h; sourceTree = "<group>"; };
+		B27F57E010D17726008C24D3 /* luxc4dmaterial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = luxc4dmaterial.cpp; sourceTree = "<group>"; };
+		B27F57E110D17726008C24D3 /* luxc4dmaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = luxc4dmaterial.h; sourceTree = "<group>"; };
+		B27F57E610D1774B008C24D3 /* mluxc4dmaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mluxc4dmaterial.h; path = description/mluxc4dmaterial.h; sourceTree = "<group>"; };
+		B27F57E710D1774B008C24D3 /* mluxc4dmaterial.res */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = mluxc4dmaterial.res; path = description/mluxc4dmaterial.res; sourceTree = "<group>"; };
+		B27F57E910D1775C008C24D3 /* mluxc4dmaterial.str */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = mluxc4dmaterial.str; path = description/mluxc4dmaterial.str; sourceTree = "<group>"; };
 		B28A6FFF109F691700AE738C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
@@ -191,6 +199,8 @@
 				2CCB77CE0E6C174600D45D8E /* luxc4dinit.cpp */,
 				2CE79AB90EBF7F9600995C2F /* luxc4dlighttag.cpp */,
 				2CE79ABA0EBF7F9600995C2F /* luxc4dlighttag.h */,
+				B27F57E010D17726008C24D3 /* luxc4dmaterial.cpp */,
+				B27F57E110D17726008C24D3 /* luxc4dmaterial.h */,
 				2C46BEC110186E6100CC2CB9 /* luxc4dportaltag.cpp */,
 				2C46BEC210186E6100CC2CB9 /* luxc4dportaltag.h */,
 				2CE79ABB0EBF7F9600995C2F /* luxc4dpreferences.cpp */,
@@ -231,6 +241,7 @@
 		2CCB77E40E6C176700D45D8E /* strings_us */ = {
 			isa = PBXGroup;
 			children = (
+				B27F57E910D1775C008C24D3 /* mluxc4dmaterial.str */,
 				2CCB77E50E6C176700D45D8E /* c4d_strings.str */,
 				2CE79ACC0EBF802600995C2F /* dlg_luxc4d_preferences.str */,
 				2C2884D90FDC4F5A00E93447 /* tluxc4dcameratag.str */,
@@ -244,6 +255,8 @@
 		2CE1C1DC0EABB63200AF4D13 /* description */ = {
 			isa = PBXGroup;
 			children = (
+				B27F57E610D1774B008C24D3 /* mluxc4dmaterial.h */,
+				B27F57E710D1774B008C24D3 /* mluxc4dmaterial.res */,
 				2C2884D60FDC4F3F00E93447 /* tluxc4dcameratag.h */,
 				2C2884D70FDC4F3F00E93447 /* tluxc4dcameratag.res */,
 				2CE79AC60EBF7FCF00995C2F /* tluxc4dlighttag.h */,
@@ -314,6 +327,8 @@
 				B275CAAA10A9F2C600C9DF77 /* dlist_impl.h in Headers */,
 				B275CAAB10A9F2C600C9DF77 /* dlist.h in Headers */,
 				B27EF62110AC9855009B607E /* filepath.h in Headers */,
+				B27F57E310D17726008C24D3 /* luxc4dmaterial.h in Headers */,
+				B27F57E810D1774B008C24D3 /* mluxc4dmaterial.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,6 +408,7 @@
 				2C2884D40FDC4F1D00E93447 /* luxc4dcameratag.cpp in Sources */,
 				2C46BEC310186E6100CC2CB9 /* luxc4dportaltag.cpp in Sources */,
 				B27EF62010AC9855009B607E /* filepath.cpp in Sources */,
+				B27F57E210D17726008C24D3 /* luxc4dmaterial.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
