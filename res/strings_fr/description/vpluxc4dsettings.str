@@ -25,7 +25,7 @@
 
 STRINGTABLE VPluxc4dsettings
 {
-  VPluxc4dsettings "Réglages LuxC4D";
+  VPluxc4dsettings "Exporteur LuxC4D";
 
   IDG_RENDER                          "Rendu";
 
@@ -139,7 +139,7 @@ STRINGTABLE VPluxc4dsettings
     IDD_TRIANGLE_FILTER_HEIGHT          "Hauteur";
 
 
-    IDG_ACCELERATION                    "Accélération";
+    IDG_ACCELERATION                    "ACCELERATION";
     IDD_ACCELERATION_TYPE               "Structure des données";
     IDD_ACCELERATION_ADVANCED           "Réglages avancés";
 
