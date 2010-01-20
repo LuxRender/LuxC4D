@@ -85,6 +85,7 @@ private:
 
   LONG mUpdateCount;
 
+
   BaseContainer* getData(void);
   void toggleChannel(LONG           channelToggleId,
                      LONG           channelGroupId,
@@ -144,6 +145,9 @@ private:
                           const TextureMapping& mapping,
                           LuxFloat              textureGamma,
                           LuxMaterialData&      materialData) const;
+
+  void setCarpaintPreset(BaseContainer& data,
+                         LONG           preset);
 };
 
 

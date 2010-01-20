@@ -75,6 +75,7 @@ Bool LuxC4DMaterial::Init(GeListNode* node)
   data->SetBool  (IDD_TOGGLE_CARPAINT_SPECULAR3,          TRUE);
   data->SetBool  (IDD_TOGGLE_TRANSMISSION,                TRUE);
   data->SetLong  (IDD_METAL_TYPE,                         IDD_METAL_TYPE_ALUMINIUM);
+  data->SetLong  (IDD_CARPAINT_TYPE,                      IDD_CARPAINT_TYPE_CUSTOM);
   data->SetVector(IDD_DIFFUSE_COLOR,                      Vector(0.8));
   data->SetReal  (IDD_DIFFUSE_SHADER_STRENGTH,            1.0);
   data->SetReal  (IDD_DIFFUSE_BRIGHTNESS,                 1.0);
@@ -162,6 +163,7 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
   switch (materialType) {
     case IDD_MATERIAL_TYPE_GLASS:
       showParameter(description, IDG_METAL,                      params, FALSE);
+      showParameter(description, IDG_CARPAINT,                   params, FALSE);
       showParameter(description, IDG_IOR,                        params, TRUE);
       showParameter(description, IDD_TRANSMISSION_ARCHITECTURAL, params, TRUE);
       showParameter(description, IDD_TRANSMISSION_CAUCHYB,       params, TRUE);
@@ -178,6 +180,7 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       break;
     case IDD_MATERIAL_TYPE_ROUGH_GLASS:
       showParameter(description, IDG_METAL,                      params, FALSE);
+      showParameter(description, IDG_CARPAINT,                   params, FALSE);
       showParameter(description, IDG_IOR,                        params, TRUE);
       showParameter(description, IDD_TRANSMISSION_ARCHITECTURAL, params, FALSE);
       showParameter(description, IDD_TRANSMISSION_CAUCHYB,       params, TRUE);
@@ -194,6 +197,7 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       break;
     case IDD_MATERIAL_TYPE_GLOSSY:
       showParameter(description, IDG_METAL,         params, FALSE);
+      showParameter(description, IDG_CARPAINT,      params, FALSE);
       showParameter(description, IDG_DIFFUSE_SIGMA, params, FALSE);
       showParameter(description, IDG_SPECULAR_IOR,  params, TRUE);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            TRUE,  data, description, params);
@@ -209,6 +213,7 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       break;
     case IDD_MATERIAL_TYPE_MATTE:
       showParameter(description, IDG_METAL,         params, FALSE);
+      showParameter(description, IDG_CARPAINT,      params, FALSE);
       showParameter(description, IDG_DIFFUSE_SIGMA, params, TRUE);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         FALSE, data, description, params);
@@ -223,6 +228,7 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       break;
     case IDD_MATERIAL_TYPE_MATTE_TRANSLUCENT:
       showParameter(description, IDG_METAL,                      params, FALSE);
+      showParameter(description, IDG_CARPAINT,                   params, FALSE);
       showParameter(description, IDG_DIFFUSE_SIGMA,              params, TRUE);
       showParameter(description, IDG_IOR,                        params, FALSE);
       showParameter(description, IDD_TRANSMISSION_ARCHITECTURAL, params, FALSE);
@@ -239,7 +245,8 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          FALSE, data, description, params);
       break;
     case IDD_MATERIAL_TYPE_METAL:
-      showParameter(description, IDG_METAL, params, TRUE);
+      showParameter(description, IDG_METAL,    params, TRUE);
+      showParameter(description, IDG_CARPAINT, params, FALSE);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_SPECULAR,           IDG_SPECULAR,           FALSE, data, description, params);
@@ -253,6 +260,7 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       break;
     case IDD_MATERIAL_TYPE_SHINY_METAL:
       showParameter(description, IDG_METAL,        params, FALSE);
+      showParameter(description, IDG_CARPAINT,     params, FALSE);
       showParameter(description, IDG_SPECULAR_IOR, params, FALSE);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         TRUE,  data, description, params);
@@ -267,6 +275,7 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       break;
     case IDD_MATERIAL_TYPE_MIRROR:
       showParameter(description, IDG_METAL,        params, FALSE);
+      showParameter(description, IDG_CARPAINT,     params, FALSE);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            FALSE, data, description, params);
       toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_SPECULAR,           IDG_SPECULAR,           FALSE, data, description, params);
@@ -279,7 +288,8 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
       toggleChannel(IDD_TOGGLE_THIN_FILM,          IDG_THIN_FILM,          TRUE,  data, description, params);
       break;
     case IDD_MATERIAL_TYPE_CAR_PAINT:
-      showParameter(description, IDG_METAL, params, FALSE);
+      showParameter(description, IDG_METAL,         params, FALSE);
+      showParameter(description, IDG_CARPAINT,      params, TRUE);
       showParameter(description, IDG_DIFFUSE_SIGMA, params, FALSE);
       toggleChannel(IDD_TOGGLE_DIFFUSE,            IDG_DIFFUSE,            TRUE,  data, description, params);
       toggleChannel(IDD_TOGGLE_REFLECTION,         IDG_REFLECTION,         FALSE, data, description, params);
@@ -343,6 +353,43 @@ Bool LuxC4DMaterial::SetDParameter(GeListNode*   node,
     case MATERIAL_PREVIEW:
       // send data to material preview
       return SetDParameterPreview(data, &value, flags, MATERIAL_PREVIEW);
+
+    // detect a switch of the carpaint type
+    case IDD_CARPAINT_TYPE:
+      setCarpaintPreset(*data, value.GetLong());
+      break;
+
+    // detect any changes to the carpaint settings and switch to "Custom", when
+    // that happens
+    case IDD_TOGGLE_DIFFUSE:
+    case IDD_TOGGLE_CARPAINT_SPECULAR1:
+    case IDD_TOGGLE_CARPAINT_SPECULAR2:
+    case IDD_TOGGLE_CARPAINT_SPECULAR3:
+    case IDD_TOGGLE_COATING_ABSORPTION:
+    case IDD_DIFFUSE_COLOR:
+    case IDD_DIFFUSE_SHADER_STRENGTH:
+    case IDD_DIFFUSE_SHADER:
+    case IDD_DIFFUSE_BRIGHTNESS:
+    case IDD_CARPAINT_SPECULAR_COLOR1:
+    case IDD_CARPAINT_SPECULAR_SHADER_STRENGTH1:
+    case IDD_CARPAINT_SPECULAR_SHADER1:
+    case IDD_CARPAINT_SPECULAR_BRIGHTNESS1:
+    case IDD_CARPAINT_R1:
+    case IDD_CARPAINT_M1:
+    case IDD_CARPAINT_SPECULAR_COLOR2:
+    case IDD_CARPAINT_SPECULAR_SHADER_STRENGTH2:
+    case IDD_CARPAINT_SPECULAR_SHADER2:
+    case IDD_CARPAINT_SPECULAR_BRIGHTNESS2:
+    case IDD_CARPAINT_R2:
+    case IDD_CARPAINT_M2:
+    case IDD_CARPAINT_SPECULAR_COLOR3:
+    case IDD_CARPAINT_SPECULAR_SHADER_STRENGTH3:
+    case IDD_CARPAINT_SPECULAR_SHADER3:
+    case IDD_CARPAINT_SPECULAR_BRIGHTNESS3:
+    case IDD_CARPAINT_R3:
+    case IDD_CARPAINT_M3:
+      data->SetLong(IDD_CARPAINT_TYPE, IDD_CARPAINT_TYPE_CUSTOM);
+      break;
   }
 
   return SUPER::SetDParameter(node, id, value, flags);
@@ -1096,4 +1143,91 @@ void LuxC4DMaterial::getEmissionChannel(BaseContainer&        data,
   if (texture) {
     materialData.setEmissionChannel(texture);
   }
+}
+
+
+void LuxC4DMaterial::setCarpaintPreset(BaseContainer& data,
+                                       LONG           presetId)
+{
+  static const struct CarpaintPreset {
+      Vector mDiffuseColour;
+      Real   mDiffuseBrightness;
+      Vector mSpecularColour1;
+      Real   mSpecularBrightness1;
+      Real   mSpecularR1;
+      Real   mSpecularM1;
+      Vector mSpecularColour2;
+      Real   mSpecularBrightness2;
+      Real   mSpecularR2;
+      Real   mSpecularM2;
+      Vector mSpecularColour3;
+      Real   mSpecularBrightness3;
+      Real   mSpecularR3;
+      Real   mSpecularM3;
+    } cPresets[IDD_CARPAINT_TYPE_NUMBER] =  {
+                                              // IDD_CARPAINT_TYPE_BMW_339,
+                                              { Vector(0.12,  0.15,  0.16),  0.1,
+                                                Vector(0.62,  0.76,  0.8),   0.1,  0.92,  0.39,
+                                                Vector(0.11,  0.12,  0.12),  1.0,  0.87,  0.17,
+                                                Vector(0.083, 0.150, 0.16),  0.1,  0.9,   0.013 },
+                                              // IDD_CARPAINT_TYPE_FORD_F8,
+                                              { Vector(0.12,  0.15,  0.18),  0.01,
+                                                Vector(0.049, 0.076, 0.12),  0.1,  0.15,  0.32,
+                                                Vector(0.1,   0.13,  0.18),  0.1,  0.087, 0.11,
+                                                Vector(0.7,   0.65,  0.77),  0.01, 0.9,   0.013 },
+                                              // IDD_CARPAINT_TYPE_OPEL_TITAN,
+                                              { Vector(0.11,  0.13,  0.15),  0.1,
+                                                Vector(0.57,  0.66,  0.78),  0.1,  0.85,  0.38,
+                                                Vector(0.11,  0.12,  0.13),  1.0,  0.86,  0.17,
+                                                Vector(0.095, 0.14,  0.16),  0.1,  0.9,   0.014 },
+                                              // IDD_CARPAINT_TYPE_POLARIS_SILVER,
+                                              { Vector(0.55,  0.63,  0.71),  0.1,
+                                                Vector(0.65,  0.82,  0.88),  0.1,  1.0,   0.38,
+                                                Vector(0.11,  0.11,  0.13),  1.0,  0.92,  0.17,
+                                                Vector(0.08,  0.13,  0.15),  0.1,  0.9,   0.013 },
+                                              // IDD_CARPAINT_TYPE_2K_ACRYLIC_PAINT,
+                                              { Vector(0.42,  0.32,  0.1),   1.0,
+                                                Vector(0.0,   0.0,   0.0),   1.0,  1.0,   0.88,
+                                                Vector(0.28,  0.26,  0.06),  0.1,  0.9,   0.8,
+                                                Vector(0.17,  0.075, 0.041), 0.1,  0.17,  0.015 },
+                                              // IDD_CARPAINT_TYPE_BLUE,
+                                              { Vector(0.0079, 0.023, 0.1),  1.0,
+                                                Vector(0.11,  0.15,  0.19),  0.01,  1.0,   0.15,
+                                                Vector(0.25,  0.3,   0.43),  0.1,   0.94,  0.43,
+                                                Vector(0.59,  0.74,  0.82),  0.1,   0.17,  0.02 },
+                                              // IDD_CARPAINT_TYPE_BLUE_MATTE,
+                                              { Vector(0.0099, 0.036, 0.12), 1.0,
+                                                Vector(0.32,   0.45,  0.59), 0.01,  1.0,   0.16,
+                                                Vector(0.18,   0.23,  0.28), 1.0,   0.046, 0.075,
+                                                Vector(0.4,    0.49,  0.51), 0.1,   0.17,  0.034 },
+                                              // IDD_CARPAINT_TYPE_WHITE,
+                                              { Vector(0.61,   0.63,  0.55), 1.0,
+                                                Vector(0.00026, 0.031, 0.0000031), 0.01, 0.094, 1.0,
+                                                Vector(0.13,   0.11,  0.083), 0.1,  0.45,  0.15,
+                                                Vector(0.49,   0.42,  0.37), 0.1,   0.17,  0.015 }
+                                            };
+
+  if ((presetId<=IDD_CARPAINT_TYPE_CUSTOM) || (presetId>=IDD_CARPAINT_TYPE_NUMBER)) {
+    presetId = IDD_CARPAINT_TYPE_FORD_F8;
+  }
+  const struct CarpaintPreset& preset(cPresets[presetId]);
+  data.SetVector(IDD_DIFFUSE_COLOR,                      preset.mDiffuseColour);
+  data.SetReal  (IDD_DIFFUSE_SHADER_STRENGTH,            0.0);
+  data.SetReal  (IDD_DIFFUSE_BRIGHTNESS,                 preset.mDiffuseBrightness);
+  data.SetVector(IDD_CARPAINT_SPECULAR_COLOR1,           preset.mSpecularColour1);
+  data.SetReal  (IDD_CARPAINT_SPECULAR_SHADER_STRENGTH1, 0.0);
+  data.SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS1,      preset.mSpecularBrightness1);
+  data.SetReal  (IDD_CARPAINT_R1,                        preset.mSpecularR1);
+  data.SetReal  (IDD_CARPAINT_M1,                        preset.mSpecularM1);
+  data.SetVector(IDD_CARPAINT_SPECULAR_COLOR2,           preset.mSpecularColour2);
+  data.SetReal  (IDD_CARPAINT_SPECULAR_SHADER_STRENGTH2, 0.0);
+  data.SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS2,      preset.mSpecularBrightness2);
+  data.SetReal  (IDD_CARPAINT_R2,                        preset.mSpecularR2);
+  data.SetReal  (IDD_CARPAINT_M2,                        preset.mSpecularM2);
+  data.SetVector(IDD_CARPAINT_SPECULAR_COLOR3,           preset.mSpecularColour3);
+  data.SetReal  (IDD_CARPAINT_SPECULAR_SHADER_STRENGTH3, 0.0);
+  data.SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS3,      preset.mSpecularBrightness3);
+  data.SetReal  (IDD_CARPAINT_R3,                        preset.mSpecularR3);
+  data.SetReal  (IDD_CARPAINT_M3,                        preset.mSpecularM3);
+  data.SetBool  (IDD_TOGGLE_COATING_ABSORPTION,          FALSE);
 }

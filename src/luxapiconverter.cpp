@@ -1161,18 +1161,20 @@ Bool LuxAPIConverter::exportInfiniteLight(void)
   LuxColor   l(parameters.mColor);
   LuxInteger nSamples(parameters.mSamples);
   LuxString  mapName;
+  Bool       hasTexture = FALSE;
   if (parameters.mSkyTexFilename.Content()) {
     l = LuxColor(1.0);
     FilePath mapPath(parameters.mSkyTexFilename);
     mReceiver->processFilePath(mapPath);
     mapName = mapPath.getLuxString();
     mTempParamSet.addParam(LUX_STRING, "mapname", &mapName);
+    hasTexture = TRUE;
   }
 
   // if light "infinitesample" add "L" and "nsamples"
   if ((parameters.mInfiniteType == IDD_INFINITE_LIGHT_TYPE_INFINITE_IMPORTANCE) ||
       ((parameters.mInfiniteType == IDD_INFINITE_LIGHT_TYPE_AUTO) &&
-       !mPortalCount && !mIsBidirectional))
+       !mPortalCount && !mIsBidirectional && hasTexture))
   {
     l *= parameters.mBrightness * 0.05;
     mTempParamSet.addParam(LUX_COLOR,   "L",        &l);
