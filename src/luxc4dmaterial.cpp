@@ -117,7 +117,7 @@ Bool LuxC4DMaterial::Init(GeListNode* node)
   data->SetReal  (IDD_ROUGHNESS_U_VALUE,                  0.1);
   data->SetReal  (IDD_ROUGHNESS_V_VALUE,                  0.1);
   data->SetReal  (IDD_THIN_FILM_THICKNESS,                500.0);
-  data->SetReal  (IDD_THIN_FILM_IOR,                      1.5);
+  data->SetReal  (IDD_THIN_FILM_IOR,                      1.23);
   data->SetReal  (IDD_BUMP_HEIGHT,                        1.0);
   data->SetVector(IDD_EMISSION_COLOR,                     Vector(1.0));
   data->SetReal  (IDD_EMISSION_SHADER_STRENGTH,           1.0);
