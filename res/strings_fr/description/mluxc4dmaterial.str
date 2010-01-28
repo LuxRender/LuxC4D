@@ -50,6 +50,7 @@ STRINGTABLE Mluxc4dmaterial
   IDD_TOGGLE_THIN_FILM          "Film teinté";
   IDD_TOGGLE_BUMP               "Relief";
   IDD_TOGGLE_EMISSION           "Emission";
+  IDD_TOGGLE_CARPAINT           "Carrosserie";
 
 
   IDG_METAL                       "Métal";
@@ -62,6 +63,19 @@ STRINGTABLE Mluxc4dmaterial
     IDD_METAL_TYPE_GOLD             "Or";
     IDD_METAL_TYPE_SILVER           "Argent";
     IDD_METAL_TYPE_NK_FILE          "Fichier de données nk";
+
+  IDG_CARPAINT                        "Carrosserie";
+  IDD_CARPAINT_TYPE                   "Type";
+
+    IDD_CARPAINT_TYPE_CUSTOM            "Personnalisée";
+    IDD_CARPAINT_TYPE_BMW_339           "BMW 339";
+    IDD_CARPAINT_TYPE_FORD_F8           "Ford F8";
+    IDD_CARPAINT_TYPE_OPEL_TITAN        "Opel Titan";
+    IDD_CARPAINT_TYPE_POLARIS_SILVER    "Argent polaire";
+    IDD_CARPAINT_TYPE_2K_ACRYLIC_PAINT  "Peinture acrylique 2K";
+    IDD_CARPAINT_TYPE_BLUE              "Bleu";
+    IDD_CARPAINT_TYPE_BLUE_MATTE        "Bleu mat";
+    IDD_CARPAINT_TYPE_WHITE             "Blanc";
 
   IDG_DIFFUSE                 "Diffusion";
   IDD_DIFFUSE_COLOR           "Couleur";
