@@ -66,14 +66,19 @@ Bool LuxC4DMaterial::Init(GeListNode* node)
   if (!data)  return FALSE;
 
   data->SetLong  (IDD_MATERIAL_TYPE,                      IDD_MATERIAL_TYPE_MATTE);
-  data->SetBool  (IDD_TOGGLE_METAL,                       TRUE);
   data->SetBool  (IDD_TOGGLE_DIFFUSE,                     TRUE);
   data->SetBool  (IDD_TOGGLE_REFLECTION,                  TRUE);
   data->SetBool  (IDD_TOGGLE_SPECULAR,                    TRUE);
   data->SetBool  (IDD_TOGGLE_CARPAINT_SPECULAR1,          TRUE);
   data->SetBool  (IDD_TOGGLE_CARPAINT_SPECULAR2,          TRUE);
   data->SetBool  (IDD_TOGGLE_CARPAINT_SPECULAR3,          TRUE);
+  data->SetBool  (IDD_TOGGLE_COATING_ABSORPTION,          FALSE);
   data->SetBool  (IDD_TOGGLE_TRANSMISSION,                TRUE);
+  data->SetBool  (IDD_TOGGLE_ROUGHNESS,                   FALSE);
+  data->SetBool  (IDD_TOGGLE_THIN_FILM,                   FALSE);
+  data->SetBool  (IDD_TOGGLE_BUMP,                        FALSE);
+  data->SetBool  (IDD_TOGGLE_EMISSION,                    FALSE);
+  data->SetBool  (IDD_TOGGLE_ALPHA,                       FALSE);
   data->SetLong  (IDD_METAL_TYPE,                         IDD_METAL_TYPE_ALUMINIUM);
   data->SetLong  (IDD_CARPAINT_TYPE,                      IDD_CARPAINT_TYPE_CUSTOM);
   data->SetVector(IDD_DIFFUSE_COLOR,                      Vector(0.8));
@@ -122,6 +127,7 @@ Bool LuxC4DMaterial::Init(GeListNode* node)
   data->SetVector(IDD_EMISSION_COLOR,                     Vector(1.0));
   data->SetReal  (IDD_EMISSION_SHADER_STRENGTH,           1.0);
   data->SetReal  (IDD_EMISSION_BRIGHTNESS,                1.0);
+  data->SetReal  (IDD_ALPHA_VALUE,                        1.0);
 
   return TRUE;
 }
@@ -155,8 +161,9 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
   showParameter(description, IDG_ROUGHNESS_ASYM, params, asymetricRoughness);
 
   // bump and emission channels are available for all materials
-  toggleChannel(IDD_TOGGLE_BUMP,     IDG_BUMP,               TRUE,  data, description, params);
-  toggleChannel(IDD_TOGGLE_EMISSION, IDG_EMISSION,           TRUE,  data, description, params);
+  toggleChannel(IDD_TOGGLE_BUMP,     IDG_BUMP,     TRUE,  data, description, params);
+  toggleChannel(IDD_TOGGLE_EMISSION, IDG_EMISSION, TRUE,  data, description, params);
+  toggleChannel(IDD_TOGGLE_ALPHA,    IDG_ALPHA,    TRUE,  data, description, params);
 
   // get material type and enable channels depending on it
   LONG materialType = data->GetLong(IDD_MATERIAL_TYPE);
@@ -926,6 +933,9 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
   // get emission channel
   getEmissionChannel(*data, mapping, textureGamma, *materialData);
 
+  // get alpha channel
+  getAlphaChannel(*data, mapping, *materialData);
+
   return materialData;
 }
 
@@ -950,7 +960,25 @@ BaseContainer* LuxC4DMaterial::getData(void)
 }
 
 
+/// If a channel is disabled, neither toggle nor channel group will be visible
+/// or accessible. If a channel is enabled, the toggle is visible and if enabled
+/// the channel group will become visible, too.
 ///
+/// @param[in]  channelToggleId
+///   Resource ID of channel toggle.
+/// @param[in]  channelGroupId
+///   Resource ID of channel group.
+/// @param[in]  enabled
+///   If set to FALSE, toggle and group will be hidden. If set to TRUE, toggle
+///   will be visible and channel group might be visible, depending on the
+///   toggle state.
+/// @param[in]  data
+///   Pointer to the container of the material node (must not be NULL).
+/// @param[in]  description
+///   Pointer to the description of the material node (must not be NULL).
+/// @param[in]  params
+///   Pointer to the atom array that stores the description parameters (must
+///   not be NULL).
 void LuxC4DMaterial::toggleChannel(LONG           channelToggleId,
                                    LONG           channelGroupId,
                                    Bool           enabled,
@@ -968,6 +996,21 @@ void LuxC4DMaterial::toggleChannel(LONG           channelToggleId,
 }
 
 
+/// Returns a texture data object that stores the settings of a shader.
+///
+/// @param[in]  data
+///   The data container of the material node.
+/// @param[in]  shaderId
+///   The resource of the shader widget.
+/// @param[in]  textureType
+///   LUX_FLOAT_TEXTURE if the texture should be monochrome and LUX_COLOR_TEXTURE
+///   if it's a colour texture.
+/// @param[in]  mapping
+///   The mapping of the texture (mapping is stored per texture).
+/// @param[in]  textureGamma
+///   The gamma that shall be applied to the texture (1.0 means no gamma).
+/// @return
+///   A handle that references the texture data object.
 LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&        data,
                                                      LONG                  shaderId,
                                                      LuxTextureType        textureType,
@@ -998,6 +1041,7 @@ LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&        data,
 }
 
 
+///
 LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG                  toggleId,
                                                 LONG                  colorId,
                                                 LONG                  shaderId,
@@ -1039,6 +1083,7 @@ LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG                  toggleId,
 }
 
 
+///
 void LuxC4DMaterial::getColorChannel(ULONG                 channelId,
                                      LONG                  toggleId,
                                      LONG                  colorId,
@@ -1064,6 +1109,7 @@ void LuxC4DMaterial::getColorChannel(ULONG                 channelId,
 }
 
 
+///
 LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                  toggleId,
                                                 LONG                  valueId,
                                                 LONG                  shaderId,
@@ -1093,6 +1139,7 @@ LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                  toggleId,
 }
 
 
+///
 void LuxC4DMaterial::getFloatChannel(ULONG                 channelId,
                                      LONG                  toggleId,
                                      LONG                  valueId,
@@ -1114,6 +1161,7 @@ void LuxC4DMaterial::getFloatChannel(ULONG                 channelId,
 }
 
 
+///
 void LuxC4DMaterial::getBumpChannel(BaseContainer&        data,
                                     const TextureMapping& mapping,
                                     LuxMaterialData&      materialData,
@@ -1129,6 +1177,7 @@ void LuxC4DMaterial::getBumpChannel(BaseContainer&        data,
 }
 
 
+///
 void LuxC4DMaterial::getEmissionChannel(BaseContainer&        data,
                                         const TextureMapping& mapping,
                                         LuxFloat              textureGamma,
@@ -1146,6 +1195,22 @@ void LuxC4DMaterial::getEmissionChannel(BaseContainer&        data,
 }
 
 
+///
+void LuxC4DMaterial::getAlphaChannel(BaseContainer&        data,
+                                     const TextureMapping& mapping,
+                                     LuxMaterialData&      materialData) const
+{
+  LuxTextureDataH texture = getFloatTexture(IDD_TOGGLE_ALPHA,
+                                            IDD_BUMP_HEIGHT,
+                                            IDD_BUMP_SHADER,
+                                            data, mapping);
+  if (texture && (!texture->isConstant() || texture->constantFloat() != 1.0)) {
+    materialData.setAlphaChannel(texture);
+  }
+}
+
+
+///
 void LuxC4DMaterial::setCarpaintPreset(BaseContainer& data,
                                        LONG           presetId)
 {

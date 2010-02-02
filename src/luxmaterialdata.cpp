@@ -87,7 +87,7 @@ Bool LuxMaterialData::setChannel(ULONG           channelId,
 }
 
 
-/// Stores a texture in a material channel and activates it.
+/// Stores a texture in the emission channel and activates it.
 ///
 /// @param[in]  texture
 ///   AutoRef to the texture to store in the emission channel (texture type
@@ -121,6 +121,13 @@ Bool LuxMaterialData::hasEmissionChannel(void)
 }
 
 
+/// Stores a texture in the bump map channel and activates it.
+///
+/// @param[in]  texture
+///   AutoRef to the texture to store in the bump map channel (texture type
+///   must be LUX_FLOAT_TEXTURE).
+/// @return
+///   TRUE if successful, FALSE otherwise.
 Bool LuxMaterialData::setBumpChannel(LuxTextureDataH texture)
 {
   // make sure that the texture AutoRef is valid
@@ -141,6 +148,7 @@ Bool LuxMaterialData::setBumpChannel(LuxTextureDataH texture)
 }
 
 
+/// Returns TRUE if the bump channel is active.
 Bool LuxMaterialData::hasBumpChannel(void)
 {
   return mBumpChannel.mEnabled;
@@ -156,7 +164,49 @@ void LuxMaterialData::setBumpSampleDistance(LuxFloat bumpSampleDistance)
 }
 
 
+/// Stores a texture in the alpha channel and activates it.
 ///
+/// @param[in]  texture
+///   AutoRef to the texture to store in the alpha channel (texture type
+///   must be LUX_FLOAT_TEXTURE).
+/// @return
+///   TRUE if successful, FALSE otherwise.
+Bool LuxMaterialData::setAlphaChannel(LuxTextureDataH texture)
+{
+  // make sure that the texture AutoRef is valid
+  if (!texture) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setAlphaChannel(): no texture passed");
+  }
+
+  // make sure that the data type of the texture matches the data type of the
+  // material channel
+  if (texture->mType != LUX_FLOAT_TEXTURE) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::setAlphaChannel(): type mismatch -> can't set bump texture");
+  }
+
+  // store texture and enable channel
+  mAlphaChannel.mTexture = texture;
+  mAlphaChannel.mEnabled = TRUE;
+  return TRUE;
+}
+
+
+/// Returns TRUE if the alpha channel is active.
+Bool LuxMaterialData::hasAlphaChannel(void)
+{
+  return mAlphaChannel.mEnabled;
+}
+
+
+/// Base implementation of the interface to send the material data to th Lux API.
+///
+/// @param[in]  receiver
+///   The Lux API receiver the material will be sent to.
+/// @param[in]  name
+///   The name under which the material will be exported. It can then later be
+///   referenced by it.
+/// @return
+///   TRUE if successful, FALSE otherwise.
 Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
                                 const LuxString& name)
 {

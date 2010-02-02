@@ -119,6 +119,8 @@ public:
   Bool setBumpChannel(LuxTextureDataH texture);
   Bool hasBumpChannel(void);
   void setBumpSampleDistance(LuxFloat bumpSampleDistance);
+  Bool setAlphaChannel(LuxTextureDataH texture);
+  Bool hasAlphaChannel(void);
 
   virtual Bool sendToAPI(LuxAPI&          receiver,
                          const LuxString& name);
@@ -131,6 +133,7 @@ protected:
   LuxMaterialChannel             mEmissionChannel;
   LuxMaterialChannel             mBumpChannel;
   LuxFloat                       mBumpSampleDistance;
+  LuxMaterialChannel             mAlphaChannel;
 
   LuxMaterialData(const LuxMaterialInfo& info);
 

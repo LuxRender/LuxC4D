@@ -146,6 +146,10 @@ private:
                           LuxFloat              textureGamma,
                           LuxMaterialData&      materialData) const;
 
+  void getAlphaChannel(BaseContainer&        data,
+                       const TextureMapping& mapping,
+                       LuxMaterialData&      materialData) const;
+
   void setCarpaintPreset(BaseContainer& data,
                          LONG           preset);
 };

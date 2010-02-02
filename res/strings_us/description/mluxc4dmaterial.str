@@ -51,6 +51,7 @@ STRINGTABLE Mluxc4dmaterial
   IDD_TOGGLE_BUMP               "Bump";
   IDD_TOGGLE_EMISSION           "Emission";
   IDD_TOGGLE_CARPAINT           "Car Paint";
+  IDD_TOGGLE_ALPHA              "Alpha";
 
 
   IDG_METAL                       "Metal";
@@ -162,9 +163,9 @@ STRINGTABLE Mluxc4dmaterial
   IDD_THIN_FILM_IOR               "IOR";
   IDD_THIN_FILM_IOR_SHADER        "Scale Tex.";
   
-  IDG_BUMP                        "Bump";
-  IDD_BUMP_HEIGHT                 "Height";
-  IDD_BUMP_SHADER                 "Scale Tex.";
+  IDG_BUMP          "Bump";
+  IDD_BUMP_HEIGHT   "Height";
+  IDD_BUMP_SHADER   "Scale Tex.";
 
   IDG_EMISSION                  "Emission";
   IDD_EMISSION_COLOR            "Color";
@@ -172,4 +173,8 @@ STRINGTABLE Mluxc4dmaterial
   IDD_EMISSION_SHADER           "Texture";
   IDD_EMISSION_BRIGHTNESS       "Brightness";
 
+
+  IDG_ALPHA         "Alpha";
+  IDD_ALPHA_VALUE   "Strength";
+  IDD_ALPHA_SHADER  "Scale Tex.";
 }
