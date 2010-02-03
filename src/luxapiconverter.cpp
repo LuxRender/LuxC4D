@@ -1538,6 +1538,7 @@ Bool LuxAPIConverter::convertTextureMapping(TextureTag&     textureTag,
 
   // now we have to invert the V scale as we will do the same with the UV coordinates
   // (this is to avoid a problem in bump shading - don't ask me why ...)
+  luxTexMapping.mVShift += luxTexMapping.mVScale - 1.0;
   luxTexMapping.mVScale = -luxTexMapping.mVScale;
 
   return TRUE;

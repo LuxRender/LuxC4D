@@ -156,10 +156,24 @@ Bool LuxScaleTextureData::sendToAPI(LuxAPI&          receiver,
   GeAssert(mTexture1);
   GeAssert(mTexture2);
 
+  // make sure that the texture type is correct
   if ((mTexture1->mType != mType) || (mTexture2->mType != mType)) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxScaleTextureData::sendToAPI(): mTexture1 or mTexture2 have invalid texture type");
   }
 
+  // don't export scale texture, if one of the textures is constant 1.0
+  if (mType == LUX_FLOAT_TEXTURE) {
+    if (isConstant()) {
+      LuxConstantTextureData constantTexture(constantFloat());
+      return constantTexture.sendToAPI(receiver, name);
+    } else if (mTexture1->isConstant() && fabs(mTexture1->constantFloat()-1.0) < 0.00001) {
+      return mTexture2->sendToAPI(receiver, name);
+    } else if (mTexture2->isConstant() && fabs(mTexture2->constantFloat()-1.0) < 0.00001) {
+      return mTexture1->sendToAPI(receiver, name);
+    }
+  }
+
+  //
   LuxParamSet paramSet(2);
   LuxString texture1Name = name + ".tex1";
   LuxString texture2Name = name + ".tex2";

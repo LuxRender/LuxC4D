@@ -1201,8 +1201,8 @@ void LuxC4DMaterial::getAlphaChannel(BaseContainer&        data,
                                      LuxMaterialData&      materialData) const
 {
   LuxTextureDataH texture = getFloatTexture(IDD_TOGGLE_ALPHA,
-                                            IDD_BUMP_HEIGHT,
-                                            IDD_BUMP_SHADER,
+                                            IDD_ALPHA_VALUE,
+                                            IDD_ALPHA_SHADER,
                                             data, mapping);
   if (texture && (!texture->isConstant() || texture->constantFloat() != 1.0)) {
     materialData.setAlphaChannel(texture);

@@ -130,14 +130,14 @@ public:
   virtual const LuxFloat& constantFloat();
   virtual const LuxColor& constantColor();
 
+  virtual Bool sendToAPI(LuxAPI&          receiver,
+                         const LuxString& name);
+
 
 protected:
 
   LuxFloat mConstantFloat;
   LuxColor mConstantColor;
-
-  virtual Bool sendToAPI(LuxAPI&          receiver,
-                         const LuxString& name);
 };
 
 typedef AutoRef<LuxScaleTextureData>  LuxScaleTextureDataH;
@@ -161,14 +161,14 @@ public:
   virtual const LuxFloat& constantFloat();
   virtual const LuxColor& constantColor();
 
+  virtual Bool sendToAPI(LuxAPI&          receiver,
+                         const LuxString& name);
+
 
 protected:
 
   LuxFloat mConstantFloat;
   LuxColor mConstantColor;
-
-  virtual Bool sendToAPI(LuxAPI&          receiver,
-                         const LuxString& name);
 };
 
 typedef AutoRef<LuxMixTextureData>  LuxMixTextureDataH;
@@ -193,9 +193,6 @@ public:
   virtual const LuxFloat& constantFloat();
   virtual const LuxColor& constantColor();
 
-
-protected:
-
   virtual Bool sendToAPI(LuxAPI&          receiver,
                          const LuxString& name);
 };
@@ -219,9 +216,6 @@ public:
                   const TextureMapping& mapping,
                   const Filename&       imagePath,
                   LuxFloat              gamma = 1.0);
-
-
-protected:
 
   virtual Bool sendToAPI(LuxAPI&          receiver,
                          const LuxString& name);

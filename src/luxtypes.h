@@ -352,13 +352,19 @@ struct LuxColor
   ///
   inline LuxColor operator^(const LuxColor& other) const
   {
-    return LuxColor(c[0] * other.c[0], c[1] * other.c[1], c[2] * other.c[2]);
+    return LuxColor(c[0]*other.c[0], c[1]*other.c[1], c[2]*other.c[2]);
   }
 
   ///
   inline LuxColor operator+(const LuxColor& other) const
   {
-    return LuxColor(c[0] + other.c[0], c[1] + other.c[1], c[2] + other.c[2]);
+    return LuxColor(c[0]+other.c[0], c[1]+other.c[1], c[2]+other.c[2]);
+  }
+
+  ///
+  inline LuxColor operator-(const LuxColor& other) const
+  {
+    return LuxColor(c[0]-other.c[0], c[1]-other.c[1], c[2]-other.c[2]);
   }
 };
 
