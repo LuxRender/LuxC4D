@@ -202,7 +202,8 @@ void LuxAPIConverter::CopyTo(void* src, void* dst)
   if (src && dst) {
     ((HierarchyData*)dst)->mVisible = ((HierarchyData*)src)->mVisible;
     ((HierarchyData*)dst)->mMaterialName = ((HierarchyData*)src)->mMaterialName;
-    ((HierarchyData*)dst)->mMaterialIsEmissive = ((HierarchyData*)src)->mMaterialIsEmissive;
+    ((HierarchyData*)dst)->mHasEmissionChannel = ((HierarchyData*)src)->mHasEmissionChannel;
+    ((HierarchyData*)dst)->mLightGroup = ((HierarchyData*)src)->mLightGroup;
   }
 }
 
@@ -1287,7 +1288,8 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
     if (!exportMaterial(*textureTag,
                         *material,
                         hierarchyData.mMaterialName,
-                        hierarchyData.mMaterialIsEmissive))
+                        hierarchyData.mHasEmissionChannel,
+                        hierarchyData.mLightGroup))
     {
       return FALSE;
     }
@@ -1331,7 +1333,10 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
   if (doObjectExport) {
     // export material reference
     if (!mReceiver->namedMaterial(hierarchyData.mMaterialName.c_str()))  return FALSE;
-    if (hierarchyData.mMaterialIsEmissive) {
+    if (hierarchyData.mHasEmissionChannel) {
+      if (hierarchyData.mLightGroup.size()) {
+        if (!mReceiver->lightGroup(hierarchyData.mLightGroup.c_str()))  return FALSE;
+      }
       LuxParamSet areaParamSet(3);
       LuxString   textureName = hierarchyData.mMaterialName + ".L";
       LuxFloat    gain = 100.0;
@@ -1368,11 +1373,11 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
 Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
                                      BaseMaterial& material,
                                      LuxString&    materialName,
-                                     Bool&         hasEmissionChannel)
+                                     Bool&         hasEmissionChannel,
+                                     LuxString&    lightGroup)
 {
-  TextureMapping mapping;
-
   // get texture mapping
+  TextureMapping mapping;
   if (!convertTextureMapping(textureTag, mapping)) {
     return FALSE;
   }
@@ -1384,9 +1389,11 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
   //       this will become important when we export more texture mapping types
   //       than only UV
   if (mapping.mHasDefaultParams) {
-    LuxString* reusableMaterialName = mReusableMaterials.get(&material);
-    if (reusableMaterialName) {
-      materialName = *reusableMaterialName;
+    ReusableMaterial* reusableMaterial = mReusableMaterials.get(&material);
+    if (reusableMaterial) {
+      materialName       = reusableMaterial->mName;
+      hasEmissionChannel = reusableMaterial->mHasEmissionChannel;
+      lightGroup         = reusableMaterial->mLightGroup;
       return TRUE;
     }
   }
@@ -1434,7 +1441,11 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
   // the used material channels
   Bool success = FALSE;
   if (material.IsInstanceOf(PID_LUXC4D_MATERIAL)) {
-    success = exportLuxC4DMaterial(mapping, material, materialName, hasEmissionChannel);
+    success = exportLuxC4DMaterial(mapping,
+                                   material,
+                                   materialName,
+                                   hasEmissionChannel,
+                                   lightGroup);
   } else if (material.IsInstanceOf(Mmaterial)) {
     Bool hasDiffuse = getParameterLong(material, MATERIAL_USE_COLOR);
     Bool hasTransparency = getParameterLong(material, MATERIAL_USE_TRANSPARENCY);
@@ -1480,17 +1491,25 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
     } else {
       success = exportDummyMaterial(material, materialName, hasEmissionChannel);
     }
+    
+    // we don't have light groups for C4D base materials
+    lightGroup.clear();
 
   // if it's not a standard material, just export a placeholder material (matte)
-  // with the colour set to the average colour of the C4D material
+  // with the colour set to the average colour of the C4D material (and no light
+  // group)
   } else {
     success = exportDummyMaterial(material, materialName, hasEmissionChannel);
+    lightGroup.clear();
   }
 
   // if material export was successful, we add the material and its name to the
   // list of reusable materials, if the texture mapping had defaults only
   if (success && mapping.mHasDefaultParams) {
-    mReusableMaterials.add(&material, materialName);
+    mReusableMaterials.add(&material,
+                           ReusableMaterial(materialName,
+                                            hasEmissionChannel,
+                                            lightGroup));
   }
 
   return success;
@@ -1548,7 +1567,8 @@ Bool LuxAPIConverter::convertTextureMapping(TextureTag&     textureTag,
 Bool LuxAPIConverter::exportLuxC4DMaterial(const TextureMapping& mapping,
                                            BaseMaterial&         material,
                                            LuxString&            materialName,
-                                           Bool&                 hasEmissionChannel)
+                                           Bool&                 hasEmissionChannel,
+                                           LuxString&            lightGroup)
 {
   LuxC4DMaterial* luxc4dMaterial = (LuxC4DMaterial*)material.GetNodeData();
   if (!luxc4dMaterial) { return FALSE; }
@@ -1557,6 +1577,7 @@ Bool LuxAPIConverter::exportLuxC4DMaterial(const TextureMapping& mapping,
                                                                      mTextureGamma);
   if (!materialData) { return FALSE; }
   hasEmissionChannel = materialData->hasEmissionChannel();
+  lightGroup         = materialData->getLightGroup();
   return materialData->sendToAPI(*mReceiver, materialName);
 }
 
@@ -2013,7 +2034,8 @@ Bool LuxAPIConverter::addEmissionChannel(const TextureMapping& mapping,
                                                                MATERIAL_LUMINANCE_SHADER,
                                                                MATERIAL_LUMINANCE_COLOR,
                                                                MATERIAL_LUMINANCE_BRIGHTNESS,
-                                                               MATERIAL_LUMINANCE_TEXTURESTRENGTH));
+                                                               MATERIAL_LUMINANCE_TEXTURESTRENGTH),
+                                           LuxString());
   } else {
     hasEmissionChannel = FALSE;
   }

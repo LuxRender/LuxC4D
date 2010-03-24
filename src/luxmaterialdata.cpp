@@ -92,9 +92,13 @@ Bool LuxMaterialData::setChannel(ULONG           channelId,
 /// @param[in]  texture
 ///   AutoRef to the texture to store in the emission channel (texture type
 ///   must be LUX_COLOR_TEXTURE).
+/// @param[in]  lightGroup
+///   Name of the light group this emitter belongs to, or an empty string if
+///   not specified.
 /// @return
 ///   TRUE if successful, FALSE otherwise.
-Bool LuxMaterialData::setEmissionChannel(LuxTextureDataH texture)
+Bool LuxMaterialData::setEmissionChannel(LuxTextureDataH  texture,
+                                         const LuxString& lightGroup)
 {
   // make sure that the texture AutoRef is valid
   if (!texture) {
@@ -110,6 +114,7 @@ Bool LuxMaterialData::setEmissionChannel(LuxTextureDataH texture)
   // store texture and enable channel
   mEmissionChannel.mTexture = texture;
   mEmissionChannel.mEnabled = TRUE;
+  mLightGroup = lightGroup;
   return TRUE;
 }
 
@@ -118,6 +123,13 @@ Bool LuxMaterialData::setEmissionChannel(LuxTextureDataH texture)
 Bool LuxMaterialData::hasEmissionChannel(void)
 {
   return mEmissionChannel.mEnabled;
+}
+
+
+/// Returns the light group of the emission channel.
+const LuxString& LuxMaterialData::getLightGroup(void) const
+{
+  return mLightGroup;
 }
 
 

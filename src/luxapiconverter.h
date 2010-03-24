@@ -81,11 +81,12 @@ private:
     Bool      mVisible;
     String    mObjectName;
     LuxString mMaterialName;
-    Bool      mMaterialIsEmissive;
+    Bool      mHasEmissionChannel;
+    LuxString mLightGroup;
 
     HierarchyData(Bool visible=TRUE)
     : mVisible(visible),
-      mMaterialIsEmissive(FALSE)
+      mHasEmissionChannel(FALSE)
     {}
   };
  
@@ -174,6 +175,34 @@ private:
   };
 
 
+  // Stores the name and additional information of a material, that can be
+  // reused.
+  struct ReusableMaterial {
+    LuxString mName;
+    Bool      mHasEmissionChannel;
+    LuxString mLightGroup;
+
+    ReusableMaterial(const LuxString& name,
+                     Bool             hasEmissionChannel,
+                     const LuxString& lightGroup)
+    : mName(name), mHasEmissionChannel(hasEmissionChannel), mLightGroup(lightGroup)
+    {}
+
+    ReusableMaterial(const ReusableMaterial& other)
+    {
+      *this = other;
+    }
+
+    ReusableMaterial& operator=(const ReusableMaterial& other)
+    {
+      mName               = other.mName;
+      mHasEmissionChannel = other.mHasEmissionChannel;
+      mLightGroup         = other.mLightGroup;
+      return *this;
+    }
+  };
+
+
   // Union which is used during conversion of vertices with normals.
   union Point2PolyN {
     const Vector* normalRef;
@@ -212,17 +241,17 @@ private:
   typedef FixArray1D<LuxFloat>    UVsSerialisedT;
 
   /// The container type for storing C4D polygons.
-  typedef FixArray1D<CPolygon>                      C4DPolygonsT;
+  typedef FixArray1D<CPolygon>                             C4DPolygonsT;
   /// The container type for storing C4D normal vectors.
-  typedef FixArray1D<Vector>                        C4DNormalsT;
+  typedef FixArray1D<Vector>                               C4DNormalsT;
   /// The container type for storing a set of objects.
-  typedef RBTreeSet<BaseList2D*>                    ObjectsT;
+  typedef RBTreeSet<BaseList2D*>                           ObjectsT;
   /// The exported materials and their name, that can be reused.
-  typedef RBTreeMap<const BaseMaterial*, LuxString> ReusableMaterialsT;
+  typedef RBTreeMap<const BaseMaterial*, ReusableMaterial> ReusableMaterialsT;
   /// The map from material name to number of materials that use this name.
-  typedef RBTreeMap<String, LONG>                   MaterialUsageMapT;
+  typedef RBTreeMap<String, LONG>                          MaterialUsageMapT;
   /// Helper array, which is used during the geometry conversion.
-  typedef FixArray1D<ULONG>                         PointMapT;
+  typedef FixArray1D<ULONG>                                PointMapT;
 
 
   // references used by the whole conversion process and stored for convenience
@@ -307,14 +336,16 @@ private:
   Bool exportMaterial(TextureTag&   textureTag,
                       BaseMaterial& material,
                       LuxString&    materialName,
-                      Bool&         hasEmissionChannel);
+                      Bool&         hasEmissionChannel,
+                      LuxString&    lightGroup);
   Bool convertTextureMapping(TextureTag&     textureTag,
                              TextureMapping& luxTexMapping);
 
   Bool exportLuxC4DMaterial(const TextureMapping& mapping,
                             BaseMaterial&         material,
                             LuxString&            materialName,
-                            Bool&                 hasEmissionChannel);
+                            Bool&                 hasEmissionChannel,
+                            LuxString&            lightGroup);
   Bool exportDummyMaterial(BaseMaterial& material,
                            LuxString&    materialName,
                            Bool&         hasEmissionChannel);
