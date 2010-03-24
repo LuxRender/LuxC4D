@@ -346,6 +346,9 @@ private:
                           Material&             material,
                           LuxMaterialData&      materialData,
                           Bool&                 hasEmissionChannel);
+  Bool addAlphaChannel(const TextureMapping& mapping,
+                       Material&             material,
+                       LuxMaterialData&      materialData);
 
   LuxTextureDataH convertFloatChannel(const TextureMapping& mapping,
                                       Material&             material,

@@ -1627,9 +1627,10 @@ Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
     }
   }
 
-  // obtain bump and emission channels
+  // obtain bump, emission and alpha channels
   addBumpChannel(mapping, material, materialData);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
+  addAlphaChannel(mapping, material, materialData);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
@@ -1685,9 +1686,10 @@ Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
                             gNewNC LuxConstantTextureData(roughness));
   }
 
-  // obtain bump and emission channels
+  // obtain bump, emission and alpha channels
   addBumpChannel(mapping, material, materialData);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
+  addAlphaChannel(mapping, material, materialData);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
@@ -1736,9 +1738,10 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
                                                   MATERIAL_REFLECTION_TEXTURESTRENGTH));
     }
 
-    // obtain bump and emission channels
+    // obtain bump, emission and alpha channels
     addBumpChannel(mapping, material, materialData);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
+    addAlphaChannel(mapping, material, materialData);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
 
@@ -1771,9 +1774,10 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
                               gNewNC LuxConstantTextureData(roughness));
     }
 
-    // obtain bump and emission channels
+    // obtain bump, emission and alpha channels
     addBumpChannel(mapping, material, materialData);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
+    addAlphaChannel(mapping, material, materialData);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
   }
@@ -1851,9 +1855,10 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
                               gNewNC LuxConstantTextureData(ior));
     }
 
-    // obtain bump and emission channels
+    // obtain bump, emission and alpha channels
     addBumpChannel(mapping, material, materialData);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
+    addAlphaChannel(mapping, material, materialData);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
 
@@ -1893,9 +1898,10 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
     materialData.setChannel(LuxRoughGlassData::IOR,
                             gNewNC LuxConstantTextureData(ior));
 
-    // obtain bump and emission channel
+    // obtain bump, emission and alpha channels
     addBumpChannel(mapping, material, materialData);
     addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
+    addAlphaChannel(mapping, material, materialData);
 
     return materialData.sendToAPI(*mReceiver, materialName.c_str());
   }
@@ -1955,9 +1961,10 @@ Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
     }
   }
 
-  // obtain bump and emission channels
+  // obtain bump, emission and alpha channels
   addBumpChannel(mapping, material, materialData);
   addEmissionChannel(mapping, material, materialData, hasEmissionChannel);
+  addAlphaChannel(mapping, material, materialData);
 
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
@@ -2017,6 +2024,32 @@ Bool LuxAPIConverter::addEmissionChannel(const TextureMapping& mapping,
                                                                MATERIAL_LUMINANCE_TEXTURESTRENGTH));
   } else {
     hasEmissionChannel = FALSE;
+  }
+
+  return TRUE;
+}
+
+
+/// Adds the alpha channel of a standard C4D material and adds its alpha channel
+/// (if available) to the Lux material data.
+///
+/// @param[in]  mapping
+///   The converted Lux texture mapping parameters.
+/// @param[in]  material
+///   The C4D standard material.
+/// @param[out]  materialData
+///   The Lux material settings to which the alpha channel will be added.
+/// @return
+///   TRUE if executed successfully, FALSE otherwise.
+Bool LuxAPIConverter::addAlphaChannel(const TextureMapping& mapping,
+                                      Material&             material,
+                                      LuxMaterialData&      materialData)
+{
+  if (getParameterLong(material, MATERIAL_USE_ALPHA)) {
+    return materialData.setAlphaChannel(convertFloatChannel(mapping,
+                                                            material,
+                                                            MATERIAL_ALPHA_SHADER,
+                                                            -1523847689));
   }
 
   return TRUE;

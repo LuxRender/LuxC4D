@@ -152,7 +152,9 @@ Real getParameterReal(C4DAtom& atom,
                       Real     preset)
 {
   GeData parameter;
-  if (atom.GetParameter(DescLevel(paramID), parameter, 0)) {
+  if (atom.GetParameter(DescLevel(paramID), parameter, 0) &&
+      (parameter.GetType() != DA_NIL))
+  {
     return parameter.GetReal();
   }
   return preset;
