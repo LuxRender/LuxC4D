@@ -172,7 +172,7 @@ STRINGTABLE Mluxc4dmaterial
   IDD_EMISSION_SHADER_STRENGTH  "Tex. Strength";
   IDD_EMISSION_SHADER           "Texture";
   IDD_EMISSION_BRIGHTNESS       "Brightness";
-
+  IDD_EMISSION_GROUP_NAME       "Light Group";
 
   IDG_ALPHA         "Alpha";
   IDD_ALPHA_VALUE   "Strength";

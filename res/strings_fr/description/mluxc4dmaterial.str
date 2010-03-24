@@ -171,5 +171,5 @@ STRINGTABLE Mluxc4dmaterial
   IDD_EMISSION_SHADER_STRENGTH  "Puissance de la Tex.";
   IDD_EMISSION_SHADER           "Texture";
   IDD_EMISSION_BRIGHTNESS       "Luminosité";
-
+  IDD_EMISSION_GROUP_NAME       "Groupe de Lumière";
 }

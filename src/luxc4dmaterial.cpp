@@ -1190,7 +1190,10 @@ void LuxC4DMaterial::getEmissionChannel(BaseContainer&        data,
                                             IDD_EMISSION_BRIGHTNESS,
                                             data, mapping, textureGamma);
   if (texture) {
-    materialData.setEmissionChannel(texture);
+    LuxString lightGroup;
+    convert2LuxString(data.GetString(IDD_EMISSION_GROUP_NAME),
+                      lightGroup);
+    materialData.setEmissionChannel(texture, lightGroup);
   }
 }
 

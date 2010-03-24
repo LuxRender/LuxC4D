@@ -114,8 +114,10 @@ public:
 
   Bool setChannel(ULONG           channelId,
                   LuxTextureDataH texture);
-  Bool setEmissionChannel(LuxTextureDataH texture);
+  Bool setEmissionChannel(LuxTextureDataH  texture,
+                          const LuxString& lightGroup);
   Bool hasEmissionChannel(void);
+  const LuxString& getLightGroup(void) const;
   Bool setBumpChannel(LuxTextureDataH texture);
   Bool hasBumpChannel(void);
   void setBumpSampleDistance(LuxFloat bumpSampleDistance);
@@ -132,6 +134,7 @@ protected:
   const LuxMaterialInfo&         mInfo;
   FixArray1D<LuxMaterialChannel> mChannels;
   LuxMaterialChannel             mEmissionChannel;
+  LuxString                      mLightGroup;
   LuxMaterialChannel             mBumpChannel;
   LuxFloat                       mBumpSampleDistance;
   LuxMaterialChannel             mAlphaChannel;
