@@ -117,7 +117,7 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document,
   // create file head (only important for file export)
   DateTimeNow(time);
   sprintf(buffer, "# LuxRender scene file\n# Exported by LuxC4D on %d/%d/%d",
-                  (int)time.lDay, (int)time.lDay, (int)time.lYear);
+                  (int)time.lDay, (int)time.lMonth, (int)time.lYear);
 
   // start the scene
   if (!mReceiver->startScene(buffer)) { 
@@ -1343,6 +1343,7 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
       areaParamSet.addParam(LUX_TEXTURE, "L",    &textureName);
       areaParamSet.addParam(LUX_FLOAT,   "gain", &gain);
       if (!mReceiver->areaLightSource("area", areaParamSet))  return FALSE;
+      ++mLightCount;
     }
     // export polygon object
     if (!exportPolygonObject((PolygonObject&)object, globalMatrix))  return FALSE;
