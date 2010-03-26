@@ -32,6 +32,26 @@
  * Implementation of member functions of class LuxTextureData.
  *****************************************************************************/
 
+Bool LuxTextureData::isConstant() const
+{
+  return FALSE;
+}
+
+
+const LuxFloat& LuxTextureData::constantFloat()
+{
+  static const LuxFloat cDummy(0.0);
+  return cDummy;
+}
+
+
+const LuxColor& LuxTextureData::constantColor()
+{
+  static const LuxColor cDummy(0.0);
+  return cDummy;
+}
+
+
 Bool LuxTextureData::sendToAPIAndAddToParamSet(LuxAPI&                receiver,
                                                LuxParamSet&           paramSet,
                                                LuxAPI::IdentifierName paramName,
@@ -88,26 +108,6 @@ Bool LuxTextureData::sendToAPIHelper(LuxAPI&                receiver,
                           cTextureTypeStr[mType],
                           typeName,
                           paramSet);
-}
-
-
-Bool LuxTextureData::isConstant() const
-{
-  return FALSE;
-}
-
-
-const LuxFloat& LuxTextureData::constantFloat()
-{
-  static const LuxFloat cDummy(0.0);
-  return cDummy;
-}
-
-
-const LuxColor& LuxTextureData::constantColor()
-{
-  static const LuxColor cDummy(0.0);
-  return cDummy;
 }
 
 

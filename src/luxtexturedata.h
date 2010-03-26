@@ -82,16 +82,16 @@ public:
   inline LuxTextureData(LuxTextureType type) : mType(type) {}
   virtual ~LuxTextureData() {}
 
+  virtual Bool isConstant() const;
+  virtual const LuxFloat& constantFloat();
+  virtual const LuxColor& constantColor();
+
   virtual Bool sendToAPI(LuxAPI&          receiver,
                          const LuxString& name) =0;
   Bool sendToAPIAndAddToParamSet(LuxAPI&                receiver,
                                  LuxParamSet&           paramSet,
                                  LuxAPI::IdentifierName paramName,
                                  const LuxString&       textureName);
-
-  virtual Bool isConstant() const;
-  virtual const LuxFloat& constantFloat();
-  virtual const LuxColor& constantColor();
 
 
 protected:

@@ -703,8 +703,8 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_POINT:
       {
         PointLightData data;
-        data.mColor = parameters.mColor * 0.1;
-        data.mGain  = parameters.mBrightness;
+        data.mColor = parameters.mColor;
+        data.mGain  = parameters.mBrightness * 100.0;
         data.mFrom  = scaledPosition;
         ++mLightCount;
         if (!exportPointLight(data))  return FALSE;
@@ -715,7 +715,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         SpotLightData data;
         data.mColor          = parameters.mColor;
-        data.mGain           = parameters.mBrightness * 0.1;
+        data.mGain           = parameters.mBrightness * 100.0;
         data.mFrom           = scaledPosition;
         data.mTo             = scaledPosition + direction;
         data.mConeAngle      = Deg(parameters.mOuterAngle) * 0.5;
@@ -729,7 +729,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         DistantLightData data;
         data.mColor = parameters.mColor;
-        data.mGain  = parameters.mBrightness * 0.1;
+        data.mGain  = parameters.mBrightness * 100.0;
         data.mFrom  = scaledPosition;
         data.mTo    = scaledPosition + direction;
         ++mLightCount;
@@ -1017,6 +1017,8 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
   mTempParamSet.addParam(LUX_COLOR,   "L",        &data.mColor);
   mTempParamSet.addParam(LUX_FLOAT,   "gain",     &data.mGain);
   mTempParamSet.addParam(LUX_INTEGER, "nsamples", &data.mSamples);
+  LuxFloat power = 0.0;
+  mTempParamSet.addParam(LUX_FLOAT,   "power",    &power);
   if (!mReceiver->areaLightSource("area", mTempParamSet))  return FALSE;
 
   // if the normals should be flipped, export "reverseorientation"
@@ -1157,10 +1159,18 @@ Bool LuxAPIConverter::exportInfiniteLight(void)
     if (!mReceiver->lightGroup(lightGroup.c_str()))  return FALSE;
   }
 
-  // get file path of texture if available or just setup parameter "L"
-  mTempParamSet.clear();
+  // store all parameters except the light type name
+  LuxString  mapping("latlong");
   LuxColor   l(parameters.mColor);
+  LuxFloat   gain(parameters.mBrightness * 100.0);
   LuxInteger nSamples(parameters.mSamples);
+  mTempParamSet.clear();
+  mTempParamSet.addParam(LUX_STRING,  "mapping",  &mapping);
+  mTempParamSet.addParam(LUX_COLOR,   "L",        &l);
+  mTempParamSet.addParam(LUX_FLOAT,   "gain",     &gain);
+  mTempParamSet.addParam(LUX_INTEGER, "nsamples", &nSamples);
+
+  // store file path of texture if available
   LuxString  mapName;
   Bool       hasTexture = FALSE;
   if (parameters.mSkyTexFilename.Content()) {
@@ -1172,23 +1182,13 @@ Bool LuxAPIConverter::exportInfiniteLight(void)
     hasTexture = TRUE;
   }
 
-  // if light "infinitesample" add "L" and "nsamples"
+  // determine light type name and export light
   if ((parameters.mInfiniteType == IDD_INFINITE_LIGHT_TYPE_INFINITE_IMPORTANCE) ||
       ((parameters.mInfiniteType == IDD_INFINITE_LIGHT_TYPE_AUTO) &&
-       !mPortalCount && !mIsBidirectional && hasTexture))
+       !mPortalCount))
   {
-    l *= parameters.mBrightness * 0.05;
-    mTempParamSet.addParam(LUX_COLOR,   "L",        &l);
-    mTempParamSet.addParam(LUX_INTEGER, "nsamples", &nSamples);
     mReceiver->lightSource("infinitesample", mTempParamSet);
-  // if light "infinite" add "L", "gain", "samples" and "mapping"
   } else {
-    LuxString mapping("latlong");
-    LuxFloat  gain(parameters.mBrightness * 0.05);
-    mTempParamSet.addParam(LUX_STRING,  "mapping",  &mapping);
-    mTempParamSet.addParam(LUX_COLOR,   "L",        &l);
-    mTempParamSet.addParam(LUX_FLOAT,   "gain",     &gain);
-    mTempParamSet.addParam(LUX_INTEGER, "nsamples", &nSamples);
     mReceiver->lightSource("infinite", mTempParamSet);
   }
 
@@ -1337,11 +1337,13 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
       if (hierarchyData.mLightGroup.size()) {
         if (!mReceiver->lightGroup(hierarchyData.mLightGroup.c_str()))  return FALSE;
       }
-      LuxParamSet areaParamSet(3);
+      LuxParamSet areaParamSet(5);
       LuxString   textureName = hierarchyData.mMaterialName + ".L";
       LuxFloat    gain = 100.0;
-      areaParamSet.addParam(LUX_TEXTURE, "L",    &textureName);
-      areaParamSet.addParam(LUX_FLOAT,   "gain", &gain);
+      LuxFloat    power = 0.0;    // a power of 0 disables auto power adjust
+      areaParamSet.addParam(LUX_TEXTURE, "L",     &textureName);
+      areaParamSet.addParam(LUX_FLOAT,   "gain",  &gain);
+      areaParamSet.addParam(LUX_FLOAT,   "power", &power);
       if (!mReceiver->areaLightSource("area", areaParamSet))  return FALSE;
       ++mLightCount;
     }
