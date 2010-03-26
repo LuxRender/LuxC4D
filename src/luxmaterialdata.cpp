@@ -254,8 +254,15 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
   // material as it will be referenced by an area light command in the object
   // scope
   if (mEmissionChannel.mEnabled) {
-    if (!mEmissionChannel.mTexture->sendToAPI(receiver, name + ".L")) {
-      ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::sendToAPI(): export of emission texture failed");
+    if (mEmissionChannel.mTexture->isConstant()) {
+      LuxConstantTextureData constantTexture(mEmissionChannel.mTexture->constantColor());
+      if (!constantTexture.sendToAPI(receiver, name + ".L")) {
+        ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::sendToAPI(): export of emission texture failed");
+      }
+    } else {
+      if (!mEmissionChannel.mTexture->sendToAPI(receiver, name + ".L")) {
+        ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::sendToAPI(): export of emission texture failed");
+      }
     }
   }
 
