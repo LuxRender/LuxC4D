@@ -301,11 +301,12 @@ Bool LuxAPIConverter::obtainGlobalSceneData(void)
     mC4D2LuxScale = mLuxC4DSettings->getC4D2LuxScale();
     mBumpSampleDistance = mLuxC4DSettings->getBumpSampleDistance() *
                           mC4D2LuxScale;
+    mColorGamma = mLuxC4DSettings->getColorGamma();
     mTextureGamma = mLuxC4DSettings->getTextureGamma();
   } else {
     mC4D2LuxScale = 0.01;
     mBumpSampleDistance = 0.001 * mC4D2LuxScale;
-    mTextureGamma = mC4DRenderSettings->GetReal(RDATA_RENDERGAMMA);
+    mColorGamma = mTextureGamma = mC4DRenderSettings->GetReal(RDATA_RENDERGAMMA);
   }
 
   // obtain stage object if there is one
@@ -679,6 +680,13 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
   LuxC4DLightTag::LightParameters parameters;
   if (!LuxC4DLightTag::getLightParameters(lightObject, mC4D2LuxScale, parameters)) {
     return FALSE;
+  }
+
+  // apply colour gamma to colour
+  if (mColorGamma != 1.0) {
+    parameters.mColor.x = pow(parameters.mColor.x, mColorGamma);
+    parameters.mColor.y = pow(parameters.mColor.y, mColorGamma);
+    parameters.mColor.z = pow(parameters.mColor.z, mColorGamma);
   }
 
   // get some general light parameters
@@ -1212,7 +1220,8 @@ Bool LuxAPIConverter::exportStandardMaterial(void)
 {
   LuxMatteData materialData;
   materialData.setChannel(LuxMatteData::DIFFUSE,
-                          gNewNC LuxConstantTextureData(LuxColor(0.8, 0.8, 0.8)));
+                          gNewNC LuxConstantTextureData(LuxColor(0.8, 0.8, 0.8),
+                                                        mColorGamma));
   return materialData.sendToAPI(*mReceiver, "_default");
 }
 
@@ -1578,6 +1587,7 @@ Bool LuxAPIConverter::exportLuxC4DMaterial(const TextureMapping& mapping,
   if (!luxc4dMaterial) { return FALSE; }
   LuxMaterialDataH materialData = luxc4dMaterial->getLuxMaterialData(mapping,
                                                                      mC4D2LuxScale,
+                                                                     mColorGamma,
                                                                      mTextureGamma);
   if (!materialData) { return FALSE; }
   hasEmissionChannel = materialData->hasEmissionChannel();
@@ -1604,7 +1614,8 @@ Bool LuxAPIConverter::exportDummyMaterial(BaseMaterial& material,
   // export dummy matte material with average colour of input material
   LuxMatteData materialData;
   materialData.setChannel(LuxMatteData::DIFFUSE,
-                          gNewNC LuxConstantTextureData(material.GetAverageColor()));
+                          gNewNC LuxConstantTextureData(material.GetAverageColor(),
+                                                        mColorGamma));
   return materialData.sendToAPI(*mReceiver, materialName.c_str());
 }
 
@@ -1776,7 +1787,7 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
 
     // set reflection channel to 0
     if (!materialData.setChannel(LuxShinyMetalData::REFLECTION,
-                                 gNewNC LuxConstantTextureData(LuxColor(0.0))))
+                                 gNewNC LuxConstantTextureData(LuxColor(0.0), 1.0)))
     {
       ERRLOG_RETURN_VALUE(FALSE, ("LuxAPIConverter::exportShinyMetalMaterial(): could not set reflection channel for material "
                                   + materialName).c_str());
@@ -2178,7 +2189,7 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(const TextureMapping& mappi
   // strength is too small, just create a constant texture of the colour which
   // is also specified in the channel
   if ((strength < 0.001) || !bitmapLink) {
-    return gNewNC LuxConstantTextureData(color);
+    return gNewNC LuxConstantTextureData(color, mColorGamma);
   }
 
   // if we are here, we've got a bitmap shader -> let's create an imagemap texture
@@ -2196,7 +2207,7 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(const TextureMapping& mappi
   // if the texture strength is < 100%, we mix the colour with the texture
   if (strength < 0.999) {
     LuxMixTextureDataH mixTexture = gNewNC LuxMixTextureData(LUX_COLOR_TEXTURE);
-    mixTexture->mTexture1 = gNewNC LuxConstantTextureData(color);
+    mixTexture->mTexture1 = gNewNC LuxConstantTextureData(color, mColorGamma);
     mixTexture->mTexture2 = texture;
     mixTexture->mAmount = strength;
     texture = mixTexture;

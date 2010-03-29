@@ -520,6 +520,7 @@ void LuxC4DMaterial::CalcSurface(PluginMaterial* mat,
 
 LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mapping,
                                                     LReal                 c4d2LuxScale,
+                                                    LuxFloat              colorGamma,
                                                     LuxFloat              textureGamma)
 {
   // the metal types
@@ -555,14 +556,14 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                       IDD_REFLECTION_SHADER,
                       IDD_REFLECTION_SHADER_STRENGTH,
                       IDD_REFLECTION_BRIGHTNESS,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getColorChannel(LuxGlassData::TRANSMISSION,
                       IDD_TOGGLE_TRANSMISSION,
                       IDD_TRANSMISSION_COLOR,
                       IDD_TRANSMISSION_SHADER,
                       IDD_TRANSMISSION_SHADER_STRENGTH,
                       IDD_TRANSMISSION_STRENGTH,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getFloatChannel(LuxGlassData::IOR,
                       IDD_TOGGLE_TRANSMISSION,
                       IDD_IOR_VALUE,
@@ -592,14 +593,14 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                       IDD_REFLECTION_SHADER,
                       IDD_REFLECTION_SHADER_STRENGTH,
                       IDD_REFLECTION_BRIGHTNESS,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getColorChannel(LuxRoughGlassData::TRANSMISSION,
                       IDD_TOGGLE_TRANSMISSION,
                       IDD_TRANSMISSION_COLOR,
                       IDD_TRANSMISSION_SHADER,
                       IDD_TRANSMISSION_SHADER_STRENGTH,
                       IDD_TRANSMISSION_STRENGTH,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getFloatChannel(LuxRoughGlassData::IOR,
                       IDD_TOGGLE_TRANSMISSION,
                       IDD_IOR_VALUE,
@@ -642,14 +643,14 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                       IDD_DIFFUSE_SHADER,
                       IDD_DIFFUSE_SHADER_STRENGTH,
                       IDD_DIFFUSE_BRIGHTNESS,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getColorChannel(LuxGlossyData::SPECULAR,
                       IDD_TOGGLE_SPECULAR,
                       IDD_SPECULAR_COLOR,
                       IDD_SPECULAR_SHADER,
                       IDD_SPECULAR_SHADER_STRENGTH,
                       IDD_SPECULAR_BRIGHTNESS,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getFloatChannel(LuxGlossyData::SPECULAR_IOR,
                       IDD_TOGGLE_SPECULAR,
                       IDD_SPECULAR_IOR_VALUE,
@@ -661,7 +662,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                       IDD_COATING_ABSORPTION_SHADER,
                       IDD_COATING_ABSORPTION_SHADER_STRENGTH,
                       IDD_COATING_ABSORPTION_STRENGTH,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getFloatChannel(LuxGlossyData::ABSORPTION_DEPTH,
                       IDD_TOGGLE_COATING_ABSORPTION,
                       IDD_COATING_ABSORPTION_DEPTH_VALUE,
@@ -702,7 +703,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                       IDD_DIFFUSE_SHADER,
                       IDD_DIFFUSE_SHADER_STRENGTH,
                       IDD_DIFFUSE_BRIGHTNESS,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getFloatChannel(LuxMatteData::SIGMA,
                       IDD_TOGGLE_DIFFUSE,
                       IDD_DIFFUSE_SIGMA_VALUE,
@@ -720,7 +721,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                       IDD_DIFFUSE_SHADER,
                       IDD_DIFFUSE_SHADER_STRENGTH,
                       IDD_DIFFUSE_BRIGHTNESS,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getFloatChannel(LuxMatteTranslucentData::SIGMA,
                       IDD_TOGGLE_DIFFUSE,
                       IDD_DIFFUSE_SIGMA_VALUE,
@@ -732,7 +733,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                       IDD_TRANSMISSION_SHADER,
                       IDD_TRANSMISSION_SHADER_STRENGTH,
                       IDD_TRANSMISSION_STRENGTH,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       break;
 
     // metal
@@ -788,21 +789,21 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                       IDD_REFLECTION_SHADER,
                       IDD_REFLECTION_SHADER_STRENGTH,
                       IDD_REFLECTION_BRIGHTNESS,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getColorChannel(LuxShinyMetalData::SPECULAR,
                       IDD_TOGGLE_REFLECTION,
                       IDD_REFLECTION_COLOR,
                       IDD_REFLECTION_SHADER,
                       IDD_REFLECTION_SHADER_STRENGTH,
                       IDD_REFLECTION_BRIGHTNESS,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getColorChannel(LuxShinyMetalData::SPECULAR,
                       IDD_TOGGLE_SPECULAR,
                       IDD_SPECULAR_COLOR,
                       IDD_SPECULAR_SHADER,
                       IDD_SPECULAR_SHADER_STRENGTH,
                       IDD_SPECULAR_BRIGHTNESS,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       if (data->GetBool(IDD_ROUGHNESS_ASYMETRIC)) {
         getFloatChannel(LuxShinyMetalData::UROUGHNESS,
                         IDD_TOGGLE_ROUGHNESS,
@@ -848,7 +849,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                       IDD_REFLECTION_SHADER,
                       IDD_REFLECTION_SHADER_STRENGTH,
                       IDD_REFLECTION_BRIGHTNESS,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getFloatChannel(LuxMirrorData::FILM_THICKNESS,
                       IDD_TOGGLE_THIN_FILM,
                       IDD_THIN_FILM_THICKNESS,
@@ -871,14 +872,14 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                       IDD_DIFFUSE_SHADER,
                       IDD_DIFFUSE_SHADER_STRENGTH,
                       IDD_DIFFUSE_BRIGHTNESS,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       if (data->GetBool(IDD_TOGGLE_CARPAINT_SPECULAR1)) {
         getColorChannel(LuxCarPaintData::SPECULAR_1, 0,
                         IDD_CARPAINT_SPECULAR_COLOR1,
                         IDD_CARPAINT_SPECULAR_SHADER1,
                         IDD_CARPAINT_SPECULAR_SHADER_STRENGTH1,
                         IDD_CARPAINT_SPECULAR_BRIGHTNESS1,
-                        *data, mapping, textureGamma, *materialData);
+                        *data, mapping, colorGamma, textureGamma, *materialData);
         materialData->setChannel(LuxCarPaintData::R1,
                                  gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R1))));
         materialData->setChannel(LuxCarPaintData::M1,
@@ -890,7 +891,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                         IDD_CARPAINT_SPECULAR_SHADER2,
                         IDD_CARPAINT_SPECULAR_SHADER_STRENGTH2,
                         IDD_CARPAINT_SPECULAR_BRIGHTNESS2,
-                        *data, mapping, textureGamma, *materialData);
+                        *data, mapping, colorGamma, textureGamma, *materialData);
         materialData->setChannel(LuxCarPaintData::R2,
                                  gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R2))));
         materialData->setChannel(LuxCarPaintData::M2,
@@ -902,7 +903,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                         IDD_CARPAINT_SPECULAR_SHADER3,
                         IDD_CARPAINT_SPECULAR_SHADER_STRENGTH3,
                         IDD_CARPAINT_SPECULAR_BRIGHTNESS3,
-                        *data, mapping, textureGamma, *materialData);
+                        *data, mapping, colorGamma, textureGamma, *materialData);
         materialData->setChannel(LuxCarPaintData::R3,
                                  gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R3))));
         materialData->setChannel(LuxCarPaintData::M3,
@@ -914,7 +915,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
                       IDD_COATING_ABSORPTION_SHADER,
                       IDD_COATING_ABSORPTION_SHADER_STRENGTH,
                       IDD_COATING_ABSORPTION_STRENGTH,
-                      *data, mapping, textureGamma, *materialData);
+                      *data, mapping, colorGamma, textureGamma, *materialData);
       getFloatChannel(LuxCarPaintData::ABSORPTION_DEPTH,
                       IDD_TOGGLE_COATING_ABSORPTION,
                       IDD_COATING_ABSORPTION_DEPTH_VALUE,
@@ -931,7 +932,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
   getBumpChannel(*data, mapping, *materialData, c4d2LuxScale);
 
   // get emission channel
-  getEmissionChannel(*data, mapping, textureGamma, *materialData);
+  getEmissionChannel(*data, mapping, colorGamma, textureGamma, *materialData);
 
   // get alpha channel
   getAlphaChannel(*data, mapping, *materialData);
@@ -1049,34 +1050,51 @@ LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG                  toggleId,
                                                 LONG                  brightnessId,
                                                 BaseContainer&        data,
                                                 const TextureMapping& mapping,
+                                                LuxFloat              colorGamma,
                                                 LuxFloat              textureGamma) const
 {
   if (toggleId && !data.GetBool(toggleId)) { return LuxTextureDataH(); }
 
   Real shaderStrength = shaderStrengthId ? data.GetReal(shaderStrengthId, 1.0) : 1.0;
 
+  // get the mix between colour and texture
   LuxTextureDataH unscaledTexture;
+  // if shader strength is too low, only use colour
   if (shaderStrength < 0.0001) {
-    unscaledTexture = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)));
+    unscaledTexture = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)),
+                                                    colorGamma);
+  // otherwise:
   } else {
-    unscaledTexture = getTextureFromShader(data, shaderId, LUX_COLOR_TEXTURE, mapping, textureGamma);
+    // get texture and if that fails, just use the colour
+    unscaledTexture = getTextureFromShader(data,
+                                           shaderId,
+                                           LUX_COLOR_TEXTURE,
+                                           mapping,
+                                           textureGamma);
     if (!unscaledTexture) {
-      unscaledTexture = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)));
+      unscaledTexture = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)),
+                                                      colorGamma);
+    // if we could get a texture and the shader strength is >= 0.0001 and < 0.9999,
+    // mix colour and texture (otherwise stick with texture only)
     } else if (shaderStrength < 0.9999) {
       LuxMixTextureDataH mixedTexture = gNewNC LuxMixTextureData(LUX_COLOR_TEXTURE);
-      mixedTexture->mTexture1 = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)));
+      mixedTexture->mTexture1 = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)),
+                                                              colorGamma);
       mixedTexture->mTexture2 = unscaledTexture;
       mixedTexture->mAmount = shaderStrength;
       unscaledTexture = mixedTexture;
     }
   }
 
+  // if brightness is ~= ~1.0, scale texture with brightness
   Real brightness = brightnessId ? data.GetReal(brightnessId, 1.0) : 1.0;
   if (fabsf(brightness-1.0) > 0.0001) {
     LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_COLOR_TEXTURE);
     scaledTexture->mTexture1 = unscaledTexture;
-    scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(LuxColor(brightness));
+    scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(LuxColor(brightness),
+                                                             1.0);
     return scaledTexture;
+  // if brightness == ~1.0, stick with texture obtained above
   } else {
     return unscaledTexture;
   }
@@ -1092,6 +1110,7 @@ void LuxC4DMaterial::getColorChannel(ULONG                 channelId,
                                      LONG                  brightnessId,
                                      BaseContainer&        data,
                                      const TextureMapping& mapping,
+                                     LuxFloat              colorGamma,
                                      LuxFloat              textureGamma,
                                      LuxMaterialData&      materialData) const
 {
@@ -1102,6 +1121,7 @@ void LuxC4DMaterial::getColorChannel(ULONG                 channelId,
                                             brightnessId,
                                             data,
                                             mapping,
+                                            colorGamma,
                                             textureGamma);
   if (texture) {
     materialData.setChannel(channelId, texture);
@@ -1180,6 +1200,7 @@ void LuxC4DMaterial::getBumpChannel(BaseContainer&        data,
 ///
 void LuxC4DMaterial::getEmissionChannel(BaseContainer&        data,
                                         const TextureMapping& mapping,
+                                        LuxFloat              colorGamma,
                                         LuxFloat              textureGamma,
                                         LuxMaterialData&      materialData) const
 {
@@ -1188,7 +1209,7 @@ void LuxC4DMaterial::getEmissionChannel(BaseContainer&        data,
                                             IDD_EMISSION_SHADER,
                                             IDD_EMISSION_SHADER_STRENGTH,
                                             IDD_EMISSION_BRIGHTNESS,
-                                            data, mapping, textureGamma);
+                                            data, mapping, colorGamma, textureGamma);
   if (texture) {
     LuxString lightGroup;
     convert2LuxString(data.GetString(IDD_EMISSION_GROUP_NAME),

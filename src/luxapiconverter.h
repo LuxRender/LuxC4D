@@ -261,6 +261,7 @@ private:
   LuxC4DSettings* mLuxC4DSettings;
   LReal           mC4D2LuxScale;
   Real            mBumpSampleDistance;
+  Real            mColorGamma;
   Real            mTextureGamma;
 
   // temporary data stored during the conversion and shared between

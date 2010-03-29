@@ -82,6 +82,7 @@ public:
   Real getC4D2LuxScale(void);
   Real getBumpSampleDistance(void);
   Real getTextureGamma(void);
+  Real getColorGamma(void);
   Bool useRelativePaths(void);
 
 

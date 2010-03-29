@@ -78,7 +78,8 @@ public:
 
   LuxMaterialDataH getLuxMaterialData(const TextureMapping& mapping,
                                       LReal                 c4d2LuxScale,
-                                      LuxFloat              textureGamma = 1.0);
+                                      LuxFloat              colorGamma,
+                                      LuxFloat              textureGamma);
 
 
 private:
@@ -107,6 +108,7 @@ private:
                                   LONG                  brightnessId,
                                   BaseContainer&        data,
                                   const TextureMapping& mapping,
+                                  LuxFloat              colorGamma,
                                   LuxFloat              textureGamma) const;
 
   void getColorChannel(ULONG                 channelId,
@@ -117,6 +119,7 @@ private:
                        LONG                  brightnessId,
                        BaseContainer&        data,
                        const TextureMapping& mapping,
+                       LuxFloat              colorGamma,
                        LuxFloat              textureGamma,
                        LuxMaterialData&      materialData) const;
 
@@ -125,7 +128,7 @@ private:
                                   LONG                  shaderId,
                                   BaseContainer&        data,
                                   const TextureMapping& mapping,
-                                  LReal                  scaleFactor = 1.0) const;
+                                  LReal                 scaleFactor = 1.0) const;
 
   void getFloatChannel(ULONG                 channelId,
                        LONG                  toggleId,
@@ -134,7 +137,7 @@ private:
                        BaseContainer&        data,
                        const TextureMapping& mapping,
                        LuxMaterialData&      materialData,
-                       LReal                  scaleFactor = 1.0) const;
+                       LReal                 scaleFactor = 1.0) const;
 
   void getBumpChannel(BaseContainer&        data,
                       const TextureMapping& mapping,
@@ -143,6 +146,7 @@ private:
 
   void getEmissionChannel(BaseContainer&        data,
                           const TextureMapping& mapping,
+                          LuxFloat              colorGamma,
                           LuxFloat              textureGamma,
                           LuxMaterialData&      materialData) const;
 

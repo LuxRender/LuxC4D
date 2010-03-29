@@ -253,12 +253,10 @@ STRINGTABLE VPluxc4dsettings
       IDD_USE_C4D_EXPORT_FILENAME         "Même nom que le fichier C4D";
       IDD_DEFINE_EXPORT_FILENAME          "Definir le nom du fichier";
 
-    IDD_SCALE_FACTOR                    "Facteur d'Echelle C4D -> LuxRender";
-
     IDD_SCALE_FACTOR                    "1 unité C4D en cm";
     IDD_EXPORT_BUMP_SAMPLE_DISTANCE     "Exportez la Distance d'échantillon de relief";
     IDD_BUMP_SAMPLE_DISTANCE            "Distance d'échantillon de relief";
     IDD_TEXTURE_GAMMA_CORRECTION        "Correction du Gamma de la texture";
     IDD_USE_RELATIVE_PATHS              "Utilisez des chemins relatifs";
-
+    IDD_DO_COLOUR_GAMMA_CORRECTION      "Color Gamma Correction";       // to be translated
 }

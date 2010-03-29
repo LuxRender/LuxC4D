@@ -266,10 +266,18 @@ LuxConstantTextureData::LuxConstantTextureData(LuxFloat value)
 {}
 
 
-LuxConstantTextureData::LuxConstantTextureData(const LuxColor& color)
-: LuxTextureData(LUX_COLOR_TEXTURE),
-  mColor(color)
-{}
+LuxConstantTextureData::LuxConstantTextureData(const LuxColor& color,
+                                               LuxFloat        gamma)
+: LuxTextureData(LUX_COLOR_TEXTURE)
+{
+  if (gamma != 1.0) {
+    mColor.c[0] = pow(color.c[0], gamma);
+    mColor.c[1] = pow(color.c[1], gamma);
+    mColor.c[2] = pow(color.c[2], gamma);
+  } else {
+    mColor = color;
+  }
+}
 
 
 Bool LuxConstantTextureData::isConstant() const

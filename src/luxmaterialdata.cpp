@@ -329,7 +329,8 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
   // scope
   if (mEmissionChannel.mEnabled) {
     if (mEmissionChannel.mTexture->isConstant()) {
-      LuxConstantTextureData constantTexture(mEmissionChannel.mTexture->constantColor());
+      LuxConstantTextureData constantTexture(mEmissionChannel.mTexture->constantColor(),
+                                             1.0);
       if (!constantTexture.sendToAPI(receiver, name + ".L")) {
         ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::sendToAPI(): export of emission texture failed");
       }

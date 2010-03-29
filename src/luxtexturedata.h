@@ -187,7 +187,8 @@ public:
 
   LuxConstantTextureData(LuxTextureType type);
   LuxConstantTextureData(LuxFloat value);
-  LuxConstantTextureData(const LuxColor& color);
+  LuxConstantTextureData(const LuxColor& color,
+                         LuxFloat        gamma);
 
   virtual Bool isConstant() const;
   virtual const LuxFloat& constantFloat();

@@ -218,6 +218,7 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetReal(IDD_BUMP_SAMPLE_DISTANCE,        0.001);
   data->SetReal(IDD_TEXTURE_GAMMA_CORRECTION,    renderGamma);
   data->SetBool(IDD_USE_RELATIVE_PATHS,          TRUE);
+  data->SetBool(IDD_DO_COLOUR_GAMMA_CORRECTION,  TRUE);
 
 
   return TRUE;
@@ -1035,7 +1036,19 @@ Real LuxC4DSettings::getTextureGamma(void)
 {
   // get base container and return the texture gamma from it
   BaseContainer* data = getData();
-  if (!data) { return 0.0; }
+  if (!data) { return 1.0; }
+  return data->GetReal(IDD_TEXTURE_GAMMA_CORRECTION, 1.0);
+}
+
+
+/// Returns the gamma correction that should be used for colours.
+Real LuxC4DSettings::getColorGamma(void)
+{
+  // get base container and return the texture gamma from it
+  BaseContainer* data = getData();
+  if (!data || !data->GetBool(IDD_DO_COLOUR_GAMMA_CORRECTION)) {
+    return 1.0;
+  }
   return data->GetReal(IDD_TEXTURE_GAMMA_CORRECTION, 1.0);
 }
 
