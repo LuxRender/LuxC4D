@@ -118,10 +118,11 @@ public:
                           const LuxString& lightGroup);
   Bool hasEmissionChannel(void);
   const LuxString& getLightGroup(void) const;
-  Bool setBumpChannel(LuxTextureDataH texture);
+  Bool setBumpChannel(LuxTextureDataH texture,
+                      LuxFloat        sampleDistance = 0.0);
   Bool hasBumpChannel(void);
-  void setBumpSampleDistance(LuxFloat bumpSampleDistance);
-  Bool setAlphaChannel(LuxTextureDataH texture);
+  Bool setAlphaChannel(LuxTextureDataH texture,
+                       Bool            inverted);
   Bool hasAlphaChannel(void);
 
   virtual Bool sendToAPI(LuxAPI&          receiver,
@@ -138,6 +139,7 @@ protected:
   LuxMaterialChannel             mBumpChannel;
   LuxFloat                       mBumpSampleDistance;
   LuxMaterialChannel             mAlphaChannel;
+  Bool                           mAlphaInverted;
 
   LuxMaterialData(const LuxMaterialInfo& info);
 

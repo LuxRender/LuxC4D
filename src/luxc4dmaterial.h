@@ -78,8 +78,9 @@ public:
 
   LuxMaterialDataH getLuxMaterialData(const TextureMapping& mapping,
                                       LReal                 c4d2LuxScale,
-                                      LuxFloat              colorGamma,
-                                      LuxFloat              textureGamma);
+                                      Real                  colorGamma,
+                                      Real                  textureGamma,
+                                      Real                  bumpSampleDistance);
 
 
 private:
@@ -142,7 +143,8 @@ private:
   void getBumpChannel(BaseContainer&        data,
                       const TextureMapping& mapping,
                       LuxMaterialData&      materialData,
-                      LReal                 scaleFactor) const;
+                      LReal                 scaleFactor,
+                      Real                  bumpSampleDistance) const;
 
   void getEmissionChannel(BaseContainer&        data,
                           const TextureMapping& mapping,

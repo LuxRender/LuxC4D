@@ -520,8 +520,9 @@ void LuxC4DMaterial::CalcSurface(PluginMaterial* mat,
 
 LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mapping,
                                                     LReal                 c4d2LuxScale,
-                                                    LuxFloat              colorGamma,
-                                                    LuxFloat              textureGamma)
+                                                    Real                  colorGamma,
+                                                    Real                  textureGamma,
+                                                    Real                  bumpSampleDistance)
 {
   // the metal types
   static const char* sMetalTypes[IDD_METAL_TYPE_NUMBER-1] = {
@@ -929,7 +930,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mappin
   }
 
   // get bump channel
-  getBumpChannel(*data, mapping, *materialData, c4d2LuxScale);
+  getBumpChannel(*data, mapping, *materialData, c4d2LuxScale, bumpSampleDistance);
 
   // get emission channel
   getEmissionChannel(*data, mapping, colorGamma, textureGamma, *materialData);
@@ -1185,7 +1186,8 @@ void LuxC4DMaterial::getFloatChannel(ULONG                 channelId,
 void LuxC4DMaterial::getBumpChannel(BaseContainer&        data,
                                     const TextureMapping& mapping,
                                     LuxMaterialData&      materialData,
-                                    LReal                 scaleFactor) const
+                                    LReal                 scaleFactor,
+                                    Real                  bumpSampleDistance) const
 {
   LuxTextureDataH texture = getFloatTexture(IDD_TOGGLE_BUMP,
                                             IDD_BUMP_HEIGHT,
@@ -1229,7 +1231,7 @@ void LuxC4DMaterial::getAlphaChannel(BaseContainer&        data,
                                             IDD_ALPHA_SHADER,
                                             data, mapping);
   if (texture && (!texture->isConstant() || texture->constantFloat() != 1.0)) {
-    materialData.setAlphaChannel(texture);
+    materialData.setAlphaChannel(texture, FALSE);
   }
 }
 

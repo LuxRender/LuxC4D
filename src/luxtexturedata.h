@@ -64,6 +64,18 @@ struct TextureMapping {
 
   /// Default constructor. The texture mapping parameters will be disabled.
   TextureMapping() : mMappingType("uv"), mHasDefaultParams(TRUE)  {}
+  /// Copy constructor.
+  TextureMapping(const TextureMapping& other) { *this = other; }
+  /// Copy operator.
+  TextureMapping& operator=(const TextureMapping& other) {
+    mMappingType      = other.mMappingType;
+    mHasDefaultParams = other.mHasDefaultParams;
+    mUScale           = other.mUScale;
+    mVScale           = other.mVScale;
+    mUShift           = other.mUShift;
+    mVShift           = other.mVShift;
+    return *this;
+  }
 };
   
 
@@ -208,15 +220,28 @@ class LuxImageMapData : public LuxTextureData
 {
 public:
 
-  Filename mImagePath;
-  LuxFloat mGamma;
+  enum ImageChannel {
+    IMAGE_CHANNEL_NONE = 0,
+    IMAGE_CHANNEL_RED,
+    IMAGE_CHANNEL_GREEN,
+    IMAGE_CHANNEL_BLUE,
+    IMAGE_CHANNEL_ALPHA,
+    IMAGE_CHANNEL_MEAN,
+    IMAGE_CHANNEL_COLORED_MEAN,
+    IMAGE_CHANNEL_COUNT
+  };
+
+  Filename     mImagePath;
+  ImageChannel mChannel;
+  LuxFloat     mGamma;
 
 
   LuxImageMapData(LuxTextureType type);
   LuxImageMapData(LuxTextureType        type,
                   const TextureMapping& mapping,
                   const Filename&       imagePath,
-                  LuxFloat              gamma = 1.0);
+                  LuxFloat              gamma = 1.0,
+                  ImageChannel          channel = IMAGE_CHANNEL_NONE);
 
   virtual Bool sendToAPI(LuxAPI&          receiver,
                          const LuxString& name);

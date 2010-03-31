@@ -1588,7 +1588,8 @@ Bool LuxAPIConverter::exportLuxC4DMaterial(const TextureMapping& mapping,
   LuxMaterialDataH materialData = luxc4dMaterial->getLuxMaterialData(mapping,
                                                                      mC4D2LuxScale,
                                                                      mColorGamma,
-                                                                     mTextureGamma);
+                                                                     mTextureGamma,
+                                                                     mBumpSampleDistance);
   if (!materialData) { return FALSE; }
   hasEmissionChannel = materialData->hasEmissionChannel();
   lightGroup         = materialData->getLightGroup();
@@ -2021,12 +2022,14 @@ Bool LuxAPIConverter::addBumpChannel(const TextureMapping& mapping,
                                      LuxMaterialData&      materialData)
 {
   if (getParameterLong(material, MATERIAL_USE_BUMP)) {
-    materialData.setBumpSampleDistance(mBumpSampleDistance);
-    return materialData.setBumpChannel(convertFloatChannel(mapping,
-                                                           material,
-                                                           MATERIAL_BUMP_SHADER,
-                                                           MATERIAL_BUMP_STRENGTH,
-                                                           mC4D2LuxScale));
+    LuxTextureDataH texture = convertFloatChannel(mapping,
+                                                  material,
+                                                  MATERIAL_BUMP_SHADER,
+                                                  MATERIAL_BUMP_STRENGTH,
+                                                  mC4D2LuxScale);
+    if (texture) {
+      return materialData.setBumpChannel(texture, mBumpSampleDistance);
+    }
   }
 
   return TRUE;
@@ -2082,10 +2085,21 @@ Bool LuxAPIConverter::addAlphaChannel(const TextureMapping& mapping,
                                       LuxMaterialData&      materialData)
 {
   if (getParameterLong(material, MATERIAL_USE_ALPHA)) {
-    return materialData.setAlphaChannel(convertFloatChannel(mapping,
-                                                            material,
-                                                            MATERIAL_ALPHA_SHADER,
-                                                            -1523847689));
+    LuxImageMapData::ImageChannel channel = LuxImageMapData::IMAGE_CHANNEL_NONE;
+    if (getParameterLong(material, MATERIAL_ALPHA_IMAGEALPHA)) {
+      channel = LuxImageMapData::IMAGE_CHANNEL_ALPHA;
+    }
+    LuxTextureDataH texture = convertFloatChannel(mapping,
+                                                  material,
+                                                  MATERIAL_ALPHA_SHADER,
+                                                  -1,
+                                                  1.0,
+                                                  channel);
+    if (texture) {
+      return materialData.setAlphaChannel(texture,
+                                          getParameterLong(material,
+                                                           MATERIAL_ALPHA_INVERT));
+    }
   }
 
   return TRUE;
@@ -2109,12 +2123,14 @@ Bool LuxAPIConverter::addAlphaChannel(const TextureMapping& mapping,
 ///   We need this for example for the bump channel which needs to be scaled
 ///   according to the geometric export scale.
 /// @return
-///   An AutoRef of the converted Lux texture.
-LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mapping,
-                                                     Material&             material,
-                                                     LONG                  shaderId,
-                                                     LONG                  strengthId,
-                                                     Real                  strengthScale)
+///   An AutoRef of the converted Lux texture or an invalid/bad AutoRef, if
+///   the channel could not be obtained.
+LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping&         mapping,
+                                                     Material&                     material,
+                                                     LONG                          shaderId,
+                                                     LONG                          strengthId,
+                                                     Real                          strengthScale,
+                                                     LuxImageMapData::ImageChannel channel)
 {
   // fetch bitmap shader, if available
   BaseList2D* bitmapLink = getParameterLink(material, shaderId, Xbitmap);
@@ -2125,7 +2141,7 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mappi
   // if the material channel doesn't have a bitmap shader or the texture
   // strength is too small, just create a constant texture of the value 0.0
   if ((fabsf(strength) < 0.001) || !bitmapLink) {
-    return gNewNC LuxConstantTextureData(0.0);
+    return LuxTextureDataH();
   }
 
   // if we are here, we've got a bitmap shader -> let's create an imagemap texture
@@ -2137,7 +2153,9 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping& mappi
                       &fullBitmapPath);
   LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE,
                                                    mapping,
-                                                   fullBitmapPath);
+                                                   fullBitmapPath,
+                                                   1.0,
+                                                   channel);
 
   // if strength is not ~1.0, scale texture
   strength *= strengthScale;

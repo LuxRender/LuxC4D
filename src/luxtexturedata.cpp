@@ -326,9 +326,11 @@ LuxImageMapData::LuxImageMapData(LuxTextureType type)
 LuxImageMapData::LuxImageMapData(LuxTextureType        type,
                                  const TextureMapping& mapping,
                                  const Filename&       imagePath,
-                                 LuxFloat              gamma)
+                                 LuxFloat              gamma,
+                                 ImageChannel          channel)
 : LuxTextureData(type),
   mImagePath(imagePath),
+  mChannel(channel),
   mGamma(gamma)
 {
   mMapping = mapping;
@@ -338,6 +340,16 @@ LuxImageMapData::LuxImageMapData(LuxTextureType        type,
 Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
                                 const LuxString& name)
 {
+  static const char *cImageChannelNames[IMAGE_CHANNEL_COUNT] = {
+    "",
+    "red",
+    "green",
+    "blue",
+    "alpha",
+    "mean",
+    "colored_mean"
+  };
+
   LuxParamSet paramSet(10);
 
   // convert and clean up image path
@@ -345,6 +357,27 @@ Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
   receiver.processFilePath(processedPath);
   LuxString processedPathStr(processedPath.getLuxString());
   paramSet.addParam(LUX_STRING, "filename", &processedPathStr);
+
+  // if we have a valid channel, export it
+  LuxString channel;
+  if ((mChannel > IMAGE_CHANNEL_NONE) && (mChannel < IMAGE_CHANNEL_COUNT)) {
+    // load bitmap and check if it has an alpha channel
+    // TODO: cache results
+    if (mChannel == IMAGE_CHANNEL_ALPHA) {
+      BaseBitmap* bitmap = BaseBitmap::Alloc();
+      bitmap->Init(mImagePath);
+      if (!bitmap->GetChannelCount()) {
+        mChannel = IMAGE_CHANNEL_NONE;
+      }
+      BaseBitmap::Free(bitmap);
+    }
+    // if we still want to specify the channel, convert it into a string and
+    // add it to the parameter list
+    if (mChannel != IMAGE_CHANNEL_NONE) {
+      channel = cImageChannelNames[mChannel];
+      paramSet.addParam(LUX_STRING, "channel", &channel);
+    }
+  }
 
   // if gamma != 1.0 then export texture gamma
   if (fabsf(mGamma-1.0) > 0.001) {

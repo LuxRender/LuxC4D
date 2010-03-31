@@ -382,11 +382,12 @@ private:
                        Material&             material,
                        LuxMaterialData&      materialData);
 
-  LuxTextureDataH convertFloatChannel(const TextureMapping& mapping,
-                                      Material&             material,
-                                      LONG                  shaderId,
-                                      LONG                  strengthId,
-                                      Real                  strengthScale = 1.0f);
+  LuxTextureDataH convertFloatChannel(const TextureMapping&         mapping,
+                                      Material&                     material,
+                                      LONG                          shaderId,
+                                      LONG                          strengthId,
+                                      Real                          strengthScale = 1.0f,
+                                      LuxImageMapData::ImageChannel channel = LuxImageMapData::IMAGE_CHANNEL_NONE);
   LuxTextureDataH convertColorChannel(const TextureMapping& mapping,
                                       Material&             material,
                                       LONG                  shaderId,
