@@ -174,7 +174,9 @@ STRINGTABLE Mluxc4dmaterial
   IDD_EMISSION_BRIGHTNESS       "Brightness";
   IDD_EMISSION_GROUP_NAME       "Light Group";
 
-  IDG_ALPHA         "Alpha";
-  IDD_ALPHA_VALUE   "Strength";
-  IDD_ALPHA_SHADER  "Scale Tex.";
+  IDG_ALPHA             "Alpha";
+  IDD_ALPHA_VALUE       "Strength";
+  IDD_ALPHA_SHADER      "Scale Tex.";
+  IDD_ALPHA_INVERT      "Invert";
+  IDD_ALPHA_USE_CHANNEL "Image Alpha";
 }

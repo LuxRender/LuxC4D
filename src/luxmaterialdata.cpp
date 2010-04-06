@@ -262,7 +262,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
   // was passed in and the top material will get <name>_top as name
   LuxString noMixMatName(name);
   if (mAlphaChannel.mEnabled) {
-    noMixMatName += ":raw";
+    noMixMatName += " raw";
   }
 
   // add material type to parameter set
@@ -353,7 +353,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
       LuxParamSet nullMatParamSet(1);
       LuxString   nullMatType("null");
       nullMatParamSet.addParam(LUX_STRING, "type", &nullMatType);
-      otherMatName = name + ":null";
+      otherMatName = name + " null";
       receiver.makeNamedMaterial(otherMatName.c_str(), nullMatParamSet);
     // otherwise use passed in material name
     } else {

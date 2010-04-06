@@ -2122,6 +2122,8 @@ Bool LuxAPIConverter::addAlphaChannel(const TextureMapping& mapping,
 ///   An optional scaling that can be applied to scale the texture values.
 ///   We need this for example for the bump channel which needs to be scaled
 ///   according to the geometric export scale.
+/// @param[in]  channel  (default == LuxImageMapData::IMAGE_CHANNEL_NONE)
+///   The image channel that should be used as float texture.
 /// @return
 ///   An AutoRef of the converted Lux texture or an invalid/bad AutoRef, if
 ///   the channel could not be obtained.

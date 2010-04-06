@@ -96,11 +96,12 @@ private:
                      Description*   description,
                      AtomArray*     params);
 
-  LuxTextureDataH getTextureFromShader(BaseContainer&        data,
-                                       LONG                  shaderId,
-                                       LuxTextureType        textureType,
-                                       const TextureMapping& mapping,
-                                       LuxFloat              textureGamma) const;
+  LuxTextureDataH getTextureFromShader(BaseContainer&                data,
+                                       LONG                          shaderId,
+                                       LuxTextureType                textureType,
+                                       const TextureMapping&         mapping,
+                                       LuxFloat                      textureGamma,
+                                       LuxImageMapData::ImageChannel channel = LuxImageMapData::IMAGE_CHANNEL_NONE) const;
 
   LuxTextureDataH getColorTexture(LONG                  toggleId,
                                   LONG                  colorId,
@@ -124,12 +125,13 @@ private:
                        LuxFloat              textureGamma,
                        LuxMaterialData&      materialData) const;
 
-  LuxTextureDataH getFloatTexture(LONG                  toggleId,
-                                  LONG                  valueId,
-                                  LONG                  shaderId,
-                                  BaseContainer&        data,
-                                  const TextureMapping& mapping,
-                                  LReal                 scaleFactor = 1.0) const;
+  LuxTextureDataH getFloatTexture(LONG                          toggleId,
+                                  LONG                          valueId,
+                                  LONG                          shaderId,
+                                  BaseContainer&                data,
+                                  const TextureMapping&         mapping,
+                                  LReal                         scaleFactor = 1.0,
+                                  LuxImageMapData::ImageChannel channel = LuxImageMapData::IMAGE_CHANNEL_NONE) const;
 
   void getFloatChannel(ULONG                 channelId,
                        LONG                  toggleId,

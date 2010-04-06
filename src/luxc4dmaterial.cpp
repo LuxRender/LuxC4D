@@ -24,6 +24,7 @@
  ************************************************************************/
 
 #include <customgui_matpreview.h>
+#include <customgui_texbox.h>
 
 #include "c4d_symbols.h"
 #include "luxc4dmaterial.h"
@@ -128,6 +129,8 @@ Bool LuxC4DMaterial::Init(GeListNode* node)
   data->SetReal  (IDD_EMISSION_SHADER_STRENGTH,           1.0);
   data->SetReal  (IDD_EMISSION_BRIGHTNESS,                1.0);
   data->SetReal  (IDD_ALPHA_VALUE,                        1.0);
+  data->SetBool  (IDD_ALPHA_INVERT,                       FALSE);
+  data->SetBool  (IDD_ALPHA_USE_CHANNEL,                  FALSE);
 
   return TRUE;
 }
@@ -164,6 +167,11 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
   toggleChannel(IDD_TOGGLE_BUMP,     IDG_BUMP,     TRUE,  data, description, params);
   toggleChannel(IDD_TOGGLE_EMISSION, IDG_EMISSION, TRUE,  data, description, params);
   toggleChannel(IDD_TOGGLE_ALPHA,    IDG_ALPHA,    TRUE,  data, description, params);
+
+  // set texture preview GUI of alpha channel to alpha mode
+  BaseContainer* descrData = description->GetParameterI(DescLevel(IDD_ALPHA_SHADER),
+                                                        params);
+  if (descrData) { descrData->SetBool(TEXBOX_ALPHAMODE, TRUE); }
 
   // get material type and enable channels depending on it
   LONG materialType = data->GetLong(IDD_MATERIAL_TYPE);
@@ -1011,13 +1019,17 @@ void LuxC4DMaterial::toggleChannel(LONG           channelToggleId,
 ///   The mapping of the texture (mapping is stored per texture).
 /// @param[in]  textureGamma
 ///   The gamma that shall be applied to the texture (1.0 means no gamma).
+/// @param[in]  channel  (default == LuxImageMapData::IMAGE_CHANNEL_NONE)
+///   The image channel that should be used as float texture, if the texture type
+///   is LUX_FLOAT_TEXTURE. Is ignored for other texture types.
 /// @return
 ///   A handle that references the texture data object.
-LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&        data,
-                                                     LONG                  shaderId,
-                                                     LuxTextureType        textureType,
-                                                     const TextureMapping& mapping,
-                                                     LuxFloat              textureGamma) const
+LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&                data,
+                                                     LONG                          shaderId,
+                                                     LuxTextureType                textureType,
+                                                     const TextureMapping&         mapping,
+                                                     LuxFloat                      textureGamma,
+                                                     LuxImageMapData::ImageChannel channel) const
 {
   // at the moment we support only the bitmap shader ...
 
@@ -1039,7 +1051,8 @@ LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&        data,
   return gNewNC LuxImageMapData(textureType,
                                 mapping,
                                 fullBitmapPath,
-                                textureGamma);
+                                textureGamma,
+                                channel);
 }
 
 
@@ -1131,12 +1144,13 @@ void LuxC4DMaterial::getColorChannel(ULONG                 channelId,
 
 
 ///
-LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                  toggleId,
-                                                LONG                  valueId,
-                                                LONG                  shaderId,
-                                                BaseContainer&        data,
-                                                const TextureMapping& mapping,
-                                                LReal                  scaleFactor) const
+LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                          toggleId,
+                                                LONG                          valueId,
+                                                LONG                          shaderId,
+                                                BaseContainer&                data,
+                                                const TextureMapping&         mapping,
+                                                LReal                         scaleFactor,
+                                                LuxImageMapData::ImageChannel channel) const
 {
   if (toggleId && !data.GetBool(toggleId)) { return LuxTextureDataH(); }
 
@@ -1148,7 +1162,8 @@ LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                  toggleId,
                                                        shaderId,
                                                        LUX_FLOAT_TEXTURE,
                                                        mapping,
-                                                       1.0);
+                                                       1.0,
+                                                       channel);
   if (shaderTexture) {
     LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_FLOAT_TEXTURE);
     scaledTexture->mTexture1 = shaderTexture;
@@ -1168,7 +1183,7 @@ void LuxC4DMaterial::getFloatChannel(ULONG                 channelId,
                                      BaseContainer&        data,
                                      const TextureMapping& mapping,
                                      LuxMaterialData&      materialData,
-                                     LReal                  scaleFactor) const
+                                     LReal                 scaleFactor) const
 {
   LuxTextureDataH texture = getFloatTexture(toggleId,
                                             valueId,
@@ -1226,12 +1241,23 @@ void LuxC4DMaterial::getAlphaChannel(BaseContainer&        data,
                                      const TextureMapping& mapping,
                                      LuxMaterialData&      materialData) const
 {
+  LuxImageMapData::ImageChannel channel = LuxImageMapData::IMAGE_CHANNEL_NONE;
+  if (data.GetBool(IDD_ALPHA_USE_CHANNEL)) {
+    channel = LuxImageMapData::IMAGE_CHANNEL_ALPHA;
+  }
   LuxTextureDataH texture = getFloatTexture(IDD_TOGGLE_ALPHA,
                                             IDD_ALPHA_VALUE,
                                             IDD_ALPHA_SHADER,
-                                            data, mapping);
-  if (texture && (!texture->isConstant() || texture->constantFloat() != 1.0)) {
-    materialData.setAlphaChannel(texture, FALSE);
+                                            data,
+                                            mapping,
+                                            1.0,
+                                            channel);
+  Bool invertAlpha = data.GetBool(IDD_ALPHA_INVERT);
+  if (texture && (!texture->isConstant() ||
+                  (!invertAlpha && (texture->constantFloat() != 1.0)) ||
+                  (invertAlpha && (texture->constantFloat() != 0.0))))
+  {
+    materialData.setAlphaChannel(texture, invertAlpha);
   }
 }
 
