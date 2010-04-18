@@ -366,11 +366,49 @@ Bool LuxAPIWriter::areaLightSource(IdentifierName     type,
 Bool LuxAPIWriter::texture(IdentifierName     name,
                            IdentifierName     colorType,
                            IdentifierName     type,
-                           const LuxParamSet& paramSet)
+                           const LuxParamSet& paramSet,
+                           const LuxMatrix*   trafo)
 {
+  const static ULONG  sBufferSize(360);
+  CHAR                buffer[sBufferSize];
+
   mObjectsFile->WriteChar('\n');
+
+  // write buffered comment, if there is one
   writeComment(mMaterialsFile);
-  return writeSetting(*mMaterialsFile, "Texture", name, colorType, type, paramSet, TRUE);
+
+  // if there is a transformation matrix, write it into the material file
+  if (trafo) {
+    LONG len = sprintf(buffer,
+                       "Transform [%.8g %.8g %.8g %.8g  "
+                                  "%.8g %.8g %.8g %.8g  "
+                                  "%.8g %.8g %.8g %.8g  "
+                                  "%.8g %.8g %.8g %.8g]\n",
+                       trafo->values[0],  trafo->values[1],  trafo->values[2],  trafo->values[3], 
+                       trafo->values[4],  trafo->values[5],  trafo->values[6],  trafo->values[7], 
+                       trafo->values[8],  trafo->values[9],  trafo->values[10], trafo->values[11], 
+                       trafo->values[12], trafo->values[13], trafo->values[14], trafo->values[15]);
+    if (!mMaterialsFile->WriteBytes(buffer, len)) {
+      ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
+                             "LuxAPIWriter::transform(): writing to file failed");
+    }
+  }
+
+  // write the actual texture
+  if (!writeSetting(*mMaterialsFile, "Texture", name, colorType, type, paramSet, TRUE)) {
+    return FALSE;
+  }
+
+  // if we have written a transformation matrix before, switch back to
+  // identity matrix
+  if (trafo) {
+    LONG len = sprintf(buffer, "Transform [1 0 0 0  0 1 0 0  0 0 1 0  0 0 0 1]\n");
+    if (!mMaterialsFile->WriteBytes(buffer, len)) {
+      ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
+                             "LuxAPIWriter::transform(): writing to file failed");
+    }
+  }
+  return TRUE;
 }
 
 

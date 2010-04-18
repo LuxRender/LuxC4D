@@ -84,30 +84,30 @@ Bool LuxTextureData::sendToAPIAndAddToParamSet(LuxAPI&                receiver,
 }
 
 
-void LuxTextureData::add2DMapping(LuxParamSet& paramSet)
-{
-  paramSet.addParam(LUX_STRING, "mapping", &mMapping.mMappingType);
-  paramSet.addParam(LUX_FLOAT,  "uscale", &mMapping.mUScale);
-  paramSet.addParam(LUX_FLOAT,  "vscale", &mMapping.mVScale);
-  paramSet.addParam(LUX_FLOAT,  "udelta", &mMapping.mUShift);
-  paramSet.addParam(LUX_FLOAT,  "vdelta", &mMapping.mVShift);
-}
-
-
 Bool LuxTextureData::sendToAPIHelper(LuxAPI&                receiver,
                                      const LuxString&       name,
                                      LuxAPI::IdentifierName typeName,
-                                     const LuxParamSet&     paramSet) const
+                                     LuxParamSet&           paramSet) const
 {
   static const CHAR* cTextureTypeStr[LUX_TEXTURE_TYPE_COUNT] = {
     "float",
     "color"
   };
 
-  return receiver.texture(name.c_str(),
-                          cTextureTypeStr[mType],
-                          typeName,
-                          paramSet);
+  const LuxMatrix* trafo = 0;
+  if (mMapping) {
+    mMapping->addToParamSet(paramSet);
+    trafo = mMapping->getTrafo();
+  }
+  if (!receiver.texture(name.c_str(),
+                        cTextureTypeStr[mType],
+                        typeName,
+                        paramSet,
+                        trafo))
+  {
+    return FALSE;
+  }
+  return TRUE;
 }
 
 
@@ -323,11 +323,11 @@ LuxImageMapData::LuxImageMapData(LuxTextureType type)
 {}
 
 
-LuxImageMapData::LuxImageMapData(LuxTextureType        type,
-                                 const TextureMapping& mapping,
-                                 const Filename&       imagePath,
-                                 LuxFloat              gamma,
-                                 ImageChannel          channel)
+LuxImageMapData::LuxImageMapData(LuxTextureType     type,
+                                 LuxTextureMappingH mapping,
+                                 const Filename&    imagePath,
+                                 LuxFloat           gamma,
+                                 ImageChannel       channel)
 : LuxTextureData(type),
   mImagePath(imagePath),
   mChannel(channel),
@@ -350,7 +350,7 @@ Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
     "colored_mean"
   };
 
-  LuxParamSet paramSet(10);
+  LuxParamSet paramSet(3 + LuxTextureMapping::maxParamCount());
 
   // convert and clean up image path
   FilePath processedPath(mImagePath);
@@ -383,9 +383,6 @@ Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
   if (fabsf(mGamma-1.0) > 0.001) {
     paramSet.addParam(LUX_FLOAT, "gamma", &mGamma);
   }
-
-  // store texture mapping
-  add2DMapping(paramSet);
 
   // send texture to Lux API
   return sendToAPIHelper(receiver, name, "imagemap", paramSet);

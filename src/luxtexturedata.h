@@ -31,6 +31,7 @@
 #include "autoref.h"
 #include "filepath.h"
 #include "luxapi.h"
+#include "luxtexturemapping.h"
 
 
 
@@ -46,39 +47,6 @@ enum LuxTextureType {
 };
 
 
-/// This structure stores texture mapping parameters that are relevant to Lux.
-struct TextureMapping {
-  /// The mapping type of the texture - already as string.
-  LuxString mMappingType;
-  /// If TRUE the texture mapping parameters will NOT be exported and the Lux
-  /// defaults get applied.
-  Bool      mHasDefaultParams;
-  /// The texture scaling along the U axis.
-  LuxFloat  mUScale;
-  /// The texture scaling along the V axis.
-  LuxFloat  mVScale;
-  /// The texture shift along the U axis.
-  LuxFloat  mUShift;
-  /// The texture shift along the V axis.
-  LuxFloat  mVShift;
-
-  /// Default constructor. The texture mapping parameters will be disabled.
-  TextureMapping() : mMappingType("uv"), mHasDefaultParams(TRUE)  {}
-  /// Copy constructor.
-  TextureMapping(const TextureMapping& other) { *this = other; }
-  /// Copy operator.
-  TextureMapping& operator=(const TextureMapping& other) {
-    mMappingType      = other.mMappingType;
-    mHasDefaultParams = other.mHasDefaultParams;
-    mUScale           = other.mUScale;
-    mVScale           = other.mVScale;
-    mUShift           = other.mUShift;
-    mVShift           = other.mVShift;
-    return *this;
-  }
-};
-  
-
 
 /***************************************************************************//*!
  Base class of a texture parameter container implementation.
@@ -88,7 +56,7 @@ class LuxTextureData
 public:
 
   const LuxTextureType mType;
-  TextureMapping       mMapping;
+  LuxTextureMappingH   mMapping;
 
 
   inline LuxTextureData(LuxTextureType type) : mType(type) {}
@@ -108,12 +76,10 @@ public:
 
 protected:
 
-  void add2DMapping(LuxParamSet& paramSet);
-
   Bool sendToAPIHelper(LuxAPI&                receiver,
                        const LuxString&       name,
                        LuxAPI::IdentifierName typeName,
-                       const LuxParamSet&     paramSet) const;
+                       LuxParamSet&           paramSet) const;
 
 
 private:
@@ -237,11 +203,11 @@ public:
 
 
   LuxImageMapData(LuxTextureType type);
-  LuxImageMapData(LuxTextureType        type,
-                  const TextureMapping& mapping,
-                  const Filename&       imagePath,
-                  LuxFloat              gamma = 1.0,
-                  ImageChannel          channel = IMAGE_CHANNEL_NONE);
+  LuxImageMapData(LuxTextureType     type,
+                  LuxTextureMappingH mapping,
+                  const Filename&    imagePath,
+                  LuxFloat           gamma = 1.0,
+                  ImageChannel       channel = IMAGE_CHANNEL_NONE);
 
   virtual Bool sendToAPI(LuxAPI&          receiver,
                          const LuxString& name);

@@ -96,7 +96,8 @@ public:
   virtual Bool texture(IdentifierName     name,
                        IdentifierName     colorType,
                        IdentifierName     type,
-                       const LuxParamSet& paramSet);
+                       const LuxParamSet& paramSet,
+                       const LuxMatrix*   trafo);
 
   virtual Bool makeNamedMaterial(IdentifierName     name,
                                  const LuxParamSet& paramSet);

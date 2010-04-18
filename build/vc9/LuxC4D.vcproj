@@ -4765,6 +4765,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\luxtexturemapping.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\luxtexturemapping.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\luxtypes.h"
 			>
 		</File>

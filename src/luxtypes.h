@@ -148,6 +148,12 @@ struct LuxVector
   inline LuxVector(const Vector& c4dVector)
   : x(c4dVector.x), y(c4dVector.z), z(c4dVector.y)
   {}
+
+  /// Returns TRUE if both vectors are the same and FALSE if not.
+  inline Bool operator==(const LuxVector& other) const
+  {
+    return (x == other.x) && (y == other.y) && (z == other.z);
+  }
 };
 
 
@@ -254,7 +260,30 @@ struct LuxMatrix
 
   /// Default constructor. The members are NOT cleared.
   inline LuxMatrix()
-  {}
+  {
+    values[0]  = 1.0;
+    values[1]  = 0.0;
+    values[2]  = 0.0;
+    values[3]  = 0.0;
+
+    // Z C4D axis => Y Lux axis
+    values[4]  = 0.0;
+    values[5]  = 1.0;
+    values[6]  = 0.0;
+    values[7]  = 0.0;
+
+    // Y C4D axis => Z Lux axis
+    values[8]  = 0.0;
+    values[9]  = 0.0;
+    values[10] = 1.0;
+    values[11] = 0.0;
+
+    // Lux pos == C4D pos
+    values[12] = 0.0;
+    values[13] = 0.0;
+    values[14] = 0.0;
+    values[15] = 1.0;
+  }
 
   /// Constructor that creates a matching Lux matrix out of a C4D matrix.
   ///
@@ -289,6 +318,14 @@ struct LuxMatrix
     values[15] = 1.0;
   }
 
+  /// Returns TRUE if both matrices are equal, FALSE if not.
+  Bool operator==(const LuxMatrix& other) const
+  {
+    for (LONG i=0; i<16; ++i) {
+      if (values[i] != other.values[i]) { return FALSE; }
+    }
+    return TRUE;
+  }
 };
 
 

@@ -276,12 +276,15 @@ public:
   ///   The type name of the texture (e.g. "constant").
   /// @param[in]  paramSet
   ///   The additional texture parameters (e.g. "value").
+  /// @param[in]  trafo
+  ///   Matrix defining the texture transformation (can be NULL).
   /// @return
   ///   TRUE if executed successfully, otherwise FALSE.
   virtual Bool texture(IdentifierName     name,
                        IdentifierName     colorType,
                        IdentifierName     type,
-                       const LuxParamSet& paramSet) =0;
+                       const LuxParamSet& paramSet,
+                       const LuxMatrix*   trafo=0) =0;
 
   /// Adds a named material, which can then be refered to by objects.
   ///

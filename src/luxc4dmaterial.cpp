@@ -526,11 +526,11 @@ void LuxC4DMaterial::CalcSurface(PluginMaterial* mat,
 }
 
 
-LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(const TextureMapping& mapping,
-                                                    LReal                 c4d2LuxScale,
-                                                    Real                  colorGamma,
-                                                    Real                  textureGamma,
-                                                    Real                  bumpSampleDistance)
+LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
+                                                    LReal              c4d2LuxScale,
+                                                    Real               colorGamma,
+                                                    Real               textureGamma,
+                                                    Real               bumpSampleDistance)
 {
   // the metal types
   static const char* sMetalTypes[IDD_METAL_TYPE_NUMBER-1] = {
@@ -1027,7 +1027,7 @@ void LuxC4DMaterial::toggleChannel(LONG           channelToggleId,
 LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&                data,
                                                      LONG                          shaderId,
                                                      LuxTextureType                textureType,
-                                                     const TextureMapping&         mapping,
+                                                     LuxTextureMappingH            mapping,
                                                      LuxFloat                      textureGamma,
                                                      LuxImageMapData::ImageChannel channel) const
 {
@@ -1057,15 +1057,15 @@ LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&             
 
 
 ///
-LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG                  toggleId,
-                                                LONG                  colorId,
-                                                LONG                  shaderId,
-                                                LONG                  shaderStrengthId,
-                                                LONG                  brightnessId,
-                                                BaseContainer&        data,
-                                                const TextureMapping& mapping,
-                                                LuxFloat              colorGamma,
-                                                LuxFloat              textureGamma) const
+LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG               toggleId,
+                                                LONG               colorId,
+                                                LONG               shaderId,
+                                                LONG               shaderStrengthId,
+                                                LONG               brightnessId,
+                                                BaseContainer&     data,
+                                                LuxTextureMappingH mapping,
+                                                LuxFloat           colorGamma,
+                                                LuxFloat           textureGamma) const
 {
   if (toggleId && !data.GetBool(toggleId)) { return LuxTextureDataH(); }
 
@@ -1116,17 +1116,17 @@ LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG                  toggleId,
 
 
 ///
-void LuxC4DMaterial::getColorChannel(ULONG                 channelId,
-                                     LONG                  toggleId,
-                                     LONG                  colorId,
-                                     LONG                  shaderId,
-                                     LONG                  shaderStrengthId,
-                                     LONG                  brightnessId,
-                                     BaseContainer&        data,
-                                     const TextureMapping& mapping,
-                                     LuxFloat              colorGamma,
-                                     LuxFloat              textureGamma,
-                                     LuxMaterialData&      materialData) const
+void LuxC4DMaterial::getColorChannel(ULONG              channelId,
+                                     LONG               toggleId,
+                                     LONG               colorId,
+                                     LONG               shaderId,
+                                     LONG               shaderStrengthId,
+                                     LONG               brightnessId,
+                                     BaseContainer&     data,
+                                     LuxTextureMappingH mapping,
+                                     LuxFloat           colorGamma,
+                                     LuxFloat           textureGamma,
+                                     LuxMaterialData&   materialData) const
 {
   LuxTextureDataH texture = getColorTexture(toggleId,
                                             colorId,
@@ -1148,7 +1148,7 @@ LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                          to
                                                 LONG                          valueId,
                                                 LONG                          shaderId,
                                                 BaseContainer&                data,
-                                                const TextureMapping&         mapping,
+                                                LuxTextureMappingH            mapping,
                                                 LReal                         scaleFactor,
                                                 LuxImageMapData::ImageChannel channel) const
 {
@@ -1176,14 +1176,14 @@ LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                          to
 
 
 ///
-void LuxC4DMaterial::getFloatChannel(ULONG                 channelId,
-                                     LONG                  toggleId,
-                                     LONG                  valueId,
-                                     LONG                  shaderId,
-                                     BaseContainer&        data,
-                                     const TextureMapping& mapping,
-                                     LuxMaterialData&      materialData,
-                                     LReal                 scaleFactor) const
+void LuxC4DMaterial::getFloatChannel(ULONG              channelId,
+                                     LONG               toggleId,
+                                     LONG               valueId,
+                                     LONG               shaderId,
+                                     BaseContainer&     data,
+                                     LuxTextureMappingH mapping,
+                                     LuxMaterialData&   materialData,
+                                     LReal              scaleFactor) const
 {
   LuxTextureDataH texture = getFloatTexture(toggleId,
                                             valueId,
@@ -1198,11 +1198,11 @@ void LuxC4DMaterial::getFloatChannel(ULONG                 channelId,
 
 
 ///
-void LuxC4DMaterial::getBumpChannel(BaseContainer&        data,
-                                    const TextureMapping& mapping,
-                                    LuxMaterialData&      materialData,
-                                    LReal                 scaleFactor,
-                                    Real                  bumpSampleDistance) const
+void LuxC4DMaterial::getBumpChannel(BaseContainer&     data,
+                                    LuxTextureMappingH mapping,
+                                    LuxMaterialData&   materialData,
+                                    LReal              scaleFactor,
+                                    Real               bumpSampleDistance) const
 {
   LuxTextureDataH texture = getFloatTexture(IDD_TOGGLE_BUMP,
                                             IDD_BUMP_HEIGHT,
@@ -1215,11 +1215,11 @@ void LuxC4DMaterial::getBumpChannel(BaseContainer&        data,
 
 
 ///
-void LuxC4DMaterial::getEmissionChannel(BaseContainer&        data,
-                                        const TextureMapping& mapping,
-                                        LuxFloat              colorGamma,
-                                        LuxFloat              textureGamma,
-                                        LuxMaterialData&      materialData) const
+void LuxC4DMaterial::getEmissionChannel(BaseContainer&     data,
+                                        LuxTextureMappingH mapping,
+                                        LuxFloat           colorGamma,
+                                        LuxFloat           textureGamma,
+                                        LuxMaterialData&   materialData) const
 {
   LuxTextureDataH texture = getColorTexture(IDD_TOGGLE_EMISSION,
                                             IDD_EMISSION_COLOR,
@@ -1237,9 +1237,9 @@ void LuxC4DMaterial::getEmissionChannel(BaseContainer&        data,
 
 
 ///
-void LuxC4DMaterial::getAlphaChannel(BaseContainer&        data,
-                                     const TextureMapping& mapping,
-                                     LuxMaterialData&      materialData) const
+void LuxC4DMaterial::getAlphaChannel(BaseContainer&     data,
+                                     LuxTextureMappingH mapping,
+                                     LuxMaterialData&   materialData) const
 {
   LuxImageMapData::ImageChannel channel = LuxImageMapData::IMAGE_CHANNEL_NONE;
   if (data.GetBool(IDD_ALPHA_USE_CHANNEL)) {

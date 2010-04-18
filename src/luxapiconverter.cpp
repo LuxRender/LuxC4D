@@ -142,6 +142,7 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document,
       !exportGeometry() ||
       !exportInfiniteLight() ||
       !exportAutoLight() ||
+
       !mReceiver->worldEnd())
   {
     goto CLEANUP_AND_RETURN;
@@ -1389,10 +1390,8 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
                                      LuxString&    lightGroup)
 {
   // get texture mapping
-  TextureMapping mapping;
-  if (!convertTextureMapping(textureTag, mapping)) {
-    return FALSE;
-  }
+  LuxTextureMappingH mapping = convertTextureMapping(textureTag);
+  if (!mapping) { return FALSE; }
 
   // if the texture has default mapping parameters, we look if this material
   // was already used before (also with default texture mapping)
@@ -1400,15 +1399,15 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
   //       (material + projection) -> (material name)
   //       this will become important when we export more texture mapping types
   //       than only UV
-  if (mapping.mHasDefaultParams) {
-    ReusableMaterial* reusableMaterial = mReusableMaterials.get(&material);
-    if (reusableMaterial) {
-      materialName       = reusableMaterial->mName;
-      hasEmissionChannel = reusableMaterial->mHasEmissionChannel;
-      lightGroup         = reusableMaterial->mLightGroup;
-      return TRUE;
-    }
-  }
+  //if (mapping.mHasDefaultParams) {
+  //  ReusableMaterial* reusableMaterial = mReusableMaterials.get(&material);
+  //  if (reusableMaterial) {
+  //    materialName       = reusableMaterial->mName;
+  //    hasEmissionChannel = reusableMaterial->mHasEmissionChannel;
+  //    lightGroup         = reusableMaterial->mLightGroup;
+  //    return TRUE;
+  //  }
+  //}
 
   // determine material name:
   String c4dMaterialName;
@@ -1416,14 +1415,14 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
   // if the texture mapping doesn't have default parameters, we export the
   // material only for this object and give it a unique name dependent of the
   // object
-  if (!mapping.mHasDefaultParams) {
+  //if (!mapping.mHasDefaultParams) {
     BaseObject* object = textureTag.GetObject();
     if (object) {
       c4dMaterialName = object->GetName();
     } else {
       c4dMaterialName = "???";
     }
-  }
+  //}
 
   // attach material name
   c4dMaterialName += "::";
@@ -1443,11 +1442,6 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
 
   // convert C4D string to LuxString
   convert2LuxString(c4dMaterialName, materialName);
-
-  // get texture mapping
-  if (!convertTextureMapping(textureTag, mapping)) {
-    return FALSE;
-  }
 
   // convert standard C4D material to different Lux materials - depending on
   // the used material channels
@@ -1517,12 +1511,12 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
 
   // if material export was successful, we add the material and its name to the
   // list of reusable materials, if the texture mapping had defaults only
-  if (success && mapping.mHasDefaultParams) {
-    mReusableMaterials.add(&material,
-                           ReusableMaterial(materialName,
-                                            hasEmissionChannel,
-                                            lightGroup));
-  }
+  //if (success && mapping.mHasDefaultParams) {
+  //  mReusableMaterials.add(&material,
+  //                         ReusableMaterial(materialName,
+  //                                          hasEmissionChannel,
+  //                                          lightGroup));
+  //}
 
   return success;
 }
@@ -1537,51 +1531,28 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
 ///   The structure where the Lux texture mapping parameters will be stored.
 /// @return
 ///   TRUE if executed successful, FALSE otherwise.
-Bool LuxAPIConverter::convertTextureMapping(TextureTag&     textureTag,
-                                            TextureMapping& luxTexMapping)
+LuxTextureMappingH LuxAPIConverter::convertTextureMapping(TextureTag& textureTag)
 {
-  // get base container of tag
-  BaseContainer* data = textureTag.GetDataInstance();
-  if (!data) {
-    ERRLOG_RETURN_VALUE(FALSE, "could not obtain container for texture tag");
+  // depending on the projection type create different texture mapping classes
+  switch (getParameterLong(textureTag, TEXTURETAG_PROJECTION)) {
+    case TEXTURETAG_PROJECTION_SPHERICAL:
+      return gNewNC LuxSphericalMapping(textureTag);
+    case TEXTURETAG_PROJECTION_CYLINDRICAL:
+      return gNewNC LuxCylindricalMapping(textureTag);
+    case TEXTURETAG_PROJECTION_FLAT:
+      return gNewNC LuxPlanarMapping(textureTag);
+    default:
+      return gNewNC LuxUVMapping(textureTag);
   }
-
-  // get UV shift and scale from texture tag
-  luxTexMapping.mUShift = getParameterReal(textureTag, TEXTURETAG_OFFSETX);
-  luxTexMapping.mVShift = getParameterReal(textureTag, TEXTURETAG_OFFSETY);
-  luxTexMapping.mUScale = getParameterReal(textureTag, TEXTURETAG_TILESX);
-  luxTexMapping.mVScale = getParameterReal(textureTag, TEXTURETAG_TILESY);
-
-  // convert to Lux system where everything is inverse
-  luxTexMapping.mUShift *= -luxTexMapping.mUScale;
-  luxTexMapping.mVShift *= -luxTexMapping.mVScale;
-
-  // if there is almost no shift or scale, don't export it
-  if ((fabsf(luxTexMapping.mUShift) < 0.001) &&
-      (fabsf(luxTexMapping.mVShift) < 0.001) &&
-      (fabsf(luxTexMapping.mUScale - 1.0) < 0.001) &&
-      (fabsf(luxTexMapping.mVScale - 1.0) < 0.001))
-  {
-    luxTexMapping.mHasDefaultParams = TRUE;
-  } else {
-    luxTexMapping.mHasDefaultParams = FALSE;
-  }
-
-  // now we have to invert the V scale as we will do the same with the UV coordinates
-  // (this is to avoid a problem in bump shading - don't ask me why ...)
-  luxTexMapping.mVShift += luxTexMapping.mVScale - 1.0;
-  luxTexMapping.mVScale = -luxTexMapping.mVScale;
-
-  return TRUE;
 }
 
 
 ///
-Bool LuxAPIConverter::exportLuxC4DMaterial(const TextureMapping& mapping,
-                                           BaseMaterial&         material,
-                                           LuxString&            materialName,
-                                           Bool&                 hasEmissionChannel,
-                                           LuxString&            lightGroup)
+Bool LuxAPIConverter::exportLuxC4DMaterial(LuxTextureMappingH mapping,
+                                           BaseMaterial&      material,
+                                           LuxString&         materialName,
+                                           Bool&              hasEmissionChannel,
+                                           LuxString&         lightGroup)
 {
   LuxC4DMaterial* luxc4dMaterial = (LuxC4DMaterial*)material.GetNodeData();
   if (!luxc4dMaterial) { return FALSE; }
@@ -1634,10 +1605,10 @@ Bool LuxAPIConverter::exportDummyMaterial(BaseMaterial& material,
 ///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
-Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
-                                            Material&             material,
-                                            LuxString&            materialName,
-                                            Bool&                 hasEmissionChannel)
+Bool LuxAPIConverter::exportDiffuseMaterial(LuxTextureMappingH mapping,
+                                            Material&          material,
+                                            LuxString&         materialName,
+                                            Bool&              hasEmissionChannel)
 {
   LuxMatteData materialData;
 
@@ -1685,10 +1656,10 @@ Bool LuxAPIConverter::exportDiffuseMaterial(const TextureMapping& mapping,
 ///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
-Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
-                                           Material&             material,
-                                           LuxString&            materialName,
-                                           Bool&                 hasEmissionChannel)
+Bool LuxAPIConverter::exportGlossyMaterial(LuxTextureMappingH mapping,
+                                           Material&          material,
+                                           LuxString&         materialName,
+                                           Bool&              hasEmissionChannel)
 {
   LuxGlossyData materialData;
 
@@ -1745,10 +1716,10 @@ Bool LuxAPIConverter::exportGlossyMaterial(const TextureMapping& mapping,
 ///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
-Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
-                                               Material&             material,
-                                               LuxString&            materialName,
-                                               Bool&                 hasEmissionChannel)
+Bool LuxAPIConverter::exportReflectiveMaterial(LuxTextureMappingH mapping,
+                                               Material&          material,
+                                               LuxString&         materialName,
+                                               Bool&              hasEmissionChannel)
 {
   // get dispersion
   LuxFloat roughness = 0.0;
@@ -1834,10 +1805,10 @@ Bool LuxAPIConverter::exportReflectiveMaterial(const TextureMapping& mapping,
 ///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
-Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
-                                                Material&             material,
-                                                LuxString&            materialName,
-                                                Bool&                 hasEmissionChannel)
+Bool LuxAPIConverter::exportTransparentMaterial(LuxTextureMappingH mapping,
+                                                Material&          material,
+                                                LuxString&         materialName,
+                                                Bool&              hasEmissionChannel)
 {
   // get dispersion
   LuxFloat roughness = 0.0;
@@ -1957,10 +1928,10 @@ Bool LuxAPIConverter::exportTransparentMaterial(const TextureMapping& mapping,
 ///   Will be set to TRUE if the material emits light and to FALSE if it doesn't.
 /// @return
 ///   TRUE if exported successfully, FALSE otherwise.
-Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
-                                                Material&             material,
-                                                LuxString&            materialName,
-                                                Bool&                 hasEmissionChannel)
+Bool LuxAPIConverter::exportTranslucentMaterial(LuxTextureMappingH mapping,
+                                                Material&          material,
+                                                LuxString&         materialName,
+                                                Bool&              hasEmissionChannel)
 {
   LuxMatteTranslucentData materialData;
 
@@ -2017,9 +1988,9 @@ Bool LuxAPIConverter::exportTranslucentMaterial(const TextureMapping& mapping,
 ///   The Lux material settings to which the bump channel will be added.
 /// @return
 ///   TRUE if executed successfully, FALSE otherwise.
-Bool LuxAPIConverter::addBumpChannel(const TextureMapping& mapping,
-                                     Material&             material,
-                                     LuxMaterialData&      materialData)
+Bool LuxAPIConverter::addBumpChannel(LuxTextureMappingH mapping,
+                                     Material&          material,
+                                     LuxMaterialData&   materialData)
 {
   if (getParameterLong(material, MATERIAL_USE_BUMP)) {
     LuxTextureDataH texture = convertFloatChannel(mapping,
@@ -2047,10 +2018,10 @@ Bool LuxAPIConverter::addBumpChannel(const TextureMapping& mapping,
 ///   The Lux material settings to which the bump channel will be added.
 /// @return
 ///   TRUE if executed successfully, FALSE otherwise.
-Bool LuxAPIConverter::addEmissionChannel(const TextureMapping& mapping,
-                                         Material&             material,
-                                         LuxMaterialData&      materialData,
-                                         Bool&                 hasEmissionChannel)
+Bool LuxAPIConverter::addEmissionChannel(LuxTextureMappingH mapping,
+                                         Material&          material,
+                                         LuxMaterialData&   materialData,
+                                         Bool&              hasEmissionChannel)
 {
   if (getParameterLong(material, MATERIAL_USE_LUMINANCE)) {
     hasEmissionChannel = TRUE;
@@ -2080,9 +2051,9 @@ Bool LuxAPIConverter::addEmissionChannel(const TextureMapping& mapping,
 ///   The Lux material settings to which the alpha channel will be added.
 /// @return
 ///   TRUE if executed successfully, FALSE otherwise.
-Bool LuxAPIConverter::addAlphaChannel(const TextureMapping& mapping,
-                                      Material&             material,
-                                      LuxMaterialData&      materialData)
+Bool LuxAPIConverter::addAlphaChannel(LuxTextureMappingH mapping,
+                                      Material&          material,
+                                      LuxMaterialData&   materialData)
 {
   if (getParameterLong(material, MATERIAL_USE_ALPHA)) {
     LuxImageMapData::ImageChannel channel = LuxImageMapData::IMAGE_CHANNEL_NONE;
@@ -2127,7 +2098,7 @@ Bool LuxAPIConverter::addAlphaChannel(const TextureMapping& mapping,
 /// @return
 ///   An AutoRef of the converted Lux texture or an invalid/bad AutoRef, if
 ///   the channel could not be obtained.
-LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping&         mapping,
+LuxTextureDataH LuxAPIConverter::convertFloatChannel(LuxTextureMappingH            mapping,
                                                      Material&                     material,
                                                      LONG                          shaderId,
                                                      LONG                          strengthId,
@@ -2190,12 +2161,12 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(const TextureMapping&      
 ///   The ID of the texture mixing description parameter.
 /// @return
 ///   An AutoRef of the converted Lux texture.
-LuxTextureDataH LuxAPIConverter::convertColorChannel(const TextureMapping& mapping,
-                                                     Material&             material,
-                                                     LONG                  shaderId,
-                                                     LONG                  colorId,
-                                                     LONG                  brightnessId,
-                                                     LONG                  mixerId)
+LuxTextureDataH LuxAPIConverter::convertColorChannel(LuxTextureMappingH mapping,
+                                                     Material&          material,
+                                                     LONG               shaderId,
+                                                     LONG               colorId,
+                                                     LONG               brightnessId,
+                                                     LONG               mixerId)
 {
   // fetch bitmap shader, if available
   BaseList2D* bitmapLink = getParameterLink(material, shaderId, Xbitmap);
@@ -2510,7 +2481,7 @@ Bool LuxAPIConverter::convertGeometry(PolygonObject&  object,
     for (ULONG uvIx=0; uvIx<mUVCache.size(); ++uvIx) {
       uv = &(mUVCache[uvIx]);
       (*uvs)[ uvIx << 1   ] = uv->x;
-      (*uvs)[(uvIx << 1)+1] = 1.0 - uv->y;
+      (*uvs)[(uvIx << 1)+1] = uv->y;
     }
   }
 

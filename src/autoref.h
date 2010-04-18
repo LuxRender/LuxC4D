@@ -111,13 +111,16 @@ inline AutoRef<T,array>::AutoRef(void)
 ///   Pointer to the data the AutoRef should be the reference of.
 template<class T, Bool array>
 inline AutoRef<T,array>::AutoRef(T* data)
-: mData(data), mRefCount(gNewNC SizeT(1))
 {
-  if (!mRefCount) {
-    ERRLOG_RETURN("AutoRef::AutoRef(): Could not allocate reference counter.");
-  }
-  if (!mData) {
-    gDelete(mRefCount);
+  if (data) {
+    mRefCount = gNewNC SizeT(1);
+    if (!mRefCount) {
+      ERRLOG_RETURN("AutoRef::AutoRef(): Could not allocate reference counter.");
+    }
+    mData = data;
+  } else {
+    mData = 0;
+    mRefCount = 0;
   }
 }
 
@@ -132,9 +135,7 @@ template<class T, Bool array>
 inline AutoRef<T,array>::AutoRef(const AutoRef& other)
 : mData(other.mData), mRefCount(other.mRefCount)
 {
-  if (mRefCount) {
-    ++(*mRefCount);
-  }
+  if (mRefCount) { ++(*mRefCount); }
 }
 
 
@@ -169,7 +170,7 @@ Bool AutoRef<T,array>::allocate(SizeT nmb)
       ERRLOG_RETURN_VALUE(FALSE, "AutoRef::allocate(): Could not allocate data.");
     }
   }
-  if (!(mRefCount = gNewNC ULONG(1))) {
+  if (!(mRefCount = gNewNC SizeT(1))) {
     if (array) {
       bDelete(mData);
     } else {
@@ -187,15 +188,14 @@ Bool AutoRef<T,array>::allocate(SizeT nmb)
 template<class T, Bool array>
 void AutoRef<T,array>::clear(void)
 {
-  if (!mRefCount) {
-    return;
-  }
-  if (--(*mRefCount) == 0) {
-    gDelete(mRefCount);
-    if (array) {
-      bDelete(mData);
-    } else {
-      gDelete(mData);
+  if (mRefCount) {
+    if (--(*mRefCount) == 0) {
+      gDelete(mRefCount);
+      if (array) {
+        bDelete(mData);
+      } else {
+        gDelete(mData);
+      }
     }
   }
 }
@@ -286,9 +286,7 @@ AutoRef<T,array>& AutoRef<T,array>::operator=(const AutoRef& src)
     clear();
     mData     = src.mData;
     mRefCount = src.mRefCount;
-    if (mRefCount) {
-      ++(*mRefCount);
-    }
+    if (mRefCount) { ++(*mRefCount); }
   }
   return *this;
 }
@@ -309,9 +307,7 @@ AutoRef<T,array>& AutoRef<T,array>::operator=(T* data)
 {
   if (data != mData) {
     clear();
-    if (!data)  {
-      return *this;
-    }
+    if (!data)  { return *this; }
     mData = data;
     if (!(mRefCount = gNewNC SizeT(1)))  {
       ERRLOG("AutoRef::operator=(): Could not allocate reference counter.");

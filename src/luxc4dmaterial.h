@@ -76,11 +76,11 @@ public:
   virtual void CalcSurface(PluginMaterial* mat,
                            VolumeData*     volumeData);
 
-  LuxMaterialDataH getLuxMaterialData(const TextureMapping& mapping,
-                                      LReal                 c4d2LuxScale,
-                                      Real                  colorGamma,
-                                      Real                  textureGamma,
-                                      Real                  bumpSampleDistance);
+  LuxMaterialDataH getLuxMaterialData(LuxTextureMappingH mapping,
+                                      LReal              c4d2LuxScale,
+                                      Real               colorGamma,
+                                      Real               textureGamma,
+                                      Real               bumpSampleDistance);
 
 
 private:
@@ -99,64 +99,64 @@ private:
   LuxTextureDataH getTextureFromShader(BaseContainer&                data,
                                        LONG                          shaderId,
                                        LuxTextureType                textureType,
-                                       const TextureMapping&         mapping,
+                                       LuxTextureMappingH            mapping,
                                        LuxFloat                      textureGamma,
                                        LuxImageMapData::ImageChannel channel = LuxImageMapData::IMAGE_CHANNEL_NONE) const;
 
-  LuxTextureDataH getColorTexture(LONG                  toggleId,
-                                  LONG                  colorId,
-                                  LONG                  shaderId,
-                                  LONG                  shaderStrengthId,
-                                  LONG                  brightnessId,
-                                  BaseContainer&        data,
-                                  const TextureMapping& mapping,
-                                  LuxFloat              colorGamma,
-                                  LuxFloat              textureGamma) const;
+  LuxTextureDataH getColorTexture(LONG               toggleId,
+                                  LONG               colorId,
+                                  LONG               shaderId,
+                                  LONG               shaderStrengthId,
+                                  LONG               brightnessId,
+                                  BaseContainer&     data,
+                                  LuxTextureMappingH mapping,
+                                  LuxFloat           colorGamma,
+                                  LuxFloat           textureGamma) const;
 
-  void getColorChannel(ULONG                 channelId,
-                       LONG                  toggleId,
-                       LONG                  colorId,
-                       LONG                  shaderId,
-                       LONG                  shaderStrengthId,
-                       LONG                  brightnessId,
-                       BaseContainer&        data,
-                       const TextureMapping& mapping,
-                       LuxFloat              colorGamma,
-                       LuxFloat              textureGamma,
-                       LuxMaterialData&      materialData) const;
+  void getColorChannel(ULONG              channelId,
+                       LONG               toggleId,
+                       LONG               colorId,
+                       LONG               shaderId,
+                       LONG               shaderStrengthId,
+                       LONG               brightnessId,
+                       BaseContainer&     data,
+                       LuxTextureMappingH mapping,
+                       LuxFloat           colorGamma,
+                       LuxFloat           textureGamma,
+                       LuxMaterialData&   materialData) const;
 
   LuxTextureDataH getFloatTexture(LONG                          toggleId,
                                   LONG                          valueId,
                                   LONG                          shaderId,
                                   BaseContainer&                data,
-                                  const TextureMapping&         mapping,
+                                  LuxTextureMappingH            mapping,
                                   LReal                         scaleFactor = 1.0,
                                   LuxImageMapData::ImageChannel channel = LuxImageMapData::IMAGE_CHANNEL_NONE) const;
 
-  void getFloatChannel(ULONG                 channelId,
-                       LONG                  toggleId,
-                       LONG                  valueId,
-                       LONG                  shaderId,
-                       BaseContainer&        data,
-                       const TextureMapping& mapping,
-                       LuxMaterialData&      materialData,
-                       LReal                 scaleFactor = 1.0) const;
+  void getFloatChannel(ULONG              channelId,
+                       LONG               toggleId,
+                       LONG               valueId,
+                       LONG               shaderId,
+                       BaseContainer&     data,
+                       LuxTextureMappingH mapping,
+                       LuxMaterialData&   materialData,
+                       LReal              scaleFactor = 1.0) const;
 
-  void getBumpChannel(BaseContainer&        data,
-                      const TextureMapping& mapping,
-                      LuxMaterialData&      materialData,
-                      LReal                 scaleFactor,
-                      Real                  bumpSampleDistance) const;
+  void getBumpChannel(BaseContainer&     data,
+                      LuxTextureMappingH mapping,
+                      LuxMaterialData&   materialData,
+                      LReal              scaleFactor,
+                      Real               bumpSampleDistance) const;
 
-  void getEmissionChannel(BaseContainer&        data,
-                          const TextureMapping& mapping,
-                          LuxFloat              colorGamma,
-                          LuxFloat              textureGamma,
-                          LuxMaterialData&      materialData) const;
+  void getEmissionChannel(BaseContainer&     data,
+                          LuxTextureMappingH mapping,
+                          LuxFloat           colorGamma,
+                          LuxFloat           textureGamma,
+                          LuxMaterialData&   materialData) const;
 
-  void getAlphaChannel(BaseContainer&        data,
-                       const TextureMapping& mapping,
-                       LuxMaterialData&      materialData) const;
+  void getAlphaChannel(BaseContainer&     data,
+                       LuxTextureMappingH mapping,
+                       LuxMaterialData&   materialData) const;
 
   void setCarpaintPreset(BaseContainer& data,
                          LONG           preset);
