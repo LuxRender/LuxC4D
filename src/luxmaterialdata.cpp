@@ -253,9 +253,9 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
                                 const LuxParamSet* addParams)
 {
   // initialise parameter set (the maximum possible number of parameters is
-  // channel count + 2 (material type, bump texture) + number of
-  // additional parameters)
-  LuxParamSet paramSet(mInfo.mChannelCount + 2 +
+  // channel count + 3 (material type, bump texture, bump sample distance)
+  // + number of additional parameters)
+  LuxParamSet paramSet(mInfo.mChannelCount + 3 +
                          (addParams ? addParams->paramNumber() : 0));
 
   // if there is an alpha channel, the mixed material will get the name that

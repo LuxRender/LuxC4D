@@ -133,7 +133,8 @@ public:
 
   static const ULONG cMaxParamCount;
 
-  LuxSphericalMapping(TextureTag& textureTag);
+  LuxSphericalMapping(TextureTag& textureTag,
+                      LReal       c4d2LuxScale);
 
   virtual const LuxMatrix* getTrafo() const;
   virtual void addToParamSet(LuxParamSet& paramSet) const;
@@ -163,7 +164,8 @@ public:
 
   static const ULONG cMaxParamCount;
 
-  LuxCylindricalMapping(TextureTag& textureTag);
+  LuxCylindricalMapping(TextureTag& textureTag,
+                        LReal       c4d2LuxScale);
 
   virtual const LuxMatrix* getTrafo() const;
   virtual void addToParamSet(LuxParamSet& paramSet) const;
@@ -189,7 +191,8 @@ public:
 
   static const ULONG cMaxParamCount;
 
-  LuxPlanarMapping(TextureTag& textureTag);
+  LuxPlanarMapping(TextureTag& textureTag,
+                   LReal       c4d2LuxScale);
 
   virtual const LuxMatrix* getTrafo() const;
   virtual void addToParamSet(LuxParamSet& paramSet) const;

@@ -1527,8 +1527,6 @@ Bool LuxAPIConverter::exportMaterial(TextureTag&   textureTag,
 ///
 /// @param[in]  textureTag
 ///   Reference to the C4D texture tag.
-/// @param[out]  luxTexMapping
-///   The structure where the Lux texture mapping parameters will be stored.
 /// @return
 ///   TRUE if executed successful, FALSE otherwise.
 LuxTextureMappingH LuxAPIConverter::convertTextureMapping(TextureTag& textureTag)
@@ -1536,11 +1534,11 @@ LuxTextureMappingH LuxAPIConverter::convertTextureMapping(TextureTag& textureTag
   // depending on the projection type create different texture mapping classes
   switch (getParameterLong(textureTag, TEXTURETAG_PROJECTION)) {
     case TEXTURETAG_PROJECTION_SPHERICAL:
-      return gNewNC LuxSphericalMapping(textureTag);
+      return gNewNC LuxSphericalMapping(textureTag, mC4D2LuxScale);
     case TEXTURETAG_PROJECTION_CYLINDRICAL:
-      return gNewNC LuxCylindricalMapping(textureTag);
+      return gNewNC LuxCylindricalMapping(textureTag, mC4D2LuxScale);
     case TEXTURETAG_PROJECTION_FLAT:
-      return gNewNC LuxPlanarMapping(textureTag);
+      return gNewNC LuxPlanarMapping(textureTag, mC4D2LuxScale);
     default:
       return gNewNC LuxUVMapping(textureTag);
   }

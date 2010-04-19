@@ -123,13 +123,37 @@ Bool LuxUVMapping::operator==(const LuxUVMapping& other) const
 const ULONG LuxSphericalMapping::cMaxParamCount(4);
 
 
-LuxSphericalMapping::LuxSphericalMapping(TextureTag& textureTag)
+LuxSphericalMapping::LuxSphericalMapping(TextureTag& textureTag,
+                                         LReal       c4d2LuxScale)
 : LuxTextureMapping(TYPE_SPHERICAL),
   mUScale(1.0),
   mVScale(1.0),
   mVShift(0.0)
 {
-  // TODO ...
+  // obtain texture transformation matrix
+  BaseObject* object = textureTag.GetObject();
+  if (!object) {
+    ERRLOG_RETURN("LuxSphericalMapping::LuxSphericalMapping(): could not obtain object from texture tag");
+  }
+  Matrix texMat = object->GetMg() * textureTag.GetMl();
+
+  // get UV shift and scale from texture tag
+  mVShift = getParameterReal(textureTag, TEXTURETAG_OFFSETY);
+  mUScale = getParameterReal(textureTag, TEXTURETAG_TILESX);
+  mVScale = getParameterReal(textureTag, TEXTURETAG_TILESY);
+
+  // convert to Lux system where shift has an inverse semantic
+  mVShift *= -mVScale;
+
+  // U shift must be handled a bit differently: we have to rotate the texture
+  // coordinate system around the Y axis
+  Real uShift = getParameterReal(textureTag, TEXTURETAG_OFFSETX);
+  if (((LReal)((LLONG)uShift)) != uShift) {
+    texMat = texMat * MatrixRotY(uShift*pi2);
+  }
+
+  // convert C4D matrix to Lux matrix
+  mTrafo = LuxMatrix(texMat, c4d2LuxScale);
 }
 
 
@@ -144,7 +168,7 @@ void LuxSphericalMapping::addToParamSet(LuxParamSet& paramSet) const
   paramSet.addParam(LUX_STRING, "mapping", (void*)&mTypeName);
   if (mUScale != 1.0) { paramSet.addParam(LUX_FLOAT, "uscale", (void*)&mUScale); }
   if (mVScale != 1.0) { paramSet.addParam(LUX_FLOAT, "vscale", (void*)&mVScale); }
-  if (mVShift != 1.0) { paramSet.addParam(LUX_FLOAT, "vdelta", (void*)&mVShift); }
+  if (mVShift != 0.0) { paramSet.addParam(LUX_FLOAT, "vdelta", (void*)&mVShift); }
 }
 
 
@@ -165,7 +189,8 @@ Bool LuxSphericalMapping::operator==(const LuxSphericalMapping& other) const
 const ULONG LuxCylindricalMapping::cMaxParamCount(2);
 
 
-LuxCylindricalMapping::LuxCylindricalMapping(TextureTag& textureTag)
+LuxCylindricalMapping::LuxCylindricalMapping(TextureTag& textureTag,
+                                             LReal       c4d2LuxScale)
 : LuxTextureMapping(TYPE_CYLINDRICAL),
   mUScale(1.0)
 {
@@ -201,7 +226,8 @@ Bool LuxCylindricalMapping::operator==(const LuxCylindricalMapping& other) const
 const ULONG LuxPlanarMapping::cMaxParamCount(5);
 
 
-LuxPlanarMapping::LuxPlanarMapping(TextureTag& textureTag)
+LuxPlanarMapping::LuxPlanarMapping(TextureTag& textureTag,
+                                   LReal       c4d2LuxScale)
 : LuxTextureMapping(TYPE_PLANAR),
   mUVector(1.0, 0.0, 0.0),
   mVVector(0.0, 1.0, 0.0),
@@ -223,8 +249,8 @@ void LuxPlanarMapping::addToParamSet(LuxParamSet& paramSet) const
   paramSet.addParam(LUX_STRING, "mapping", (void*)&mTypeName);
   paramSet.addParam(LUX_VECTOR, "v1", (void*)&mUVector);
   paramSet.addParam(LUX_VECTOR, "v2", (void*)&mVVector);
-  if (mUShift != 1.0) { paramSet.addParam(LUX_FLOAT, "udelta", (void*)&mUShift); }
-  if (mVShift != 1.0) { paramSet.addParam(LUX_FLOAT, "vdelta", (void*)&mVShift); }
+  if (mUShift != 0.0) { paramSet.addParam(LUX_FLOAT, "udelta", (void*)&mUShift); }
+  if (mVShift != 0.0) { paramSet.addParam(LUX_FLOAT, "vdelta", (void*)&mVShift); }
 }
 
 
