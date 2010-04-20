@@ -153,6 +153,9 @@ LuxSphericalMapping::LuxSphericalMapping(TextureTag& textureTag,
   }
 
   // convert C4D matrix to Lux matrix
+  texMat.v1 *= c4d2LuxScale;
+  texMat.v2 *= c4d2LuxScale;
+  texMat.v3 *= c4d2LuxScale;
   mTrafo = LuxMatrix(texMat, c4d2LuxScale);
 }
 
@@ -194,7 +197,39 @@ LuxCylindricalMapping::LuxCylindricalMapping(TextureTag& textureTag,
 : LuxTextureMapping(TYPE_CYLINDRICAL),
   mUScale(1.0)
 {
-  // TODO ...
+  // obtain texture transformation matrix
+  BaseObject* object = textureTag.GetObject();
+  if (!object) {
+    ERRLOG_RETURN("LuxSphericalMapping::LuxSphericalMapping(): could not obtain object from texture tag");
+  }
+  Matrix texMat = object->GetMg() * textureTag.GetMl();
+
+  // get U scale from texture tag
+  mUScale = getParameterReal(textureTag, TEXTURETAG_TILESX);
+
+  // apply offset X by rotating the texture coordinate system around the Y axis
+  Real uShift = getParameterReal(textureTag, TEXTURETAG_OFFSETX);
+  if (((LReal)((LLONG)uShift)) != uShift) {
+    texMat = texMat * MatrixRotY(uShift*pi2);
+  }
+
+  // apply offset Y by shifting the texture coordinate system along the Y axis
+  Real vShift = getParameterReal(textureTag, TEXTURETAG_OFFSETY);
+  if (vShift != 0.0) {
+    texMat.off -= 2.0 * vShift * texMat.v2;
+  }
+
+  // apply V scale by scaling the Y axis
+  Real vScale = getParameterReal(textureTag, TEXTURETAG_LENGTHY);
+  if (vScale != 1.0) {
+    texMat.v2 *= vScale;
+  }
+
+  // convert C4D matrix to Lux matrix
+  texMat.v1 *= c4d2LuxScale;
+  texMat.v2 *= c4d2LuxScale;
+  texMat.v3 *= c4d2LuxScale;
+  mTrafo = LuxMatrix(texMat, c4d2LuxScale);
 }
 
 
