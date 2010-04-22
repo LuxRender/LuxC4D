@@ -269,7 +269,37 @@ LuxPlanarMapping::LuxPlanarMapping(TextureTag& textureTag,
   mUShift(0.0),
   mVShift(0.0)
 {
-  // TODO ...
+  // obtain texture transformation matrix
+  BaseObject* object = textureTag.GetObject();
+  if (!object) {
+    ERRLOG_RETURN("LuxSphericalMapping::LuxSphericalMapping(): could not obtain object from texture tag");
+  }
+  Matrix texMat = object->GetMg() * textureTag.GetMl();
+
+  // first shift along X and Y axis to apply texture offset
+  Real uShift = getParameterReal(textureTag, TEXTURETAG_OFFSETX);
+  if (uShift != 0.0) { texMat.off += (2.0 * uShift) * texMat.v1; }
+  Real vShift = getParameterReal(textureTag, TEXTURETAG_OFFSETY);
+  if (vShift != 0.0) { texMat.off -= (2.0 * vShift) * texMat.v2; }
+
+  // then scale X and Y axis
+  Real uScale = getParameterReal(textureTag, TEXTURETAG_LENGTHX);
+  if (uScale != 1.0) { texMat.v1 *= uScale; }
+  Real vScale = getParameterReal(textureTag, TEXTURETAG_LENGTHY);
+  if (vScale != 1.0) { texMat.v2 *= vScale; }
+
+  // convert texture trafo matrix to lux scale
+  texMat = c4d2LuxScale * texMat;
+  Vector uAxis = 2.0 * texMat.v1;
+  Real   uAxisLen = Len(uAxis);
+  Vector vAxis = 2.0 * texMat.v2;
+  Real   vAxisLen = Len(vAxis);
+
+  // calculate UV vectors and shifts
+  mUVector =  uAxis / (uAxisLen * uAxisLen);
+  mVVector = -vAxis / (vAxisLen * vAxisLen);
+  mUShift = 0.5 / uScale - texMat.off * uAxis / (uAxisLen * uAxisLen);
+  mVShift = 0.5 / vScale + texMat.off * vAxis / (vAxisLen * vAxisLen);
 }
 
 
