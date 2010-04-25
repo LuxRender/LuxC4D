@@ -30,6 +30,7 @@
 
 #include <c4d.h>
 
+#include "dynarray1d.h"
 #include "fixarray1d.h"
 #include "luxapi.h"
 #include "luxc4dportaltag.h"
@@ -240,19 +241,22 @@ private:
   /// The container type for storing UV coordinates as float array.
   typedef FixArray1D<LuxFloat>    UVsSerialisedT;
 
+  /// The container type for storing a set of objects.
+  typedef RBTreeSet<BaseList2D*>                           ObjectsT;
+  /// The map from material name to number of materials that use this name.
+  typedef RBTreeMap<String, LONG>                          MaterialUsageMapT;
+  /// The container type for storing the texture tags of an object.
+  typedef DynArray1D<TextureTag*>                          TextureTagsT;
   /// The container type for storing C4D polygons.
   typedef FixArray1D<CPolygon>                             C4DPolygonsT;
   /// The container type for storing C4D normal vectors.
   typedef FixArray1D<Vector>                               C4DNormalsT;
-  /// The container type for storing a set of objects.
-  typedef RBTreeSet<BaseList2D*>                           ObjectsT;
-  /// The exported materials and their name, that can be reused.
-  typedef RBTreeMap<const BaseMaterial*, ReusableMaterial> ReusableMaterialsT;
-  /// The map from material name to number of materials that use this name.
-  typedef RBTreeMap<String, LONG>                          MaterialUsageMapT;
   /// Helper array, which is used during the geometry conversion.
   typedef FixArray1D<ULONG>                                PointMapT;
 
+
+  // static costants
+  static SizeT cMaxTextureTags;
 
   // references used by the whole conversion process and stored for convenience
   BaseDocument*   mDocument;
@@ -273,7 +277,6 @@ private:
   ULONG              mPortalCount;
   ULONG              mLightCount;
   ObjectsT           mAreaLightObjects;
-  ReusableMaterialsT mReusableMaterials;
   MaterialUsageMapT  mMaterialUsage;
 
   // the currently cached object
@@ -334,49 +337,30 @@ private:
                         const Matrix&  globalMatrix,
                         Bool           controlObject);
 
-  Bool exportMaterial(TextureTag&   textureTag,
-                      BaseMaterial& material,
+  Bool exportMaterial(BaseObject&   object,
+                      TextureTagsT& textureTags,
                       LuxString&    materialName,
                       Bool&         hasEmissionChannel,
                       LuxString&    lightGroup);
-  LuxTextureMappingH convertTextureMapping(TextureTag& textureTag);
 
-  Bool exportLuxC4DMaterial(LuxTextureMappingH mapping,
-                            BaseMaterial&      material,
-                            LuxString&         materialName,
-                            Bool&              hasEmissionChannel,
-                            LuxString&         lightGroup);
-  Bool exportDummyMaterial(BaseMaterial& material,
-                           LuxString&    materialName,
-                           Bool&         hasEmissionChannel);
-  Bool exportDiffuseMaterial(LuxTextureMappingH mapping,
-                             Material&          material,
-                             LuxString&         materialName,
-                             Bool&              hasEmissionChannel);
-  Bool exportGlossyMaterial(LuxTextureMappingH mapping,
-                            Material&          material,
-                            LuxString&         materialName,
-                            Bool&              hasEmissionChannel);
-  Bool exportReflectiveMaterial(LuxTextureMappingH mapping,
-                                Material&          material,
-                                LuxString&         materialName,
-                                Bool&              hasEmissionChannel);
-  Bool exportTransparentMaterial(LuxTextureMappingH mapping,
-                                 Material&          material,
-                                 LuxString&         materialName,
-                                 Bool&              hasEmissionChannel);
-  Bool exportTranslucentMaterial(LuxTextureMappingH mapping,
-                                 Material&          material,
-                                 LuxString&         materialName,
-                                 Bool&              hasEmissionChannel);
+  LuxMaterialDataH convertDummyMaterial(BaseMaterial& material);
+  LuxMaterialDataH convertDiffuseMaterial(LuxTextureMappingH mapping,
+                                          Material&          material);
+  LuxMaterialDataH convertGlossyMaterial(LuxTextureMappingH mapping,
+                                         Material&          material);
+  LuxMaterialDataH convertReflectiveMaterial(LuxTextureMappingH mapping,
+                                             Material&          material);
+  LuxMaterialDataH convertTransparentMaterial(LuxTextureMappingH mapping,
+                                              Material&          material);
+  LuxMaterialDataH convertTranslucentMaterial(LuxTextureMappingH mapping,
+                                              Material&          material);
 
   Bool addBumpChannel(LuxTextureMappingH mapping,
                       Material&          material,
                       LuxMaterialData&   materialData);
   Bool addEmissionChannel(LuxTextureMappingH mapping,
                           Material&          material,
-                          LuxMaterialData&   materialData,
-                          Bool&              hasEmissionChannel);
+                          LuxMaterialData&   materialData);
   Bool addAlphaChannel(LuxTextureMappingH mapping,
                        Material&          material,
                        LuxMaterialData&   materialData);

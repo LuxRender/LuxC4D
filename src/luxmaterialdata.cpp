@@ -40,6 +40,7 @@
 ///   material.
 LuxMaterialData::LuxMaterialData(const LuxMaterialInfo& info)
 : mInfo(info),
+  mBaseMaterial(0),
   mBumpSampleDistance(0.0)
 {
   // get info and setup channels

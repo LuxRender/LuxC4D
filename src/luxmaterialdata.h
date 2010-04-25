@@ -112,15 +112,23 @@ class LuxMaterialData
 {
 public:
 
+  /// This member can store C4D material the Lux material is derived from.
+  /// During construction, it gets initialised with NULL.
+  BaseMaterial* mBaseMaterial;
+
+
   Bool setChannel(ULONG           channelId,
                   LuxTextureDataH texture);
+
   Bool setEmissionChannel(LuxTextureDataH  texture,
                           const LuxString& lightGroup);
   Bool hasEmissionChannel(void);
   const LuxString& getLightGroup(void) const;
+
   Bool setBumpChannel(LuxTextureDataH texture,
                       LuxFloat        sampleDistance = 0.0);
   Bool hasBumpChannel(void);
+
   Bool setAlphaChannel(LuxTextureDataH texture,
                        Bool            inverted);
   Bool hasAlphaChannel(void);
@@ -151,7 +159,9 @@ protected:
 
 private:
 
+  // we don't want no copying
   LuxMaterialData(const LuxMaterialData& other) : mInfo(other.mInfo) {}
+  // we don't want no copying
   LuxMaterialData& operator=(const LuxMaterialData& other)  {}
 };
 
