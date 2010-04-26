@@ -2111,14 +2111,19 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(LuxTextureMappingH mapping,
 
   // get texture strength and base colour
   LuxFloat strength = getParameterReal(material, mixerId, 1.0);
-  LuxColor color = getParameterVector(material, colorId) *
-                   getParameterReal(material, brightnessId, 1.0);
+  LuxColor color = getParameterVector(material, colorId);
+  if (mColorGamma != 1.0) {
+    color.c[0] = pow(color.c[0], mColorGamma);
+    color.c[1] = pow(color.c[1], mColorGamma);
+    color.c[2] = pow(color.c[2], mColorGamma);
+  }
+  color *= getParameterReal(material, brightnessId, 1.0);
 
   // if the material channel doesn't have a bitmap shader or the texture
   // strength is too small, just create a constant texture of the colour which
   // is also specified in the channel
   if ((strength < 0.001) || !bitmapLink) {
-    return gNewNC LuxConstantTextureData(color, mColorGamma);
+    return gNewNC LuxConstantTextureData(color, 1.0);
   }
 
   // if we are here, we've got a bitmap shader -> let's create an imagemap texture
@@ -2136,7 +2141,7 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(LuxTextureMappingH mapping,
   // if the texture strength is < 100%, we mix the colour with the texture
   if (strength < 0.999) {
     LuxMixTextureDataH mixTexture = gNewNC LuxMixTextureData(LUX_COLOR_TEXTURE);
-    mixTexture->mTexture1 = gNewNC LuxConstantTextureData(color, mColorGamma);
+    mixTexture->mTexture1 = gNewNC LuxConstantTextureData(color, 1.0);
     mixTexture->mTexture2 = texture;
     mixTexture->mAmount = strength;
     texture = mixTexture;
