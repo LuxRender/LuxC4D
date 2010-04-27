@@ -715,7 +715,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         PointLightData data;
         data.mColor = parameters.mColor;
-        data.mGain  = parameters.mBrightness * 100.0;
+        data.mGain  = parameters.mBrightness * 1000.0;
         data.mFrom  = scaledPosition;
         ++mLightCount;
         if (!exportPointLight(data))  return FALSE;
@@ -726,7 +726,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         SpotLightData data;
         data.mColor          = parameters.mColor;
-        data.mGain           = parameters.mBrightness * 100.0;
+        data.mGain           = parameters.mBrightness * 1000.0;
         data.mFrom           = scaledPosition;
         data.mTo             = scaledPosition + direction;
         data.mConeAngle      = Deg(parameters.mOuterAngle) * 0.5;
@@ -740,7 +740,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         DistantLightData data;
         data.mColor = parameters.mColor;
-        data.mGain  = parameters.mBrightness * 100.0;
+        data.mGain  = parameters.mBrightness * 1000.0;
         data.mFrom  = scaledPosition;
         data.mTo    = scaledPosition + direction;
         ++mLightCount;
@@ -752,7 +752,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
       {
         AreaLightData data;
         data.mColor          = parameters.mColor;
-        data.mGain           = parameters.mBrightness * 100.0;
+        data.mGain           = parameters.mBrightness * 1000.0;
         data.mFlippedNormals = (parameters.mFlippedNormals != 0);
         data.mSamples        = parameters.mSamples;
         data.mLightMatrix    = lightObject.GetMg();
@@ -775,7 +775,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_SUN:
       {
         SunLightData data;
-        data.mGain      = parameters.mBrightness * 0.1;
+        data.mGain      = parameters.mBrightness * 0.02;
         data.mSamples   = parameters.mSamples;
         data.mSunDir    = -direction;
         data.mTurbidity = parameters.mTurbidity;
@@ -788,7 +788,7 @@ Bool LuxAPIConverter::exportLight(BaseObject&   lightObject,
     case IDD_LIGHT_TYPE_SKY:
       {
         SkyLightData data;
-        data.mGain      = parameters.mBrightness * 0.1;
+        data.mGain      = parameters.mBrightness * 0.02;
         data.mSamples   = parameters.mSamples;
         data.mSunDir    = -direction;
         data.mTurbidity = parameters.mTurbidity;
@@ -927,13 +927,14 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       points[1] = Vector(-xRad, -yRad, 0);
       points[2] = Vector(-xRad,  yRad, 0);
       points[3] = Vector( xRad,  yRad, 0);
-      quads.init(4);
-      quads[0] = 0;  quads[1] = 1;  quads[2] = 2;  quads[3] = 3;
+      triangles.init(2*3);
+      triangles[0] = 0;  triangles[1] = 1;  triangles[2] = 2;
+      triangles[3] = 0;  triangles[4] = 2;  triangles[5] = 3;
       flipYZ = FALSE;
       shapeParams.addParam(LUX_POINT, "P",
                            points.arrayAddress(), points.size());
-      shapeParams.addParam(LUX_QUAD, "quadindices",
-                           quads.arrayAddress(), quads.size());
+      shapeParams.addParam(LUX_TRIANGLE, "triindices",
+                           triangles.arrayAddress(), triangles.size());
       shapeName = "mesh";
       break;
     // sphere area light
@@ -968,18 +969,24 @@ Bool LuxAPIConverter::exportAreaLight(AreaLightData& data)
       points[5] = Vector(-xRad, -yRad,  zRad);
       points[6] = Vector(-xRad,  yRad,  zRad);
       points[7] = Vector( xRad,  yRad,  zRad);
-      quads.init(6*4);
-      quads[ 0] = 0;  quads[ 1] = 1;  quads[ 2] = 2;  quads[ 3] = 3;
-      quads[ 4] = 4;  quads[ 5] = 5;  quads[ 6] = 6;  quads[ 7] = 7;
-      quads[ 8] = 3;  quads[ 9] = 2;  quads[10] = 7;  quads[11] = 6;
-      quads[12] = 1;  quads[13] = 0;  quads[14] = 5;  quads[15] = 4;
-      quads[16] = 1;  quads[17] = 4;  quads[18] = 7;  quads[19] = 2;
-      quads[20] = 5;  quads[21] = 0;  quads[22] = 3;  quads[23] = 6;
+      triangles.init(6*2*3);
+      triangles[ 0] = 0;  triangles[ 1] = 1;  triangles[ 2] = 2;
+      triangles[ 3] = 0;  triangles[ 4] = 2;  triangles[ 5] = 3;
+      triangles[ 6] = 4;  triangles[ 7] = 5;  triangles[ 8] = 6;
+      triangles[ 9] = 4;  triangles[10] = 6;  triangles[11] = 7;
+      triangles[12] = 3;  triangles[13] = 2;  triangles[14] = 7;
+      triangles[15] = 3;  triangles[16] = 7;  triangles[17] = 6;
+      triangles[18] = 1;  triangles[19] = 0;  triangles[20] = 5;
+      triangles[21] = 1;  triangles[22] = 5;  triangles[23] = 4;
+      triangles[24] = 1;  triangles[25] = 4;  triangles[26] = 7;
+      triangles[27] = 1;  triangles[28] = 7;  triangles[29] = 2;
+      triangles[30] = 5;  triangles[31] = 0;  triangles[32] = 3;
+      triangles[33] = 5;  triangles[34] = 3;  triangles[35] = 6;
       flipYZ = FALSE;
       shapeParams.addParam(LUX_POINT, "P",
                            points.arrayAddress(), points.size());
-      shapeParams.addParam(LUX_QUAD, "quadindices",
-                           quads.arrayAddress(), quads.size());
+      shapeParams.addParam(LUX_TRIANGLE, "triindices",
+                           triangles.arrayAddress(), triangles.size());
       shapeName = "mesh";
       break;
     // hemisphere area light
@@ -1154,6 +1161,13 @@ Bool LuxAPIConverter::exportInfiniteLight(void)
   // if the light has no brightness at all, don't export it
   if (parameters.mBrightness == 0.0) { return TRUE; }
 
+  // apply colour gamma to colour
+  if (mColorGamma != 1.0) {
+    parameters.mColor.x = pow(parameters.mColor.x, mColorGamma);
+    parameters.mColor.y = pow(parameters.mColor.y, mColorGamma);
+    parameters.mColor.z = pow(parameters.mColor.z, mColorGamma);
+  }
+
   // start new attribute scope
   debugLog("exporting infinite/sky light ...");
   if (!mReceiver->setComment("start of infinite light '" + mSkyObject->GetName() + "'"))  return FALSE;
@@ -1173,7 +1187,7 @@ Bool LuxAPIConverter::exportInfiniteLight(void)
   // store all parameters except the light type name
   LuxString  mapping("latlong");
   LuxColor   l(parameters.mColor);
-  LuxFloat   gain(parameters.mBrightness * 100.0);
+  LuxFloat   gain(parameters.mBrightness * 500.0);
   LuxInteger nSamples(parameters.mSamples);
   mTempParamSet.clear();
   mTempParamSet.addParam(LUX_STRING,  "mapping",  &mapping);

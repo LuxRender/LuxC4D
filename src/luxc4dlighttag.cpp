@@ -83,6 +83,7 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
   // reset parameters
   memset(&parameters, 0, sizeof(parameters));
   Real falloffCorrection = 1.0f;
+  Real correctionForPointLights = 1.0f;
 
   // get light tag
   BaseTag* lightTag = lightObject.GetTag(PID_LUXC4D_LIGHT_TAG);
@@ -96,12 +97,15 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
     if ((falloffType == LIGHT_DETAILS_FALLOFF_INVERSE) ||
         (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE))
     {
-      falloffCorrection = getParameterReal(lightObject,
-                                           LIGHT_DETAILS_OUTERDISTANCE,
-                                           1.0 / c4d2LuxScale)
-                          * c4d2LuxScale;
-      if (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE) {
-        falloffCorrection *= falloffCorrection;
+      Real falloffDistance = getParameterReal(lightObject,
+                                              LIGHT_DETAILS_OUTERDISTANCE,
+                                              0.0);
+      if (falloffDistance != 0.0) {
+        falloffCorrection = falloffDistance / 100.0;
+        correctionForPointLights = 100.0 * c4d2LuxScale * 100.0 * c4d2LuxScale;
+        if (falloffType == LIGHT_DETAILS_FALLOFF_INVERSESQUARE) {
+          falloffCorrection *= falloffCorrection;
+        }
       }
     }
 
@@ -113,8 +117,10 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
       parameters.mColor      = getParameterVector(lightObject, LIGHT_COLOR);
       switch (parameters.mType) {
         case IDD_LIGHT_TYPE_POINT:
+          parameters.mBrightness *= correctionForPointLights;
           break;
         case IDD_LIGHT_TYPE_SPOT:
+          parameters.mBrightness *= correctionForPointLights;
           parameters.mInnerAngle = getParameterReal(lightObject, LIGHT_DETAILS_INNERANGLE);
           parameters.mOuterAngle = getParameterReal(lightObject, LIGHT_DETAILS_OUTERANGLE);
           break;
@@ -226,15 +232,22 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
   // obtain name of light group
   parameters.mGroup = data->GetString(IDD_LIGHT_GROUP_NAME);
 
+  // if we should not ignore the C4D falloff, apply it to brightness
+  if (data->GetBool(IDD_LIGHT_IGNORE_FALLOFF_RADIUS)) {
+    falloffCorrection = 1.0;
+  }
+
   // then obtain current light type of tag and read the corresponding values
   parameters.mType = tagData->getLightType();
   switch (parameters.mType) {
     case IDD_LIGHT_TYPE_POINT:
-      parameters.mBrightness = data->GetReal  (IDD_POINT_LIGHT_BRIGHTNESS);
+      parameters.mBrightness = data->GetReal  (IDD_POINT_LIGHT_BRIGHTNESS)
+                               * falloffCorrection * correctionForPointLights;
       parameters.mColor      = data->GetVector(IDD_POINT_LIGHT_COLOR);
       break;
     case IDD_LIGHT_TYPE_SPOT:
-      parameters.mBrightness = data->GetReal  (IDD_SPOT_LIGHT_BRIGHTNESS);
+      parameters.mBrightness = data->GetReal  (IDD_SPOT_LIGHT_BRIGHTNESS)
+                               * falloffCorrection * correctionForPointLights;
       parameters.mColor      = data->GetVector(IDD_SPOT_LIGHT_COLOR);
       parameters.mInnerAngle = data->GetReal  (IDD_SPOT_LIGHT_INNERANGLE);
       parameters.mOuterAngle = data->GetReal  (IDD_SPOT_LIGHT_OUTERANGLE);
@@ -244,7 +257,8 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
       parameters.mColor      = data->GetVector(IDD_DISTANT_LIGHT_COLOR);
       break;
     case IDD_LIGHT_TYPE_AREA:
-      parameters.mBrightness     = data->GetReal  (IDD_AREA_LIGHT_BRIGHTNESS);
+      parameters.mBrightness     = data->GetReal  (IDD_AREA_LIGHT_BRIGHTNESS)
+                                   * falloffCorrection;
       parameters.mColor          = data->GetVector(IDD_AREA_LIGHT_COLOR);
       parameters.mFlippedNormals = data->GetBool  (IDD_AREA_LIGHT_FLIP_NORMALS);
       parameters.mShapeType      = data->GetLong  (IDD_AREA_LIGHT_SHAPE);
@@ -284,17 +298,12 @@ Bool LuxC4DLightTag::getLightParameters(BaseObject&      lightObject,
       parameters.mE          = data->GetReal(IDD_SUNSKY_LIGHT_E_CONST);
       break;
     case IDD_LIGHT_TYPE_INFINITE:
-      parameters.mBrightness   *= data->GetReal(IDD_INFINITE_LIGHT_BRIGHTNESS);
+      parameters.mBrightness   = data->GetReal(IDD_INFINITE_LIGHT_BRIGHTNESS);
       parameters.mSamples      = data->GetLong(IDD_INFINITE_LIGHT_SAMPLES);
       parameters.mInfiniteType = data->GetLong(IDD_INFINITE_LIGHT_TYPE);
       break;
     default:
       ERRLOG_RETURN_VALUE(FALSE, "LuxC4DLightTag::getLightParameters(): invalid light type determined from light tag");
-  }
-
-  // if we should not ignore the C4D falloff, apply it to brightness
-  if (!data->GetBool(IDD_LIGHT_IGNORE_FALLOFF_RADIUS)) {
-    parameters.mBrightness *= falloffCorrection;
   }
 
   return TRUE;

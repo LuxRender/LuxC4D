@@ -188,9 +188,9 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetReal(IDD_FLEXIMAGE_REINHARD_PRESCALE,      1.0);
   data->SetReal(IDD_FLEXIMAGE_REINHARD_POSTSCALE,     1.0);
   data->SetReal(IDD_FLEXIMAGE_REINHARD_BURN,          6.0);
-  data->SetReal(IDD_FLEXIMAGE_LINEAR_SENSITIVITY,     50.0);
-  data->SetReal(IDD_FLEXIMAGE_LINEAR_EXPOSURE,        5.0);
-  data->SetReal(IDD_FLEXIMAGE_LINEAR_FSTOP,           2.8);
+  data->SetReal(IDD_FLEXIMAGE_LINEAR_SENSITIVITY,     100.0);
+  data->SetReal(IDD_FLEXIMAGE_LINEAR_EXPOSURE,        10.0);
+  data->SetReal(IDD_FLEXIMAGE_LINEAR_FSTOP,           4.0);
   data->SetReal(IDD_FLEXIMAGE_LINEAR_GAMMA,           1.0);
   data->SetReal(IDD_FLEXIMAGE_CONTRAST_YWA,           1.0);
   data->SetLong(IDD_FLEXIMAGE_FILENAME_TYPE,          IDD_FLEXIMAGE_FILENAME_AS_SCENE_FILE);
