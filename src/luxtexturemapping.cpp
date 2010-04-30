@@ -39,15 +39,21 @@ const char* LuxTextureMapping::cTypeNames[TYPE_NUMBER] = {
   };
 
 
-LuxTextureMapping::LuxTextureMapping(Type type)
+LuxTextureMapping::LuxTextureMapping(Type        type,
+                                     TextureTag& textureTag)
 : mType(type),
   mTypeName(cTypeNames[type])
-{}
+{
+  // check if texture should be tiled
+  mTiled = getParameterLong(textureTag, TEXTURETAG_TILE);
+}
 
 
 Bool LuxTextureMapping::operator==(const LuxTextureMapping& other) const
 {
-  if (mType != other.mType) { return FALSE; }
+  if ((mType != other.mType) || (mTiled != other.mTiled)) {
+    return FALSE;
+  }
   switch (mType) {
     case TYPE_UV:
       return (LuxUVMapping&)*this == (LuxUVMapping&)other;
@@ -72,7 +78,7 @@ const ULONG LuxUVMapping::cMaxParamCount(5);
 
 
 LuxUVMapping::LuxUVMapping(TextureTag& textureTag)
-: LuxTextureMapping(TYPE_UV),
+: LuxTextureMapping(TYPE_UV, textureTag),
   mUScale(1.0),
   mVScale(1.0),
   mUShift(0.0),
@@ -125,7 +131,7 @@ const ULONG LuxSphericalMapping::cMaxParamCount(4);
 
 LuxSphericalMapping::LuxSphericalMapping(TextureTag& textureTag,
                                          LReal       c4d2LuxScale)
-: LuxTextureMapping(TYPE_SPHERICAL),
+: LuxTextureMapping(TYPE_SPHERICAL, textureTag),
   mUScale(1.0),
   mVScale(1.0),
   mVShift(0.0)
@@ -194,7 +200,7 @@ const ULONG LuxCylindricalMapping::cMaxParamCount(2);
 
 LuxCylindricalMapping::LuxCylindricalMapping(TextureTag& textureTag,
                                              LReal       c4d2LuxScale)
-: LuxTextureMapping(TYPE_CYLINDRICAL),
+: LuxTextureMapping(TYPE_CYLINDRICAL, textureTag),
   mUScale(1.0)
 {
   // obtain texture transformation matrix
@@ -263,7 +269,7 @@ const ULONG LuxPlanarMapping::cMaxParamCount(5);
 
 LuxPlanarMapping::LuxPlanarMapping(TextureTag& textureTag,
                                    LReal       c4d2LuxScale)
-: LuxTextureMapping(TYPE_PLANAR),
+: LuxTextureMapping(TYPE_PLANAR, textureTag),
   mUVector(1.0, 0.0, 0.0),
   mVVector(0.0, 1.0, 0.0),
   mUShift(0.0),

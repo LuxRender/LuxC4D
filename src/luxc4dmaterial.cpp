@@ -128,7 +128,7 @@ Bool LuxC4DMaterial::Init(GeListNode* node)
   data->SetVector(IDD_EMISSION_COLOR,                     Vector(1.0));
   data->SetReal  (IDD_EMISSION_SHADER_STRENGTH,           1.0);
   data->SetReal  (IDD_EMISSION_BRIGHTNESS,                1.0);
-  data->SetReal  (IDD_ALPHA_VALUE,                        1.0);
+  //data->SetReal  (IDD_ALPHA_VALUE,                        1.0);
   data->SetBool  (IDD_ALPHA_INVERT,                       FALSE);
   data->SetBool  (IDD_ALPHA_USE_CHANNEL,                  FALSE);
 
@@ -1022,14 +1022,17 @@ void LuxC4DMaterial::toggleChannel(LONG           channelToggleId,
 /// @param[in]  channel  (default == LuxImageMapData::IMAGE_CHANNEL_NONE)
 ///   The image channel that should be used as float texture, if the texture type
 ///   is LUX_FLOAT_TEXTURE. Is ignored for other texture types.
+/// @param[in]  wrapType  (default == LuxImageMapData::WRAP_TYPE_NONE)
+///   The wrap type that should be used for imagemapdata textures.
 /// @return
 ///   A handle that references the texture data object.
-LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&                data,
-                                                     LONG                          shaderId,
-                                                     LuxTextureType                textureType,
-                                                     LuxTextureMappingH            mapping,
-                                                     LuxFloat                      textureGamma,
-                                                     LuxImageMapData::ImageChannel channel) const
+LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&            data,
+                                                     LONG                      shaderId,
+                                                     LuxTextureType            textureType,
+                                                     LuxTextureMappingH        mapping,
+                                                     LuxFloat                  textureGamma,
+                                                     LuxImageMapData::Channel  channel,
+                                                     LuxImageMapData::WrapType wrapType) const
 {
   // at the moment we support only the bitmap shader ...
 
@@ -1052,7 +1055,8 @@ LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&             
                                 mapping,
                                 fullBitmapPath,
                                 textureGamma,
-                                channel);
+                                channel,
+                                wrapType);
 }
 
 
@@ -1144,13 +1148,13 @@ void LuxC4DMaterial::getColorChannel(ULONG              channelId,
 
 
 ///
-LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                          toggleId,
-                                                LONG                          valueId,
-                                                LONG                          shaderId,
-                                                BaseContainer&                data,
-                                                LuxTextureMappingH            mapping,
-                                                LReal                         scaleFactor,
-                                                LuxImageMapData::ImageChannel channel) const
+LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                     toggleId,
+                                                LONG                     valueId,
+                                                LONG                     shaderId,
+                                                BaseContainer&           data,
+                                                LuxTextureMappingH       mapping,
+                                                LReal                    scaleFactor,
+                                                LuxImageMapData::Channel channel) const
 {
   if (toggleId && !data.GetBool(toggleId)) { return LuxTextureDataH(); }
 
@@ -1241,24 +1245,38 @@ void LuxC4DMaterial::getAlphaChannel(BaseContainer&     data,
                                      LuxTextureMappingH mapping,
                                      LuxMaterialData&   materialData) const
 {
-  LuxImageMapData::ImageChannel channel = LuxImageMapData::IMAGE_CHANNEL_NONE;
+  // return if alpha is disabled
+  if (!data.GetBool(IDD_TOGGLE_ALPHA)) { return; }
+
+  // check if we should use the alpha channel of the image
+  LuxImageMapData::Channel channel = LuxImageMapData::IMAGE_CHANNEL_NONE;
   if (data.GetBool(IDD_ALPHA_USE_CHANNEL)) {
     channel = LuxImageMapData::IMAGE_CHANNEL_ALPHA;
   }
-  LuxTextureDataH texture = getFloatTexture(IDD_TOGGLE_ALPHA,
-                                            IDD_ALPHA_VALUE,
-                                            IDD_ALPHA_SHADER,
-                                            data,
-                                            mapping,
-                                            1.0,
-                                            channel);
-  Bool invertAlpha = data.GetBool(IDD_ALPHA_INVERT);
-  if (texture && (!texture->isConstant() ||
-                  (!invertAlpha && (texture->constantFloat() != 1.0)) ||
-                  (invertAlpha && (texture->constantFloat() != 0.0))))
-  {
-    materialData.setAlphaChannel(texture, invertAlpha);
+
+  // check if alpha texture should be inverted
+  Bool inverted = data.GetBool(IDD_ALPHA_INVERT);
+
+  // if tiling is disabled use wrap type "black" if alpha is not inverted and
+  // wrap type "hite" if it is inverted
+  LuxImageMapData::WrapType wrapType = LuxImageMapData::WRAP_TYPE_NONE;
+  if (!mapping->isTiled()) {
+    wrapType = inverted ? LuxImageMapData::WRAP_TYPE_WHITE :
+                          LuxImageMapData::WRAP_TYPE_BLACK;
   }
+
+  // get texture
+  LuxTextureDataH texture = getTextureFromShader(data,
+                                                 IDD_ALPHA_SHADER,
+                                                 LUX_FLOAT_TEXTURE,
+                                                 mapping,
+                                                 1.0,
+                                                 channel,
+                                                 wrapType);
+  if (!texture) { return; }
+
+  // set alpha channel and return
+  materialData.setAlphaChannel(texture, inverted);
 }
 
 
@@ -1283,25 +1301,25 @@ void LuxC4DMaterial::setCarpaintPreset(BaseContainer& data,
       Real   mSpecularM3;
     } cPresets[IDD_CARPAINT_TYPE_NUMBER] =  {
                                               // IDD_CARPAINT_TYPE_BMW_339,
-                                              { Vector(0.12,  0.15,  0.16),  0.1,
-                                                Vector(0.62,  0.76,  0.8),   0.1,  0.92,  0.39,
-                                                Vector(0.11,  0.12,  0.12),  1.0,  0.87,  0.17,
-                                                Vector(0.083, 0.150, 0.16),  0.1,  0.9,   0.013 },
+                                              { Vector(0.110,  0.122,  0.126), 1.0,
+                                                Vector(0.249,  0.276,  0.282), 1.0,  0.92,  0.39,
+                                                Vector(0.332,  0.346,  0.346), 1.0,  0.87,  0.17,
+                                                Vector(0.0911, 0.122,  0.126), 1.0,  0.9,   0.013 },
                                               // IDD_CARPAINT_TYPE_FORD_F8,
-                                              { Vector(0.12,  0.15,  0.18),  0.01,
-                                                Vector(0.049, 0.076, 0.12),  0.1,  0.15,  0.32,
-                                                Vector(0.1,   0.13,  0.18),  0.1,  0.087, 0.11,
-                                                Vector(0.7,   0.65,  0.77),  0.01, 0.9,   0.013 },
+                                              { Vector(0.0346, 0.0387, 0.0424), 1.0,
+                                                Vector(0.07,   0.0872, 0.110),  1.0, 0.15,  0.32,
+                                                Vector(0.1,    0.114,  0.134),  1.0, 0.087, 0.11,
+                                                Vector(0.0837, 0.0806, 0.0877), 1.0, 0.9,   0.013 },
                                               // IDD_CARPAINT_TYPE_OPEL_TITAN,
-                                              { Vector(0.11,  0.13,  0.15),  0.1,
-                                                Vector(0.57,  0.66,  0.78),  0.1,  0.85,  0.38,
-                                                Vector(0.11,  0.12,  0.13),  1.0,  0.86,  0.17,
-                                                Vector(0.095, 0.14,  0.16),  0.1,  0.9,   0.014 },
+                                              { Vector(0.105,  0.114,  0.122),  1.0,
+                                                Vector(0.239,  0.257,  0.279),  1.0, 0.85,  0.38,
+                                                Vector(0.332,  0.346,  0.361),  1.0, 0.86,  0.17,
+                                                Vector(0.0975, 0.118,  0.126),  1.0, 0.9,   0.014 },
                                               // IDD_CARPAINT_TYPE_POLARIS_SILVER,
-                                              { Vector(0.55,  0.63,  0.71),  0.1,
-                                                Vector(0.65,  0.82,  0.88),  0.1,  1.0,   0.38,
-                                                Vector(0.11,  0.11,  0.13),  1.0,  0.92,  0.17,
-                                                Vector(0.08,  0.13,  0.15),  0.1,  0.9,   0.013 },
+                                              { Vector(0.235,  0.251,  0.266),  1.0,
+                                                Vector(0.255,  0.286,  0.297),  1.0, 1.0,   0.38,
+                                                Vector(0.332,  0.332,  0.361),  1.0, 0.92,  0.17,
+                                                Vector(0.0894, 0.114,  0.122),  1.0, 0.9,   0.013 },
                                               // IDD_CARPAINT_TYPE_2K_ACRYLIC_PAINT,
                                               { Vector(0.42,  0.32,  0.1),   1.0,
                                                 Vector(0.0,   0.0,   0.0),   1.0,  1.0,   0.88,

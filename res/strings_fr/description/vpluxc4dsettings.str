@@ -258,5 +258,5 @@ STRINGTABLE VPluxc4dsettings
     IDD_BUMP_SAMPLE_DISTANCE            "Distance d'échantillon de relief";
     IDD_TEXTURE_GAMMA_CORRECTION        "Correction du Gamma de la texture";
     IDD_USE_RELATIVE_PATHS              "Utilisez des chemins relatifs";
-    IDD_DO_COLOUR_GAMMA_CORRECTION      "Color Gamma Correction";       // to be translated
+    IDD_DO_COLOUR_GAMMA_CORRECTION      "Correction du Gamma de la Couleur";       
 }

@@ -239,7 +239,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
 /// @param[in]  name
 ///   The name under which the material will be exported. It can then later be
 ///   referenced by it.
-/// @param[in]  underlyingMaterialName
+/// @param[in]  bottomMatName
 ///   Pointer to the name of the underlying material (can be NULL), which
 ///   becomes important if this material has an alpha channel. In that case we
 ///   will mix it with the underlying material using the alpha channel as amount
@@ -250,7 +250,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
 ///   TRUE if successful, FALSE otherwise.
 Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
                                 const LuxString&   name,
-                                const LuxString*   underlyingMaterialName,
+                                const LuxString*   bottomMatName,
                                 const LuxParamSet* addParams)
 {
   // initialise parameter set (the maximum possible number of parameters is
@@ -260,20 +260,16 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
                          (addParams ? addParams->paramNumber() : 0));
 
   // if there is an alpha channel, the mixed material will get the name that
-  // was passed in and the top material will get <name>_top as name
-  LuxString noMixMatName(name);
-  if (mAlphaChannel.mEnabled) {
-    noMixMatName += " raw";
-  }
+  // was passed in and the top material will get "<name> opaque" as name
+  LuxString topMatName(name);
+  if (mAlphaChannel.mEnabled) { topMatName += " opaque"; }
 
   // add material type to parameter set
   LuxString type(mInfo.mName);
   paramSet.addParam(LUX_STRING, "type", &type);
 
   // add additional parameters
-  if (addParams) {
-    paramSet.add(*addParams);
-  }
+  if (addParams) { paramSet.add(*addParams); }
 
   // loop over active channels, export their textures and add them to parameter
   // set
@@ -287,7 +283,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
 
     // if channel is active, export it
     if (channel.mEnabled) {
-      textureNames[textureNameCount] = noMixMatName + "." + channelInfo.mTextureSuffix;
+      textureNames[textureNameCount] = topMatName + "." + channelInfo.mTextureSuffix;
       if (!channel.mTexture->sendToAPIAndAddToParamSet(receiver,
                                                        paramSet,
                                                        channelInfo.mName,
@@ -308,7 +304,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
 
   // if bump channel is active, export its texture
   if (mBumpChannel.mEnabled) {
-    textureNames[textureNameCount] = noMixMatName + ".bump";
+    textureNames[textureNameCount] = topMatName + ".bump";
     if (!mBumpChannel.mTexture->sendToAPIAndAddToParamSet(receiver,
                                                           paramSet,
                                                           "bumpmap",
@@ -342,7 +338,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
   }
 
   // write material
-  receiver.makeNamedMaterial(noMixMatName.c_str(), paramSet);
+  receiver.makeNamedMaterial(topMatName.c_str(), paramSet);
 
   // if alpha channel is active, export its texture and create a mix material,
   // mixing the underlying material with this material
@@ -350,7 +346,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
     LuxParamSet mixParamSet(4);
     LuxString   otherMatName;
     // export null material, if no underlying material was specified
-    if (!underlyingMaterialName) {
+    if (!bottomMatName) {
       LuxParamSet nullMatParamSet(1);
       LuxString   nullMatType("null");
       nullMatParamSet.addParam(LUX_STRING, "type", &nullMatType);
@@ -358,7 +354,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
       receiver.makeNamedMaterial(otherMatName.c_str(), nullMatParamSet);
     // otherwise use passed in material name
     } else {
-      otherMatName = *underlyingMaterialName;
+      otherMatName = *bottomMatName;
     }
     // add type of mix material
     LuxString mixType("mix");
@@ -367,11 +363,11 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
     // "namedmaterial1" and name of this material as param "namedmaterial2"
     if (!mAlphaInverted) {
       mixParamSet.addParam(LUX_STRING, "namedmaterial1", &otherMatName);
-      mixParamSet.addParam(LUX_STRING, "namedmaterial2", &noMixMatName);
+      mixParamSet.addParam(LUX_STRING, "namedmaterial2", &topMatName);
     // if alpha is inverted, add name of underlying material as param
     // "namedmaterial2" and name of this material as param "namedmaterial1"
     } else {
-      mixParamSet.addParam(LUX_STRING, "namedmaterial1", &noMixMatName);
+      mixParamSet.addParam(LUX_STRING, "namedmaterial1", &topMatName);
       mixParamSet.addParam(LUX_STRING, "namedmaterial2", &otherMatName);
     }
     // export mix material

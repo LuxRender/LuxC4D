@@ -51,7 +51,7 @@ STRINGTABLE Mluxc4dmaterial
   IDD_TOGGLE_BUMP               "Relief";
   IDD_TOGGLE_EMISSION           "Emission";
   IDD_TOGGLE_CARPAINT           "Carrosserie";
-  IDD_TOGGLE_ALPHA              "Alpha";      // to be translated
+  IDD_TOGGLE_ALPHA              "Alpha";      
 
 
   IDG_METAL                       "Métal";
@@ -59,7 +59,7 @@ STRINGTABLE Mluxc4dmaterial
   IDD_METAL_FILENAME              "Fichier de données nk";
 
     IDD_METAL_TYPE_ALUMINIUM        "Aluminium";
-    IDD_METAL_TYPE_AMORPHOUS_CARBON "Charbon  amorphe";
+    IDD_METAL_TYPE_AMORPHOUS_CARBON "Charbon terne";
     IDD_METAL_TYPE_COPPER           "Cuivre";
     IDD_METAL_TYPE_GOLD             "Or";
     IDD_METAL_TYPE_SILVER           "Argent";
@@ -174,9 +174,9 @@ STRINGTABLE Mluxc4dmaterial
   IDD_EMISSION_BRIGHTNESS       "Luminosité";
   IDD_EMISSION_GROUP_NAME       "Groupe de Lumière";
 
-  IDG_ALPHA             "Alpha";          // to be translated
-  IDD_ALPHA_VALUE       "Strength";       // to be translated
-  IDD_ALPHA_SHADER      "Scale Tex.";     // to be translated
-  IDD_ALPHA_INVERT      "Invert";         // to be translated
-  IDD_ALPHA_USE_CHANNEL "Image Alpha";    // to be translated
+  IDG_ALPHA             "Alpha";          
+  __IDD_ALPHA_VALUE       "Valeur";           // not used at the moment
+  IDD_ALPHA_SHADER      "Adapter la Tex.";   
+  IDD_ALPHA_INVERT      "Inverser";       
+  IDD_ALPHA_USE_CHANNEL "Alpha de l'image";   
 }

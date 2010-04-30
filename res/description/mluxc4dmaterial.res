@@ -278,10 +278,9 @@ CONTAINER Mluxc4dmaterial
   
 
   GROUP IDG_ALPHA {
-    REAL       IDD_ALPHA_VALUE        { UNIT PERCENT;  MIN 0.0;  MAX 100.0; STEP 0.1; CUSTOMGUI REALSLIDER; }
-    BOOL       IDD_ALPHA_INVERT       { }
     SHADERLINK IDD_ALPHA_SHADER       { }
     BOOL       IDD_ALPHA_USE_CHANNEL  { }
+    BOOL       IDD_ALPHA_INVERT       { }
   } // GROUP IDG_BUMP
 
   

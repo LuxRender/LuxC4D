@@ -182,11 +182,34 @@ typedef AutoRef<LuxConstantTextureData>  LuxConstantTextureDataH;
 
 /***************************************************************************//*!
 *//****************************************************************************/
+class LuxUVMaskTextureData : public LuxTextureData
+{
+public:
+
+  LuxFloat mInFloat;
+  LuxFloat mOutFloat;
+
+
+  LuxUVMaskTextureData(LuxTextureType type);
+  LuxUVMaskTextureData(LuxTextureMappingH mapping,
+                       LuxFloat           inFloat,
+                       LuxFloat           outFloat);
+
+  virtual Bool sendToAPI(LuxAPI&          receiver,
+                         const LuxString& name);
+};
+
+typedef AutoRef<LuxUVMaskTextureData>  LuxUVMaskTextureDataH;
+
+
+
+/***************************************************************************//*!
+*//****************************************************************************/
 class LuxImageMapData : public LuxTextureData
 {
 public:
 
-  enum ImageChannel {
+  enum Channel {
     IMAGE_CHANNEL_NONE = 0,
     IMAGE_CHANNEL_RED,
     IMAGE_CHANNEL_GREEN,
@@ -197,9 +220,19 @@ public:
     IMAGE_CHANNEL_COUNT
   };
 
-  Filename     mImagePath;
-  ImageChannel mChannel;
-  LuxFloat     mGamma;
+  enum WrapType {
+    WRAP_TYPE_NONE = 0,
+    WRAP_TYPE_REPEAT,
+    WRAP_TYPE_BLACK,
+    WRAP_TYPE_WHITE,
+    WRAP_TYPE_CLAMP,
+    WRAP_TYPE_COUNT
+  };
+
+  Filename  mImagePath;
+  Channel   mChannel;
+  LuxFloat  mGamma;
+  WrapType  mWrapType;
 
 
   LuxImageMapData(LuxTextureType type);
@@ -207,7 +240,8 @@ public:
                   LuxTextureMappingH mapping,
                   const Filename&    imagePath,
                   LuxFloat           gamma = 1.0,
-                  ImageChannel       channel = IMAGE_CHANNEL_NONE);
+                  Channel            channel = IMAGE_CHANNEL_NONE,
+                  WrapType           wrapBlack = WRAP_TYPE_NONE);
 
   virtual Bool sendToAPI(LuxAPI&          receiver,
                          const LuxString& name);

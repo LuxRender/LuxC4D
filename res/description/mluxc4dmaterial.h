@@ -188,7 +188,7 @@ enum
   IDD_EMISSION_GROUP_NAME,
   
   IDG_ALPHA = 13900,
-  IDD_ALPHA_VALUE,
+  __IDD_ALPHA_VALUE,              // not used at the moment
   IDD_ALPHA_SHADER,
   IDD_ALPHA_INVERT,
   IDD_ALPHA_USE_CHANNEL

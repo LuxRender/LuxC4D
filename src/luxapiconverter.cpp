@@ -2008,21 +2008,49 @@ Bool LuxAPIConverter::addAlphaChannel(LuxTextureMappingH mapping,
                                       LuxMaterialData&   materialData)
 {
   if (getParameterLong(material, MATERIAL_USE_ALPHA)) {
-    LuxImageMapData::ImageChannel channel = LuxImageMapData::IMAGE_CHANNEL_NONE;
+
+    // fetch bitmap shader, and do nothing, if it's not there
+    BaseList2D* bitmapLink = getParameterLink(material,
+                                              MATERIAL_ALPHA_SHADER,
+                                              Xbitmap);
+    if (!bitmapLink) { return TRUE; }
+
+    // check if we should use the alpha channel of the image
+    LuxImageMapData::Channel channel = LuxImageMapData::IMAGE_CHANNEL_NONE;
     if (getParameterLong(material, MATERIAL_ALPHA_IMAGEALPHA)) {
       channel = LuxImageMapData::IMAGE_CHANNEL_ALPHA;
     }
-    LuxTextureDataH texture = convertFloatChannel(mapping,
-                                                  material,
-                                                  MATERIAL_ALPHA_SHADER,
-                                                  -1,
-                                                  1.0,
-                                                  channel);
-    if (texture) {
-      return materialData.setAlphaChannel(texture,
-                                          getParameterLong(material,
-                                                           MATERIAL_ALPHA_INVERT));
+
+    // check if alpha texture should be inverted
+    Bool inverted = getParameterLong(material, MATERIAL_ALPHA_INVERT);
+
+    // if tiling is disabled use wrap type "black" if alpha is not inverted and
+    // wrap type "hite" if it is inverted
+    LuxImageMapData::WrapType wrapType = LuxImageMapData::WRAP_TYPE_NONE;
+    if (!mapping->isTiled()) {
+      wrapType = inverted ? LuxImageMapData::WRAP_TYPE_WHITE :
+                            LuxImageMapData::WRAP_TYPE_BLACK;
     }
+
+    // determine texture path of the alpha texture
+    Filename bitmapPath = getParameterFilename(*bitmapLink, BITMAPSHADER_FILENAME);
+    Filename fullBitmapPath;
+    GenerateTexturePath(mDocument->GetDocumentPath(),
+                        bitmapPath,
+                        Filename(),
+                        &fullBitmapPath);
+
+    // create imagedata texture
+    LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE,
+                                                     mapping,
+                                                     fullBitmapPath,
+                                                     1.0,
+                                                     channel,
+                                                     wrapType);
+    if (!texture) { ERRLOG_RETURN_VALUE(FALSE, "Could not allocate alpha channel texture"); }
+
+    // set alpha channel and return
+    return materialData.setAlphaChannel(texture, inverted);
   }
 
   return TRUE;
@@ -2050,12 +2078,12 @@ Bool LuxAPIConverter::addAlphaChannel(LuxTextureMappingH mapping,
 /// @return
 ///   An AutoRef of the converted Lux texture or an invalid/bad AutoRef, if
 ///   the channel could not be obtained.
-LuxTextureDataH LuxAPIConverter::convertFloatChannel(LuxTextureMappingH            mapping,
-                                                     Material&                     material,
-                                                     LONG                          shaderId,
-                                                     LONG                          strengthId,
-                                                     Real                          strengthScale,
-                                                     LuxImageMapData::ImageChannel channel)
+LuxTextureDataH LuxAPIConverter::convertFloatChannel(LuxTextureMappingH        mapping,
+                                                     Material&                 material,
+                                                     LONG                      shaderId,
+                                                     LONG                      strengthId,
+                                                     Real                      strengthScale,
+                                                     LuxImageMapData::Channel  channel)
 {
   // fetch bitmap shader, if available
   BaseList2D* bitmapLink = getParameterLink(material, shaderId, Xbitmap);
@@ -2064,7 +2092,7 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(LuxTextureMappingH         
   LuxFloat strength = getParameterReal(material, strengthId, 1.0);
 
   // if the material channel doesn't have a bitmap shader or the texture
-  // strength is too small, just create a constant texture of the value 0.0
+  // strength is too small, just return NULL
   if ((fabsf(strength) < 0.001) || !bitmapLink) {
     return LuxTextureDataH();
   }

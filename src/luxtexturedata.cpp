@@ -173,7 +173,7 @@ Bool LuxScaleTextureData::sendToAPI(LuxAPI&          receiver,
     }
   }
 
-  //
+  // setup parameters
   LuxParamSet paramSet(2);
   LuxString texture1Name = name + ".tex1";
   LuxString texture2Name = name + ".tex2";
@@ -182,6 +182,9 @@ Bool LuxScaleTextureData::sendToAPI(LuxAPI&          receiver,
   {
     ERRLOG_RETURN_VALUE(FALSE, "LuxScaleTextureData::sendToAPI(): could not export textures");
   }
+
+  // remove texture mapping (not needed) and export parameter set
+  mMapping = 0;
   return sendToAPIHelper(receiver, name, "scale", paramSet);
 }
 
@@ -233,10 +236,13 @@ Bool LuxMixTextureData::sendToAPI(LuxAPI&          receiver,
   GeAssert(mTexture1);
   GeAssert(mTexture2);
 
+  // make sure that both textures have the same type (you can't mix two
+  // different texture types)
   if ((mTexture1->mType != mType) || (mTexture2->mType != mType)) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxMixTextureData::sendToAPI(): mTexture1 or mTexture2 have invalid texture type");
   }
 
+  // setup parameters
   LuxParamSet paramSet(3);
   LuxString texture1Name = name + ".tex1";
   LuxString texture2Name = name + ".tex2";
@@ -246,6 +252,9 @@ Bool LuxMixTextureData::sendToAPI(LuxAPI&          receiver,
     ERRLOG_RETURN_VALUE(FALSE, "LuxMixTextureData::sendToAPI(): could not export textures");
   }
   paramSet.addParam(LUX_FLOAT, "amount", &mAmount);
+
+  // remove texture mapping (not needed) and export parameter set
+  mMapping = 0;
   return sendToAPIHelper(receiver, name, "mix", paramSet);
 }
 
@@ -303,12 +312,48 @@ Bool LuxConstantTextureData::sendToAPI(LuxAPI&          receiver,
 {
   LuxParamSet paramSet(1);
 
+  // setup parameters
   if (mType == LUX_FLOAT_TEXTURE) {
     paramSet.addParam(LUX_FLOAT, "value", &mFloat);
   } else {
     paramSet.addParam(LUX_COLOR, "value", &mColor);
   }
+
+  // remove texture mapping (not needed) and export parameter set
+  mMapping = 0;
   return sendToAPIHelper(receiver, name, "constant", paramSet);
+}
+
+
+
+/*****************************************************************************
+ * Implementation of member functions of class LuxUVMaskTextureData.
+ *****************************************************************************/
+
+LuxUVMaskTextureData::LuxUVMaskTextureData(LuxTextureType type)
+: LuxTextureData(type)
+{}
+
+
+LuxUVMaskTextureData::LuxUVMaskTextureData(LuxTextureMappingH mapping,
+                                           LuxFloat           inFloat,
+                                           LuxFloat           outFloat)
+: LuxTextureData(LUX_FLOAT_TEXTURE),
+  mInFloat(inFloat),
+  mOutFloat(outFloat)
+{
+  mMapping = mapping;
+}
+
+
+Bool LuxUVMaskTextureData::sendToAPI(LuxAPI&          receiver,
+                                     const LuxString& name)
+{
+  LuxParamSet paramSet(2 + LuxTextureMapping::maxParamCount());
+
+  paramSet.addParam(LUX_FLOAT, "invalue",  &mInFloat);
+  paramSet.addParam(LUX_FLOAT, "outvalue", &mOutFloat);
+  return sendToAPIHelper(receiver, name, "uvmask", paramSet);
 }
 
 
@@ -327,11 +372,13 @@ LuxImageMapData::LuxImageMapData(LuxTextureType     type,
                                  LuxTextureMappingH mapping,
                                  const Filename&    imagePath,
                                  LuxFloat           gamma,
-                                 ImageChannel       channel)
+                                 Channel            channel,
+                                 WrapType           wrapType)
 : LuxTextureData(type),
   mImagePath(imagePath),
   mChannel(channel),
-  mGamma(gamma)
+  mGamma(gamma),
+  mWrapType(wrapType)
 {
   mMapping = mapping;
 }
@@ -340,7 +387,7 @@ LuxImageMapData::LuxImageMapData(LuxTextureType     type,
 Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
                                 const LuxString& name)
 {
-  static const char *cImageChannelNames[IMAGE_CHANNEL_COUNT] = {
+  static const char *cChannelNames[IMAGE_CHANNEL_COUNT] = {
     "",
     "red",
     "green",
@@ -350,7 +397,15 @@ Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
     "colored_mean"
   };
 
-  LuxParamSet paramSet(3 + LuxTextureMapping::maxParamCount());
+  static const char *cWrapTypeNames[WRAP_TYPE_COUNT] = {
+    "",
+    "repeat",
+    "black",
+    "white",
+    "clamp"
+  };
+
+  LuxParamSet paramSet(4 + LuxTextureMapping::maxParamCount());
 
   // convert and clean up image path
   FilePath processedPath(mImagePath);
@@ -374,7 +429,7 @@ Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
     // if we still want to specify the channel, convert it into a string and
     // add it to the parameter list
     if (mChannel != IMAGE_CHANNEL_NONE) {
-      channel = cImageChannelNames[mChannel];
+      channel = cChannelNames[mChannel];
       paramSet.addParam(LUX_STRING, "channel", &channel);
     }
   }
@@ -382,6 +437,13 @@ Bool LuxImageMapData::sendToAPI(LuxAPI&          receiver,
   // if gamma != 1.0 then export texture gamma
   if (fabsf(mGamma-1.0) > 0.001) {
     paramSet.addParam(LUX_FLOAT, "gamma", &mGamma);
+  }
+
+  // if we want wrapping mode "black", add it as additional parameter
+  LuxString wrap;
+  if (mWrapType != WRAP_TYPE_NONE) {
+    wrap = cWrapTypeNames[mWrapType];
+    paramSet.addParam(LUX_STRING, "wrap", &wrap);
   }
 
   // send texture to Lux API

@@ -54,6 +54,9 @@ public:
   ///   The parameter set to which we will add 
   virtual void addToParamSet(LuxParamSet& paramSet) const =0;
 
+  /// Returns TRUE if the texture should be tiled.
+  inline Bool isTiled() const;
+
   /// Compares two texture mappings and returns TRUE if both are the same
   /// and FALSE if not.
   Bool operator==(const LuxTextureMapping& other) const;
@@ -71,9 +74,11 @@ protected:
 
   const Type      mType;
   const LuxString mTypeName;
+  Bool            mTiled;
 
   /// Constructs the base class and stores the name as string.
-  LuxTextureMapping(Type type);
+  LuxTextureMapping(Type        type,
+                    TextureTag& textureTag);
 
 
 private:
@@ -234,6 +239,12 @@ inline ULONG LuxTextureMapping::maxParamCount()
     maxParamCount = LuxPlanarMapping::cMaxParamCount;
   }
   return maxParamCount;
+}
+
+
+inline Bool LuxTextureMapping::isTiled() const
+{
+  return mTiled;
 }
 
 
