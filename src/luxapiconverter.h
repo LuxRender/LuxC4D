@@ -175,6 +175,34 @@ private:
     Filename mFilename;
   };
 
+  // Stores the key of a reusable material, which constists of the material
+  // pointer plus texture mapping. It also implements the operators that are
+  // necessary for the map.
+  struct ReusableMaterialKey {
+    BaseMaterial*      mMaterial;
+    LuxTextureMappingH mMapping;
+
+    ReusableMaterialKey(BaseMaterial* material, LuxTextureMappingH& mapping)
+    : mMaterial(material), mMapping(mapping)
+    {}
+
+    ReusableMaterialKey(const ReusableMaterialKey& other)
+    : mMaterial(other.mMaterial), mMapping(other.mMapping)
+    {}
+
+    ReusableMaterialKey& operator=(const ReusableMaterialKey& other)
+    {
+      mMaterial = other.mMaterial;  mMapping = other.mMapping;
+      return *this;
+    }
+
+    bool operator<(const ReusableMaterialKey& other) const
+    {
+      return (mMaterial < other.mMaterial) ||
+             ((mMaterial == other.mMaterial) && (*mMapping < *other.mMapping));
+    }
+  };
+
 
   // Stores the name and additional information of a material, that can be
   // reused.
@@ -242,17 +270,19 @@ private:
   typedef FixArray1D<LuxFloat>    UVsSerialisedT;
 
   /// The container type for storing a set of objects.
-  typedef RBTreeSet<BaseList2D*>                           ObjectsT;
+  typedef RBTreeSet<BaseList2D*>                            ObjectsT;
   /// The map from material name to number of materials that use this name.
-  typedef RBTreeMap<String, LONG>                          MaterialUsageMapT;
+  typedef RBTreeMap<String, LONG>                           MaterialUsageMapT;
+  /// The lookup map of reusable materials.
+  typedef RBTreeMap<ReusableMaterialKey, ReusableMaterial>  ReusableMaterialsT;
   /// The container type for storing the texture tags of an object.
-  typedef DynArray1D<TextureTag*>                          TextureTagsT;
+  typedef DynArray1D<TextureTag*>                           TextureTagsT;
   /// The container type for storing C4D polygons.
-  typedef FixArray1D<CPolygon>                             C4DPolygonsT;
+  typedef FixArray1D<CPolygon>                              C4DPolygonsT;
   /// The container type for storing C4D normal vectors.
-  typedef FixArray1D<Vector>                               C4DNormalsT;
+  typedef FixArray1D<Vector>                                C4DNormalsT;
   /// Helper array, which is used during the geometry conversion.
-  typedef FixArray1D<ULONG>                                PointMapT;
+  typedef FixArray1D<ULONG>                                 PointMapT;
 
 
   // static costants
@@ -273,24 +303,28 @@ private:
   LuxParamSet        mTempParamSet;
   Bool               mIsBidirectional;
   CameraObject*      mCamera;
+  LONG               mXResolution;
+  LONG               mYResolution;
   BaseObject*        mSkyObject;
   ULONG              mPortalCount;
   ULONG              mLightCount;
   ObjectsT           mAreaLightObjects;
   MaterialUsageMapT  mMaterialUsage;
+  ReusableMaterialsT mReusableMaterials;
+
 
   // the currently cached object
-  BaseObject*     mCachedObject;
+  BaseObject*   mCachedObject;
   // stores all C4D polygons of the current object, matching mPointCache
-  C4DPolygonsT    mPolygonCache;
+  C4DPolygonsT  mPolygonCache;
   // stores all points of the current object, in Lux coordinates
-  PointsT         mPointCache;
+  PointsT       mPointCache;
   // stores all normals of the current object, in Lux coordinates
-  NormalsT        mNormalCache;
+  NormalsT      mNormalCache;
   // stores all UVs of the current object
-  UVsT            mUVCache;
+  UVsT          mUVCache;
   // number of quads in polygon cache (used for calculating triangle count)
-  ULONG           mQuadCount;
+  ULONG         mQuadCount;
 
   // the current conversion function that will be called by Do()
   Bool            (LuxAPIConverter::*mDo)(HierarchyData& hierarchyData,
@@ -329,7 +363,7 @@ private:
 
   Bool exportInfiniteLight(void);
 
-  Bool exportStandardMaterial(void);
+  Bool exportStandardMaterials(void);
 
   Bool exportGeometry(void);
   Bool doGeometryExport(HierarchyData& data,
@@ -344,39 +378,39 @@ private:
                       LuxString&    lightGroup);
 
   LuxMaterialDataH convertDummyMaterial(BaseMaterial& material);
-  LuxMaterialDataH convertDiffuseMaterial(LuxTextureMappingH mapping,
-                                          Material&          material);
-  LuxMaterialDataH convertGlossyMaterial(LuxTextureMappingH mapping,
-                                         Material&          material);
-  LuxMaterialDataH convertReflectiveMaterial(LuxTextureMappingH mapping,
-                                             Material&          material);
-  LuxMaterialDataH convertTransparentMaterial(LuxTextureMappingH mapping,
-                                              Material&          material);
-  LuxMaterialDataH convertTranslucentMaterial(LuxTextureMappingH mapping,
-                                              Material&          material);
+  LuxMaterialDataH convertDiffuseMaterial(LuxTextureMappingH& mapping,
+                                          Material&           material);
+  LuxMaterialDataH convertGlossyMaterial(LuxTextureMappingH& mapping,
+                                         Material&           material);
+  LuxMaterialDataH convertReflectiveMaterial(LuxTextureMappingH& mapping,
+                                             Material&           material);
+  LuxMaterialDataH convertTransparentMaterial(LuxTextureMappingH& mapping,
+                                              Material&           material);
+  LuxMaterialDataH convertTranslucentMaterial(LuxTextureMappingH& mapping,
+                                              Material&           material);
 
-  Bool addBumpChannel(LuxTextureMappingH mapping,
-                      Material&          material,
-                      LuxMaterialData&   materialData);
-  Bool addEmissionChannel(LuxTextureMappingH mapping,
-                          Material&          material,
-                          LuxMaterialData&   materialData);
-  Bool addAlphaChannel(LuxTextureMappingH mapping,
-                       Material&          material,
-                       LuxMaterialData&   materialData);
+  Bool addBumpChannel(LuxTextureMappingH& mapping,
+                      Material&           material,
+                      LuxMaterialData&    materialData);
+  Bool addEmissionChannel(LuxTextureMappingH& mapping,
+                          Material&           material,
+                          LuxMaterialData&    materialData);
+  Bool addAlphaChannel(LuxTextureMappingH& mapping,
+                       Material&           material,
+                       LuxMaterialData&    materialData);
 
-  LuxTextureDataH convertFloatChannel(LuxTextureMappingH        mapping,
-                                      Material&                 material,
-                                      LONG                      shaderId,
-                                      LONG                      strengthId,
-                                      Real                      strengthScale = 1.0f,
-                                      LuxImageMapData::Channel  channel = LuxImageMapData::IMAGE_CHANNEL_NONE);
-  LuxTextureDataH convertColorChannel(LuxTextureMappingH mapping,
-                                      Material&          material,
-                                      LONG               shaderId,
-                                      LONG               colorId,
-                                      LONG               brightnessId,
-                                      LONG               mixerId);
+  LuxTextureDataH convertFloatChannel(LuxTextureMappingH&      mapping,
+                                      Material&                material,
+                                      LONG                     shaderId,
+                                      LONG                     strengthId,
+                                      Real                     strengthScale = 1.0f,
+                                      LuxImageMapData::Channel channel = LuxImageMapData::IMAGE_CHANNEL_NONE);
+  LuxTextureDataH convertColorChannel(LuxTextureMappingH& mapping,
+                                      Material&           material,
+                                      LONG                shaderId,
+                                      LONG                colorId,
+                                      LONG                brightnessId,
+                                      LONG                mixerId);
 
   Bool exportPolygonObject(PolygonObject& object,
                            const Matrix&  globalMatrix);

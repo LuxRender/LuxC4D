@@ -128,7 +128,7 @@ Bool LuxC4DMaterial::Init(GeListNode* node)
   data->SetVector(IDD_EMISSION_COLOR,                     Vector(1.0));
   data->SetReal  (IDD_EMISSION_SHADER_STRENGTH,           1.0);
   data->SetReal  (IDD_EMISSION_BRIGHTNESS,                1.0);
-  //data->SetReal  (IDD_ALPHA_VALUE,                        1.0);
+  data->SetReal  (IDD_ALPHA_VALUE,                        1.0);
   data->SetBool  (IDD_ALPHA_INVERT,                       FALSE);
   data->SetBool  (IDD_ALPHA_USE_CHANNEL,                  FALSE);
 
@@ -1108,6 +1108,7 @@ LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG               toggleId,
   Real brightness = brightnessId ? data.GetReal(brightnessId, 1.0) : 1.0;
   if (fabsf(brightness-1.0) > 0.0001) {
     LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_COLOR_TEXTURE);
+    if (!scaledTexture) { return unscaledTexture; }
     scaledTexture->mTexture1 = unscaledTexture;
     scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(LuxColor(brightness),
                                                              1.0);
@@ -1170,6 +1171,7 @@ LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                     toggleI
                                                        channel);
   if (shaderTexture) {
     LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_FLOAT_TEXTURE);
+    if (scaledTexture) { return shaderTexture; }
     scaledTexture->mTexture1 = shaderTexture;
     scaledTexture->mTexture2 = valueTexture;
     return scaledTexture;
@@ -1248,6 +1250,9 @@ void LuxC4DMaterial::getAlphaChannel(BaseContainer&     data,
   // return if alpha is disabled
   if (!data.GetBool(IDD_TOGGLE_ALPHA)) { return; }
 
+  // get alpha value 
+  LuxFloat value = data.GetReal(IDD_ALPHA_VALUE, 1.0);
+
   // check if we should use the alpha channel of the image
   LuxImageMapData::Channel channel = LuxImageMapData::IMAGE_CHANNEL_NONE;
   if (data.GetBool(IDD_ALPHA_USE_CHANNEL)) {
@@ -1273,6 +1278,44 @@ void LuxC4DMaterial::getAlphaChannel(BaseContainer&     data,
                                                  1.0,
                                                  channel,
                                                  wrapType);
+
+  // if we could obtain a texture:
+  if (texture) {
+    // only if scaling value is less than 1:
+    if (value <= 0.999) {
+      // scale texture
+      LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_FLOAT_TEXTURE);
+      if (scaledTexture) {
+        scaledTexture->mTexture1 = texture;
+        scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(value);
+        if (mapping->isTiled()) {
+          // if tiling is enabled, just use the scaled texture
+          texture = scaledTexture;
+        } else {
+          // if tiling is disabled, add a UV mask texture
+          LuxUVMaskTextureDataH maskedTexture = gNewNC LuxUVMaskTextureData(LUX_FLOAT_TEXTURE);
+          maskedTexture->mMapping  = mapping;
+          maskedTexture->mInnerTex = scaledTexture;
+          maskedTexture->mOuterTex = gNewNC LuxConstantTextureData(inverted ? 1.0 : 0.0);
+          texture = maskedTexture;
+        }
+      }
+    }
+  } else {
+    // don't set any alpha, if material is effectively opaque
+    if ((!inverted && (value>0.999)) || (inverted && (value<0.001))) { return; }
+    texture = gNewNC LuxConstantTextureData(value);
+    // if tiling is disabled, add a UV mask texture
+    if (!mapping->isTiled()) {
+      LuxUVMaskTextureDataH maskedTexture = gNewNC LuxUVMaskTextureData(LUX_FLOAT_TEXTURE);
+      maskedTexture->mMapping  = mapping;
+      maskedTexture->mInnerTex = texture;
+      maskedTexture->mOuterTex = gNewNC LuxConstantTextureData(inverted ? 1.0 : 0.0);
+      texture = maskedTexture;
+    }
+  }
+
+  //
   if (!texture) { return; }
 
   // set alpha channel and return

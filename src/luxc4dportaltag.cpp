@@ -117,11 +117,19 @@ Bool LuxC4DPortalTag::GetDDescription(GeListNode*  node,
 /// Overwritten function to enable/disable description controls depending on
 /// the current options.
 /// (see C4D API documentation for parameters)
+#if _C4D_VERSION<115
 Bool LuxC4DPortalTag::GetDEnabling(GeListNode*          node,
                                    const DescID&        id,
                                    GeData&              t_data,
                                    LONG                 flags,
                                    const BaseContainer* itemdesc)
+#else
+Bool LuxC4DPortalTag::GetDEnabling(GeListNode*          node,
+                                   const DescID&        id,
+                                   const GeData&        t_data,
+                                   LONG                 flags,
+                                   const BaseContainer* itemdesc)
+#endif
 {
   // get container for easy access to current values
   BaseContainer* data = getData();

@@ -154,6 +154,23 @@ struct LuxVector
   {
     return (x == other.x) && (y == other.y) && (z == other.z);
   }
+
+  /// Returns TRUE only if this vector is less than the other
+  Bool operator<(const LuxVector& other) const
+  {
+    if (x < other.x) {
+      return TRUE;
+    } else if (x == other.x) {
+      if (y < other.y) {
+        return TRUE;
+      } else if (y == other.y) {
+        if (z < other.z) {
+          return TRUE;
+        }
+      }
+    }
+    return FALSE;
+  }
 };
 
 
@@ -318,13 +335,23 @@ struct LuxMatrix
     values[15] = 1.0;
   }
 
-  /// Returns TRUE if both matrices are equal, FALSE if not.
+  /// Returns TRUE only if this matrix is equal the other matrix.
   Bool operator==(const LuxMatrix& other) const
   {
     for (LONG i=0; i<16; ++i) {
       if (values[i] != other.values[i]) { return FALSE; }
     }
     return TRUE;
+  }
+
+  /// Returns TRUE only if this matrix is less than the other matrix.
+  Bool operator<(const LuxMatrix& other) const
+  {
+    for (LONG i=0; i<16; ++i) {
+      if (values[i] < other.values[i]) { return TRUE; }
+      if (values[i] > other.values[i]) { return FALSE; }
+    }
+    return FALSE;
   }
 };
 

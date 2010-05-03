@@ -57,9 +57,9 @@ public:
   /// Returns TRUE if the texture should be tiled.
   inline Bool isTiled() const;
 
-  /// Compares two texture mappings and returns TRUE if both are the same
-  /// and FALSE if not.
-  Bool operator==(const LuxTextureMapping& other) const;
+  /// Compares two texture mappings and returns TRUE if this mapping is less
+  /// than the other mapping.
+  Bool operator<(const LuxTextureMapping& other) const;
 
 
 protected:
@@ -113,7 +113,8 @@ public:
   virtual const LuxMatrix* getTrafo() const;
   virtual void addToParamSet(LuxParamSet& paramSet) const;
 
-  Bool operator==(const LuxUVMapping& other) const;
+  Bool operator<(const LuxUVMapping& other) const;
+
 
 private:
 
@@ -144,7 +145,7 @@ public:
   virtual const LuxMatrix* getTrafo() const;
   virtual void addToParamSet(LuxParamSet& paramSet) const;
 
-  Bool operator==(const LuxSphericalMapping& other) const;
+  Bool operator<(const LuxSphericalMapping& other) const;
 
 private:
 
@@ -175,7 +176,7 @@ public:
   virtual const LuxMatrix* getTrafo() const;
   virtual void addToParamSet(LuxParamSet& paramSet) const;
 
-  Bool operator==(const LuxCylindricalMapping& other) const;
+  Bool operator<(const LuxCylindricalMapping& other) const;
 
 private:
 
@@ -202,7 +203,7 @@ public:
   virtual const LuxMatrix* getTrafo() const;
   virtual void addToParamSet(LuxParamSet& paramSet) const;
 
-  Bool operator==(const LuxPlanarMapping& other) const;
+  Bool operator<(const LuxPlanarMapping& other) const;
 
 private:
 

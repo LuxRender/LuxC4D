@@ -70,7 +70,9 @@ public:
   void getPixelFilter(const char*& name,
                       LuxParamSet& paramSet);
   void getSampler(const char*& name,
-                  LuxParamSet& paramSet);
+                  LuxParamSet& paramSet,
+                  LONG         xResolution,
+                  LONG         yResolution);
   void getSurfaceIntegrator(const char*& name,
                             LuxParamSet& paramSet,
                             Bool&        isBidirectional);

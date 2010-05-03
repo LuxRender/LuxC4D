@@ -58,11 +58,19 @@ public:
   virtual Bool GetDDescription(GeListNode*  node,
                                Description* description,
                                LONG&        flags);
+#if _C4D_VERSION<115
   virtual Bool GetDEnabling(GeListNode*          node,
                             const DescID&        id,
                             GeData&              t_data,
                             LONG                 flags,
                             const BaseContainer* itemdesc);
+#else
+  virtual Bool GetDEnabling(GeListNode*          node,
+                            const DescID&        id,
+                            const GeData&        t_data,
+                            LONG                 flags,
+                            const BaseContainer* itemdesc);
+#endif
 
 
 private:

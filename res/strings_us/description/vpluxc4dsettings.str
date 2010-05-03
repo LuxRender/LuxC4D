@@ -50,16 +50,27 @@ STRINGTABLE VPluxc4dsettings
       IDD_PIXELSAMPLER_LINEAR             "Linear";
       IDD_PIXELSAMPLER_TILE               "Tile";
 
-    IDD_METROPOLIS_MAX_CONSEC_REJECTS   "Max. Consecutive Rejects";
-    IDD_METROPOLIS_LARGE_MUTATION_PROB  "Large Mutation Probability";
-    IDD_METROPOLIS_MICRO_MUTATION_PROB  "Small Mutation Probability";
-    IDD_METROPOLIS_USE_VARIANCE         "Use Variance";
-    IDD_METROPOLIS_STRENGTH             "Strength";
+    IDD_METROPOLIS_MAX_CONSEC_REJECTS           "Max. Consecutive Rejects";
+    IDD_METROPOLIS_LARGE_MUTATION_PROB          "Large Mutation Probability";
+    IDD_METROPOLIS_USE_VARIANCE                 "Use Variance";
+    IDD_METROPOLIS_STRENGTH                     "Strength";
+    IDD_METROPOLIS_MUTATION_RANGE_PIXEL         "";
+    IDD_METROPOLIS_MUTATION_RANGE_FRACTION      "";
+    IDD_METROPOLIS_MUTATION_RANGE_TYPE          "Mutation Range";
 
-    IDD_ERPT_CHAINLENGTH                "Chain Length";
-    IDD_ERPT_MICRO_MUTATION_PROB        "Small Mutation Probability";
-    IDD_ERPT_PIXELSAMPLER               "Pixel Sampler";
-    IDD_ERPT_PIXELSAMPLES               "Pixel Samples";
+      IDD_METROPOLIS_MUTATION_RANGE_AS_FRACTION   "Fraction of Image Size";
+      IDD_METROPOLIS_MUTATION_RANGE_IN_PIXEL      "In Pixels";
+
+    IDD_ERPT_CHAINLENGTH                  "Chain Length";
+    IDD_ERPT_MICRO_MUTATION_PROB          "Small Mutation Probability";
+    IDD_ERPT_PIXELSAMPLER                 "Pixel Sampler";
+    IDD_ERPT_PIXELSAMPLES                 "Pixel Samples";
+    IDD_ERPT_MUTATION_RANGE_PIXEL         "";
+    IDD_ERPT_MUTATION_RANGE_FRACTION      "";
+    IDD_ERPT_MUTATION_RANGE_TYPE          "Mutation Range";
+
+      IDD_ERPT_MUTATION_RANGE_AS_FRACTION   "Fraction of Image Size";
+      IDD_ERPT_MUTATION_RANGE_IN_PIXEL      "In Pixels";
 
 
     IDG_INTEGRATION                     "Integration";

@@ -49,23 +49,24 @@ LuxTextureMapping::LuxTextureMapping(Type        type,
 }
 
 
-Bool LuxTextureMapping::operator==(const LuxTextureMapping& other) const
+Bool LuxTextureMapping::operator<(const LuxTextureMapping& other) const
 {
-  if ((mType != other.mType) || (mTiled != other.mTiled)) {
-    return FALSE;
+  if (mType < other.mType) { return TRUE; }
+  if (mType == other.mType) {
+    switch (mType) {
+      case TYPE_UV:
+        return (LuxUVMapping&)*this < (LuxUVMapping&)other;
+      case TYPE_SPHERICAL:
+        return (LuxSphericalMapping&)*this < (LuxSphericalMapping&)other;
+      case TYPE_CYLINDRICAL:
+        return (LuxCylindricalMapping&)*this < (LuxCylindricalMapping&)other;
+      case TYPE_PLANAR:
+        return (LuxPlanarMapping&)*this < (LuxPlanarMapping&)other;
+      default:
+        return FALSE;
+    }
   }
-  switch (mType) {
-    case TYPE_UV:
-      return (LuxUVMapping&)*this == (LuxUVMapping&)other;
-    case TYPE_SPHERICAL:
-      return (LuxSphericalMapping&)*this == (LuxSphericalMapping&)other;
-    case TYPE_CYLINDRICAL:
-      return (LuxCylindricalMapping&)*this == (LuxCylindricalMapping&)other;
-    case TYPE_PLANAR:
-      return (LuxPlanarMapping&)*this == (LuxPlanarMapping&)other;
-    default:
-      return FALSE;
-  }
+  return FALSE;
 }
 
 
@@ -112,12 +113,24 @@ void LuxUVMapping::addToParamSet(LuxParamSet& paramSet) const
 }
 
 
-Bool LuxUVMapping::operator==(const LuxUVMapping& other) const
+Bool LuxUVMapping::operator<(const LuxUVMapping& other) const
 {
-  return (mUScale == other.mUScale) &&
-         (mVScale == other.mVScale) &&
-         (mUShift == other.mUShift) &&
-         (mVShift == other.mVShift);
+  if (mUScale < other.mUScale) {
+    return TRUE;
+  } else if (mUScale == other.mUScale) {
+    if (mVScale < other.mVScale) {
+      return TRUE;
+    } else if (mVScale == other.mVScale) {
+      if (mUShift < other.mUShift) {
+        return TRUE;
+      } else if (mUShift == other.mUShift) {
+        if (mVShift < other.mVShift) {
+          return TRUE;
+        }
+      }
+    }
+  }
+  return FALSE;
 }
 
 
@@ -181,12 +194,24 @@ void LuxSphericalMapping::addToParamSet(LuxParamSet& paramSet) const
 }
 
 
-Bool LuxSphericalMapping::operator==(const LuxSphericalMapping& other) const
+Bool LuxSphericalMapping::operator<(const LuxSphericalMapping& other) const
 {
-  return (mTrafo == other.mTrafo) &&
-         (mUScale == other.mUScale) &&
-         (mVScale == other.mVScale) &&
-         (mVShift == other.mVShift);
+  if (mTrafo < other.mTrafo) {
+    return TRUE;
+  } else if (mTrafo == other.mTrafo) {
+    if (mUScale < other.mUScale) {
+      return TRUE;
+    } else if (mUScale == other.mUScale) {
+      if (mVScale < other.mVScale) {
+        return TRUE;
+      } else if (mVScale == other.mVScale) {
+        if (mVShift < other.mVShift) {
+          return TRUE;
+        }
+      }
+    }
+  }
+  return FALSE;
 }
 
 
@@ -252,10 +277,10 @@ void LuxCylindricalMapping::addToParamSet(LuxParamSet& paramSet) const
 }
 
 
-Bool LuxCylindricalMapping::operator==(const LuxCylindricalMapping& other) const
+Bool LuxCylindricalMapping::operator<(const LuxCylindricalMapping& other) const
 {
-  return (mTrafo == other.mTrafo) &&
-         (mUScale == other.mUScale);
+  return (mTrafo < other.mTrafo) ||
+         ((mTrafo == other.mTrafo) || (mUScale < other.mUScale));
 }
 
 
@@ -325,8 +350,22 @@ void LuxPlanarMapping::addToParamSet(LuxParamSet& paramSet) const
 }
 
 
-Bool LuxPlanarMapping::operator==(const LuxPlanarMapping& other) const
+Bool LuxPlanarMapping::operator<(const LuxPlanarMapping& other) const
 {
-  return (mUVector == other.mUVector) && (mVVector == other.mVVector) &&
-         (mUShift == other.mUShift) && (mVShift == other.mVShift);
+  if (mUVector < other.mUVector) {
+    return TRUE;
+  } else if (mUVector == other.mUVector) {
+    if (mVVector < other.mVVector) {
+      return TRUE;
+    } else if (mVVector == other.mVVector) {
+      if (mUShift < other.mUShift) {
+        return TRUE;
+      } else if (mUShift == other.mUShift) {
+        if (mVShift < other.mVShift) {
+          return TRUE;
+        }
+      }
+    }
+  }
+  return FALSE;
 }

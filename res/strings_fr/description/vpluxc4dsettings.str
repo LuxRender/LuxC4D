@@ -50,16 +50,26 @@ STRINGTABLE VPluxc4dsettings
       IDD_PIXELSAMPLER_LINEAR             "Linéaire";
       IDD_PIXELSAMPLER_TILE               "Mosaïque";
 
-    IDD_METROPOLIS_MAX_CONSEC_REJECTS   "Rejets Consécutifs Max.";
-    IDD_METROPOLIS_LARGE_MUTATION_PROB  "Probabilité de grande Mutation";
-    IDD_METROPOLIS_MICRO_MUTATION_PROB  "Probabilité de petite Mutation";
-    IDD_METROPOLIS_USE_VARIANCE         "Utiliser la Variance";
-    IDD_METROPOLIS_STRENGTH             "Puissance";
+    IDD_METROPOLIS_MAX_CONSEC_REJECTS           "Rejets Consécutifs Max.";
+    IDD_METROPOLIS_LARGE_MUTATION_PROB          "Probabilité de grande Mutation";
+    IDD_METROPOLIS_USE_VARIANCE                 "Utiliser la Variance";
+    IDD_METROPOLIS_STRENGTH                     "Puissance";
+    IDD_METROPOLIS_MUTATION_RANGE_PIXEL         "";
+    IDD_METROPOLIS_MUTATION_RANGE_FRACTION      "";
+    IDD_METROPOLIS_MUTATION_RANGE_TYPE          "Mutation Range";           // to be translated
 
-    IDD_ERPT_CHAINLENGTH                "Longueur de Chaine";
-    IDD_ERPT_MICRO_MUTATION_PROB        "Probabilité de petite Mutation";
-    IDD_ERPT_PIXELSAMPLER               "Echantillonneur de Pixel";
-    IDD_ERPT_PIXELSAMPLES               "Pixels";
+      IDD_METROPOLIS_MUTATION_RANGE_AS_FRACTION   "Fraction of Image Size"; // to be translated
+      IDD_METROPOLIS_MUTATION_RANGE_IN_PIXEL      "In Pixels";              // to be translated
+
+    IDD_ERPT_CHAINLENGTH                  "Longueur de Chaine";
+    IDD_ERPT_PIXELSAMPLER                 "Echantillonneur de Pixel";
+    IDD_ERPT_PIXELSAMPLES                 "Pixels";
+    IDD_ERPT_MUTATION_RANGE_PIXEL         "";
+    IDD_ERPT_MUTATION_RANGE_FRACTION      "";
+    IDD_ERPT_MUTATION_RANGE_TYPE          "Mutation Range";             // to be translated
+
+      IDD_ERPT_MUTATION_RANGE_AS_FRACTION   "Fraction of Image Size";   // to be translated
+      IDD_ERPT_MUTATION_RANGE_IN_PIXEL      "In Pixels";                // to be translated
 
 
     IDG_INTEGRATION                     "INTEGRATION";

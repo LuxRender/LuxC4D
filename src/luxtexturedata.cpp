@@ -335,24 +335,29 @@ LuxUVMaskTextureData::LuxUVMaskTextureData(LuxTextureType type)
 {}
 
 
-LuxUVMaskTextureData::LuxUVMaskTextureData(LuxTextureMappingH mapping,
-                                           LuxFloat           inFloat,
-                                           LuxFloat           outFloat)
-: LuxTextureData(LUX_FLOAT_TEXTURE),
-  mInFloat(inFloat),
-  mOutFloat(outFloat)
-{
-  mMapping = mapping;
-}
-
-
 Bool LuxUVMaskTextureData::sendToAPI(LuxAPI&          receiver,
                                      const LuxString& name)
 {
-  LuxParamSet paramSet(2 + LuxTextureMapping::maxParamCount());
+  GeAssert(mInnerTex);
+  GeAssert(mOuterTex);
 
-  paramSet.addParam(LUX_FLOAT, "invalue",  &mInFloat);
-  paramSet.addParam(LUX_FLOAT, "outvalue", &mOutFloat);
+  // make sure that both textures have the same type (you can't mix two
+  // different texture types)
+  if ((mInnerTex->mType != mType) || (mOuterTex->mType != mType)) {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxMixTextureData::sendToAPI(): mInnerTex or mOuterTex have invalid texture type");
+  }
+
+  // export child textures
+  LuxParamSet paramSet(2 + LuxTextureMapping::maxParamCount());
+  LuxString innerTexName = name + ".inner";
+  LuxString outerTexName = name + ".outer";
+  if (!mInnerTex->sendToAPIAndAddToParamSet(receiver, paramSet, "innertex", innerTexName) ||
+      !mOuterTex->sendToAPIAndAddToParamSet(receiver, paramSet, "outertex", outerTexName))
+  {
+    ERRLOG_RETURN_VALUE(FALSE, "LuxUVMaskTextureData::sendToAPI(): could not export textures");
+  }
+
+  // export UV mask texture
   return sendToAPIHelper(receiver, name, "uvmask", paramSet);
 }
 

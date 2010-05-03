@@ -112,11 +112,6 @@ class LuxMaterialData
 {
 public:
 
-  /// This member can store C4D material the Lux material is derived from.
-  /// During construction, it gets initialised with NULL.
-  BaseMaterial* mBaseMaterial;
-
-
   Bool setChannel(ULONG           channelId,
                   LuxTextureDataH texture);
 
@@ -440,6 +435,25 @@ private:
 };
 
 typedef AutoRef<LuxCarPaintData>  LuxCarPaintDataH;
+
+
+
+/***************************************************************************//*!
+ This class stores the parameters of a Lux matte material.
+*//****************************************************************************/
+class LuxNullMaterialData : public LuxMaterialData
+{
+public:
+
+  LuxNullMaterialData(void);
+
+
+private:
+
+  static const LuxMaterialInfo sMaterialInfo;
+};
+
+typedef AutoRef<LuxMatteData>  LuxNullMaterialDataH;
 
 
 

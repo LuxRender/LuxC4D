@@ -96,20 +96,24 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   if (!data)  return FALSE;
 
   // set sampler defaults
-  data->SetLong(IDD_SAMPLER,                        IDD_SAMPLER_METROPOLIS);
-  data->SetLong(IDD_RANDOM_PIXELSAMPLER,            IDD_PIXELSAMPLER_VEGAS);
-  data->SetLong(IDD_RANDOM_PIXELSAMPLES,            4);
-  data->SetLong(IDD_LOWDISCREPANCY_PIXELSAMPLER,    IDD_PIXELSAMPLER_LOWDISCREPANCY);
-  data->SetLong(IDD_LOWDISCREPANCY_PIXELSAMPLES,    4);
-  data->SetLong(IDD_METROPOLIS_MAX_CONSEC_REJECTS,  512);
-  data->SetReal(IDD_METROPOLIS_LARGE_MUTATION_PROB, 0.4);
-  data->SetReal(IDD_METROPOLIS_MICRO_MUTATION_PROB, 0.0);
-  data->SetBool(IDD_METROPOLIS_USE_VARIANCE,        FALSE);
-  data->SetReal(IDD_METROPOLIS_STRENGTH,            0.6);
-  data->SetLong(IDD_ERPT_CHAINLENGTH,               512);
-  data->SetReal(IDD_ERPT_MICRO_MUTATION_PROB,       0.5);
-  data->SetLong(IDD_ERPT_PIXELSAMPLER,              IDD_PIXELSAMPLER_VEGAS);
-  data->SetLong(IDD_ERPT_PIXELSAMPLES,              4);
+  data->SetLong(IDD_SAMPLER,                                    IDD_SAMPLER_METROPOLIS);
+  data->SetLong(IDD_RANDOM_PIXELSAMPLER,                        IDD_PIXELSAMPLER_VEGAS);
+  data->SetLong(IDD_RANDOM_PIXELSAMPLES,                        4);
+  data->SetLong(IDD_LOWDISCREPANCY_PIXELSAMPLER,                IDD_PIXELSAMPLER_LOWDISCREPANCY);
+  data->SetLong(IDD_LOWDISCREPANCY_PIXELSAMPLES,                4);
+  data->SetLong(IDD_METROPOLIS_MAX_CONSEC_REJECTS,              512);
+  data->SetReal(IDD_METROPOLIS_LARGE_MUTATION_PROB,             0.4);
+  data->SetBool(IDD_METROPOLIS_USE_VARIANCE,                    FALSE);
+  data->SetReal(IDD_METROPOLIS_STRENGTH,                        0.6);
+  data->SetLong(IDD_METROPOLIS_MUTATION_RANGE_TYPE,             IDD_METROPOLIS_MUTATION_RANGE_AS_FRACTION);
+  data->SetReal(IDD_METROPOLIS_MUTATION_RANGE_FRACTION,         16.0);
+  data->SetReal(IDD_METROPOLIS_MUTATION_RANGE_PIXEL,            10.0);
+  data->SetLong(IDD_ERPT_CHAINLENGTH,                           512);
+  data->SetLong(IDD_ERPT_PIXELSAMPLER,                          IDD_PIXELSAMPLER_VEGAS);
+  data->SetLong(IDD_ERPT_PIXELSAMPLES,                          4);
+  data->SetLong(IDD_ERPT_MUTATION_RANGE_TYPE,                   IDD_ERPT_MUTATION_RANGE_AS_FRACTION);
+  data->SetReal(IDD_ERPT_MUTATION_RANGE_FRACTION,               25.0);
+  data->SetReal(IDD_ERPT_MUTATION_RANGE_PIXEL,                  15.0);
 
   // set integrator defaults
   data->SetLong(IDD_INTEGRATOR,                                     IDD_INTEGRATOR_BIDIRECTIONAL);
@@ -266,11 +270,17 @@ Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
   showParameter(description, IDG_ERPT,             params, sampler == IDD_SAMPLER_ERPT);
   Bool advanced = data->GetBool(IDD_ADVANCED_SAMPLER);
   if (sampler == IDD_SAMPLER_METROPOLIS) {
-    showParameter(description, IDD_METROPOLIS_STRENGTH,            params, !advanced);
-    showParameter(description, IDD_METROPOLIS_LARGE_MUTATION_PROB, params, advanced);
-    showParameter(description, IDD_METROPOLIS_MAX_CONSEC_REJECTS,  params, advanced);
-    showParameter(description, IDD_METROPOLIS_MICRO_MUTATION_PROB, params, advanced);
-    showParameter(description, IDD_METROPOLIS_USE_VARIANCE,        params, advanced);
+    showParameter(description, IDD_METROPOLIS_STRENGTH,                        params, !advanced);
+    showParameter(description, IDD_METROPOLIS_LARGE_MUTATION_PROB,             params, advanced);
+    showParameter(description, IDD_METROPOLIS_MAX_CONSEC_REJECTS,              params, advanced);
+    showParameter(description, IDD_METROPOLIS_USE_VARIANCE,                    params, advanced);
+    Bool mutRangeInPixels = (data->GetLong(IDD_METROPOLIS_MUTATION_RANGE_TYPE) == IDD_METROPOLIS_MUTATION_RANGE_IN_PIXEL);
+    showParameter(description, IDD_METROPOLIS_MUTATION_RANGE_FRACTION,         params, advanced && !mutRangeInPixels);
+    showParameter(description, IDD_METROPOLIS_MUTATION_RANGE_PIXEL,            params, advanced && mutRangeInPixels);
+  } else if (sampler == IDD_SAMPLER_ERPT) {
+    Bool mutRangeInPixels = (data->GetLong(IDD_ERPT_MUTATION_RANGE_TYPE) == IDD_ERPT_MUTATION_RANGE_IN_PIXEL);
+    showParameter(description, IDD_ERPT_MUTATION_RANGE_FRACTION,         params, advanced && !mutRangeInPixels);
+    showParameter(description, IDD_ERPT_MUTATION_RANGE_PIXEL,            params, advanced && mutRangeInPixels);
   }
 
   // show/hide integrator parameters
@@ -348,13 +358,13 @@ Bool LuxC4DSettings::SetDParameter(GeListNode*   node,
   BaseContainer* data = getData();
   if (!data)  return FALSE;
 
-  // Metropolis + not advanced:
+  // Metropolis strength + not advanced:
   if ((id == DescID(IDD_METROPOLIS_STRENGTH)) &&
       !data->GetBool(IDD_ADVANCED_SAMPLER))
   {
     // convert the strength to a large mutation probability
     data->SetReal(IDD_METROPOLIS_LARGE_MUTATION_PROB, 1.0 - value.GetReal());
-  // Metropolis + advanced:
+  // Metropolis mutation probability + advanced:
   } else if ((id == DescID(IDD_METROPOLIS_LARGE_MUTATION_PROB)) &&
              data->GetBool(IDD_ADVANCED_SAMPLER))
   {
@@ -654,8 +664,14 @@ void LuxC4DSettings::getPixelFilter(const char*& name,
 ///   Will receive the film name.
 /// @param[out]  paramSet
 ///   The set to which the parameters get added.
+/// @param[in]  xResolution
+///   The horizontal resolution of the image to render.
+/// @param[in]  yResolution
+///   The vertical resolution of the image to render.
 void LuxC4DSettings::getSampler(const char*& name,
-                                LuxParamSet& paramSet)
+                                LuxParamSet& paramSet,
+                                LONG         xResolution,
+                                LONG         yResolution)
 {
   // the different sampler names
   static const char* sSamplerNames[IDD_SAMPLER_NUMBER] = {
@@ -684,16 +700,16 @@ void LuxC4DSettings::getSampler(const char*& name,
   static Descr2Param<LuxInteger> sRandomPixelSamples(IDD_RANDOM_PIXELSAMPLES, "pixelsamples");
 
   // parameters for metropolis sampler
-  static Descr2Param<LuxFloat>   sMetroLargeMutationProb(IDD_METROPOLIS_LARGE_MUTATION_PROB, "largemutationprob");
-  static Descr2Param<LuxInteger> sMetroMaxConsecRejects (IDD_METROPOLIS_MAX_CONSEC_REJECTS,  "maxconsecrejects");
-  static Descr2Param<LuxFloat>   sMetroMicroMutationProb(IDD_METROPOLIS_MICRO_MUTATION_PROB, "micromutationprob");
-  static Descr2Param<LuxBool>    sMetroUseVariance      (IDD_METROPOLIS_USE_VARIANCE,        "usevariance");
+  static Descr2Param<LuxFloat>   sMetroLargeMutationProb(IDD_METROPOLIS_LARGE_MUTATION_PROB,  "largemutationprob");
+  static Descr2Param<LuxInteger> sMetroMaxConsecRejects (IDD_METROPOLIS_MAX_CONSEC_REJECTS,   "maxconsecrejects");
+  static Descr2Param<LuxBool>    sMetroUseVariance      (IDD_METROPOLIS_USE_VARIANCE,         "usevariance");
+  static Descr2Param<LuxFloat>   sMetroMutationRange    (IDD_METROPOLIS_MUTATION_RANGE_PIXEL, "mutationrange");
 
   // parameters for ERPT sampler
-  static Descr2Param<LuxInteger> sERPTChainLength      (IDD_ERPT_CHAINLENGTH,         "chainlength");
-  static Descr2Param<LuxFloat>   sERPTMicroMutationProb(IDD_ERPT_MICRO_MUTATION_PROB, "micromutationprob");
-  static Descr2Param<LuxString>  sERPTPixelSampler     (IDD_ERPT_PIXELSAMPLER,        "pixelsampler");
-  static Descr2Param<LuxInteger> sERPTPixelSamples     (IDD_ERPT_PIXELSAMPLES,        "pixelsamples");
+  static Descr2Param<LuxInteger> sERPTChainLength      (IDD_ERPT_CHAINLENGTH,          "chainlength");
+  static Descr2Param<LuxString>  sERPTPixelSampler     (IDD_ERPT_PIXELSAMPLER,         "pixelsampler");
+  static Descr2Param<LuxInteger> sERPTPixelSamples     (IDD_ERPT_PIXELSAMPLES,         "pixelsamples");
+  static Descr2Param<LuxFloat>   sERPTMutationRange    (IDD_ERPT_MUTATION_RANGE_PIXEL, "mutationrange");
 
 
   // set default sampler
@@ -725,17 +741,25 @@ void LuxC4DSettings::getSampler(const char*& name,
       copyParam(sMetroLargeMutationProb, paramSet);
       if (data->GetBool(IDD_ADVANCED_SAMPLER)) {
         copyParam(sMetroMaxConsecRejects,  paramSet);
-        copyParam(sMetroMicroMutationProb, paramSet);
         copyParam(sMetroUseVariance,       paramSet);
+        copyParam(sMetroMutationRange,     paramSet);
+        if (data->GetLong(IDD_METROPOLIS_MUTATION_RANGE_TYPE) == IDD_METROPOLIS_MUTATION_RANGE_AS_FRACTION) {
+          sMetroMutationRange.mParam = (Real)(xResolution + yResolution) /
+                                       (2.0 * data->GetReal(IDD_METROPOLIS_MUTATION_RANGE_FRACTION));
+        }
       }
       break;
     // ERPT sampler
     case IDD_SAMPLER_ERPT:
-      copyParam(sERPTChainLength,       paramSet);
-      copyParam(sERPTMicroMutationProb, paramSet);
-      copyParam(sERPTPixelSampler,      paramSet,
-                sPixelSamplerNames,     IDD_PIXELSAMPLER_NUMBER);
-      copyParam(sERPTPixelSamples,      paramSet);
+      copyParam(sERPTChainLength,   paramSet);
+      copyParam(sERPTPixelSampler,  paramSet,
+                sPixelSamplerNames, IDD_PIXELSAMPLER_NUMBER);
+      copyParam(sERPTPixelSamples,  paramSet);
+      copyParam(sERPTMutationRange, paramSet);
+      if (data->GetLong(IDD_ERPT_MUTATION_RANGE_TYPE) == IDD_ERPT_MUTATION_RANGE_AS_FRACTION) {
+        sERPTMutationRange.mParam = (Real)(xResolution + yResolution) /
+                                    (2.0 * data->GetReal(IDD_ERPT_MUTATION_RANGE_FRACTION));
+      }
       break;
     // invalid sampler -> error and return
     default:

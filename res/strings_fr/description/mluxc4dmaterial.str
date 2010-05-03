@@ -175,7 +175,7 @@ STRINGTABLE Mluxc4dmaterial
   IDD_EMISSION_GROUP_NAME       "Groupe de Lumière";
 
   IDG_ALPHA             "Alpha";          
-  __IDD_ALPHA_VALUE       "Valeur";           // not used at the moment
+  IDD_ALPHA_VALUE       "Valeur";
   IDD_ALPHA_SHADER      "Adapter la Tex.";   
   IDD_ALPHA_INVERT      "Inverser";       
   IDD_ALPHA_USE_CHANNEL "Alpha de l'image";   

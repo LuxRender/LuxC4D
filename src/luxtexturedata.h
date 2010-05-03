@@ -186,14 +186,11 @@ class LuxUVMaskTextureData : public LuxTextureData
 {
 public:
 
-  LuxFloat mInFloat;
-  LuxFloat mOutFloat;
+  LuxTextureDataH mInnerTex;
+  LuxTextureDataH mOuterTex;
 
 
   LuxUVMaskTextureData(LuxTextureType type);
-  LuxUVMaskTextureData(LuxTextureMappingH mapping,
-                       LuxFloat           inFloat,
-                       LuxFloat           outFloat);
 
   virtual Bool sendToAPI(LuxAPI&          receiver,
                          const LuxString& name);
