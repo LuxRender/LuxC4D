@@ -1402,6 +1402,25 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
 }
 
 
+// Helper structure to store all necessary information of a material + texture tag.
+// This is used only by exportMaterial().
+struct LuxMaterialStackEntry
+{
+  BaseMaterial*       baseMaterial;
+  LuxMaterialDataH    luxMaterial;
+  LuxTextureMappingH  mapping;
+  
+  LuxMaterialStackEntry() : baseMaterial(0) {}
+  LuxMaterialStackEntry(const LuxMaterialStackEntry& other) { *this = other; }
+  LuxMaterialStackEntry& operator=(const LuxMaterialStackEntry& other) {
+    baseMaterial = other.baseMaterial;
+    luxMaterial  = other.luxMaterial;
+    mapping      = other.mapping;
+    return *this;
+  }
+};
+
+
 /// Exports a material including its textures.
 ///
 /// @param[in]  object,
@@ -1425,22 +1444,6 @@ Bool LuxAPIConverter::exportMaterial(BaseObject&   object,
                                      Bool&         hasEmissionChannel,
                                      LuxString&    lightGroup)
 {
-  // helper structure to store all necessary information of a material + texture tag
-  struct StackEntry {
-    BaseMaterial*       baseMaterial;
-    LuxMaterialDataH    luxMaterial;
-    LuxTextureMappingH  mapping;
-
-    StackEntry() : baseMaterial(0) {}
-    StackEntry(const StackEntry& other) { *this = other; }
-    StackEntry& operator=(const StackEntry& other) {
-      baseMaterial = other.baseMaterial;
-      luxMaterial  = other.luxMaterial;
-      mapping      = other.mapping;
-      return *this;
-    }
-  };
-
   // reset return values
   materialName.clear();
   hasEmissionChannel = FALSE;
@@ -1448,8 +1451,8 @@ Bool LuxAPIConverter::exportMaterial(BaseObject&   object,
 
   // loop over all texture tags reverse order, convert their materials and
   // store the converted materials in a second array (i.e. in reverse ordeR)
-  DynArray1D<StackEntry> luxMaterialStack(0, textureTags.size());
-  StackEntry entry;
+  DynArray1D<LuxMaterialStackEntry> luxMaterialStack(0, textureTags.size());
+  LuxMaterialStackEntry entry;
   for (SizeT c=textureTags.size(); c>0; ) {
 
     // for convenience, store tag
@@ -1550,7 +1553,7 @@ Bool LuxAPIConverter::exportMaterial(BaseObject&   object,
   for (SizeT c=luxMaterialStack.size(); c>0; ) {
 
     // for convenience, store reference to stack entry
-    StackEntry& entry(luxMaterialStack[--c]);
+    LuxMaterialStackEntry& entry(luxMaterialStack[--c]);
 
     // if it's the first material we export, we might be able to reuse an
     // already exported material

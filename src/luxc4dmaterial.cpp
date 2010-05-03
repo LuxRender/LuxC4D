@@ -1385,7 +1385,10 @@ void LuxC4DMaterial::setCarpaintPreset(BaseContainer& data,
                                                 Vector(0.49,   0.42,  0.37), 0.1,   0.17,  0.015 }
                                             };
 
-  if ((presetId<=IDD_CARPAINT_TYPE_CUSTOM) || (presetId>=IDD_CARPAINT_TYPE_NUMBER)) {
+  if (presetId==IDD_CARPAINT_TYPE_CUSTOM) {
+    return;
+  }
+  if ((presetId<IDD_CARPAINT_TYPE_CUSTOM) || (presetId>=IDD_CARPAINT_TYPE_NUMBER)) {
     presetId = IDD_CARPAINT_TYPE_FORD_F8;
   }
   const struct CarpaintPreset& preset(cPresets[presetId]);
