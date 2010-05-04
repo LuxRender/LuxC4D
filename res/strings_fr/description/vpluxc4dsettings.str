@@ -140,6 +140,8 @@ STRINGTABLE VPluxc4dsettings
     IDD_MITCHELL_FILTER_HEIGHT          "Hauteur";
     IDD_MITCHELL_FILTER_B               "B";
     IDD_MITCHELL_FILTER_C               "C";
+    IDD_MITCHELL_SUPERSAMPLE            "Super Sampling";     // to be translated
+    
 
     IDD_SINC_FILTER_WIDTH               "Largeur";
     IDD_SINC_FILTER_HEIGHT              "Hauteur";

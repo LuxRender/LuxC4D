@@ -62,7 +62,6 @@ STRINGTABLE VPluxc4dsettings
       IDD_METROPOLIS_MUTATION_RANGE_IN_PIXEL      "In Pixels";
 
     IDD_ERPT_CHAINLENGTH                  "Chain Length";
-    IDD_ERPT_MICRO_MUTATION_PROB          "Small Mutation Probability";
     IDD_ERPT_PIXELSAMPLER                 "Pixel Sampler";
     IDD_ERPT_PIXELSAMPLES                 "Pixel Samples";
     IDD_ERPT_MUTATION_RANGE_PIXEL         "";
@@ -141,6 +140,7 @@ STRINGTABLE VPluxc4dsettings
     IDD_MITCHELL_FILTER_HEIGHT          "Height";
     IDD_MITCHELL_FILTER_B               "B";
     IDD_MITCHELL_FILTER_C               "C";
+    IDD_MITCHELL_SUPERSAMPLE            "Super Sampling";
 
     IDD_SINC_FILTER_WIDTH               "Width";
     IDD_SINC_FILTER_HEIGHT              "Height";

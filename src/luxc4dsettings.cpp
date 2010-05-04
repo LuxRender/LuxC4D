@@ -155,6 +155,7 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetReal(IDD_MITCHELL_FILTER_HEIGHT, 2.0);
   data->SetReal(IDD_MITCHELL_FILTER_B,      1.0/3.0);
   data->SetReal(IDD_MITCHELL_FILTER_C,      1.0/3.0);
+  data->SetBool(IDD_MITCHELL_SUPERSAMPLE,   TRUE);
   data->SetReal(IDD_SINC_FILTER_WIDTH,      4.0);
   data->SetReal(IDD_SINC_FILTER_HEIGHT,     4.0);
   data->SetReal(IDD_SINC_FILTER_TAU,        3.0);
@@ -592,10 +593,11 @@ void LuxC4DSettings::getPixelFilter(const char*& name,
   static Descr2Param<LuxFloat> sGaussianAlpha (IDD_GAUSSIAN_FILTER_ALPHA,  "alpha");
 
   // parameters for Mitchell filter
-  static Descr2Param<LuxFloat> sMitchellWidth (IDD_MITCHELL_FILTER_WIDTH,  "xwidth");
-  static Descr2Param<LuxFloat> sMitchellHeight(IDD_MITCHELL_FILTER_HEIGHT, "ywidth");
-  static Descr2Param<LuxFloat> sMitchellB     (IDD_MITCHELL_FILTER_B,      "B");
-  static Descr2Param<LuxFloat> sMitchellC     (IDD_MITCHELL_FILTER_C,      "C");
+  static Descr2Param<LuxFloat> sMitchellWidth      (IDD_MITCHELL_FILTER_WIDTH,  "xwidth");
+  static Descr2Param<LuxFloat> sMitchellHeight     (IDD_MITCHELL_FILTER_HEIGHT, "ywidth");
+  static Descr2Param<LuxFloat> sMitchellB          (IDD_MITCHELL_FILTER_B,      "B");
+  static Descr2Param<LuxFloat> sMitchellC          (IDD_MITCHELL_FILTER_C,      "C");
+  static Descr2Param<LuxBool>  sMitchellSuperSample(IDD_MITCHELL_SUPERSAMPLE,   "supersample");
 
   // parameters for sinc filter
   static Descr2Param<LuxFloat> sSincWidth (IDD_SINC_FILTER_WIDTH,  "xwidth");
@@ -632,10 +634,11 @@ void LuxC4DSettings::getPixelFilter(const char*& name,
       break;
     // Mitchell filter
     case IDD_PIXEL_FILTER_MITCHELL:
-      copyParam(sMitchellWidth,  paramSet);
-      copyParam(sMitchellHeight, paramSet);
-      copyParam(sMitchellB,      paramSet);
-      copyParam(sMitchellC,      paramSet);
+      copyParam(sMitchellWidth,       paramSet);
+      copyParam(sMitchellHeight,      paramSet);
+      copyParam(sMitchellB,           paramSet);
+      copyParam(sMitchellC,           paramSet);
+      copyParam(sMitchellSuperSample, paramSet);
       break;
     // sinc filter
     case IDD_PIXEL_FILTER_SINC:

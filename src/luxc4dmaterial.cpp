@@ -1108,10 +1108,8 @@ LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG               toggleId,
   Real brightness = brightnessId ? data.GetReal(brightnessId, 1.0) : 1.0;
   if (fabsf(brightness-1.0) > 0.0001) {
     LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_COLOR_TEXTURE);
-    if (!scaledTexture) { return unscaledTexture; }
     scaledTexture->mTexture1 = unscaledTexture;
-    scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(LuxColor(brightness),
-                                                             1.0);
+    scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(LuxColor(brightness), 1.0);
     return scaledTexture;
   // if brightness == ~1.0, stick with texture obtained above
   } else {
@@ -1171,7 +1169,6 @@ LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                     toggleI
                                                        channel);
   if (shaderTexture) {
     LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_FLOAT_TEXTURE);
-    if (scaledTexture) { return shaderTexture; }
     scaledTexture->mTexture1 = shaderTexture;
     scaledTexture->mTexture2 = valueTexture;
     return scaledTexture;

@@ -93,7 +93,7 @@ enum
     IDG_ERPT = 10500,
     __IDD_ERPT_INIT_SAMPLES,            // deprecated
     IDD_ERPT_CHAINLENGTH,
-    IDD_ERPT_MICRO_MUTATION_PROB,
+    __IDD_ERPT_MICRO_MUTATION_PROB,     // deprecated
     __IDD_ERPT_MUTATION_RANGE,          // deprecated
     IDD_ERPT_PIXELSAMPLER,
     IDD_ERPT_PIXELSAMPLES,
@@ -200,6 +200,7 @@ enum
     IDD_MITCHELL_FILTER_HEIGHT,
     IDD_MITCHELL_FILTER_B,
     IDD_MITCHELL_FILTER_C,
+    IDD_MITCHELL_SUPERSAMPLE,
 
     // sinc filter parameters
     IDG_SINC_FILTER = 14400,
