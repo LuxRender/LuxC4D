@@ -82,6 +82,7 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
   mExportedFile = Filename();
   if (settingsNode) {
     settingsNode->getExportFilename(*document, mExportedFile, overwritingAllowed);
+    mExportedFile.SetSuffix("lxs");
     if (mExportedFile.Content()) {
       FilePath path(mExportedFile);
       // if the scene file name is not absolute, make it absolute by "attaching"
@@ -102,12 +103,8 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
       LONG answer = GeOutString(GeLoadString(IDS_OVERWRITE_FILE_QUERY,
                                              mExportedFile.GetFileString()),
                                 GEMB_YESNOCANCEL);
-      if (answer == GEMB_R_CANCEL) {
-        return FALSE;
-      }
-      if (answer == GEMB_R_NO) {
-        selectFilename = TRUE;
-      }
+      if (answer == GEMB_R_CANCEL) { return FALSE; }
+      if (answer == GEMB_R_NO) { selectFilename = TRUE; }
     }
   // otherwise derive export filename from document and ...
   } else {
@@ -119,8 +116,22 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
 
   // ... get export filename, if needed
   if (selectFilename) {
-    if (!mExportedFile.FileSelect(FSTYPE_ANYTHING, GE_SAVE, &GeLoadString(IDS_EXPORT_FILENAME_QUERY))) {
-      return FALSE;
+    LONG answer;
+    for (;;) {
+      if (!mExportedFile.FileSelect(FSTYPE_ANYTHING, GE_SAVE, &GeLoadString(IDS_EXPORT_FILENAME_QUERY))) {
+        return FALSE;
+      }
+      Filename unchanged(mExportedFile);
+      mExportedFile.SetSuffix("lxs");
+      if ((mExportedFile != unchanged) && GeFExist(mExportedFile)) {
+        answer = GeOutString(GeLoadString(IDS_OVERWRITE_FILE_QUERY,
+                                          mExportedFile.GetFileString()),
+                             GEMB_YESNOCANCEL);
+        if (answer == GEMB_R_CANCEL) { return FALSE; }
+        if (answer == GEMB_R_YES) { break; }
+      } else {
+        break;
+      }
     }
   }
 

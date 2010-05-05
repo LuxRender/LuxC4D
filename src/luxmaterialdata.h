@@ -129,8 +129,12 @@ public:
   Bool hasAlphaChannel(void);
 
   virtual Bool sendToAPI(LuxAPI&          receiver,
-                         const LuxString& name,
-                         const LuxString* underlyingMaterialName=0);
+                         const LuxString& name);
+  
+  Bool blendAndSendToAPI(LuxAPI&    receiver,
+                         LuxString& matName,
+                         LuxString& otherMatName,
+                         LuxString& blendMatName);
 
 
 protected:
@@ -148,7 +152,6 @@ protected:
 
   Bool sendToAPI(LuxAPI&            receiver,
                  const LuxString&   name,
-                 const LuxString*   underlyingMaterialName,
                  const LuxParamSet* addParams);
 
 
@@ -185,8 +188,7 @@ public:
 
   LuxGlassData(void);
   virtual Bool sendToAPI(LuxAPI&          receiver,
-                         const LuxString& name,
-                         const LuxString* underlyingMaterialName=0);
+                         const LuxString& name);
 
 
 private:
@@ -331,8 +333,7 @@ public:
 
   LuxMetalData(void);
   virtual Bool sendToAPI(LuxAPI&          receiver,
-                         const LuxString& name,
-                         const LuxString* underlyingMaterialName=0);
+                         const LuxString& name);
 
 
 private:

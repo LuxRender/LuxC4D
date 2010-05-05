@@ -1406,16 +1406,16 @@ Bool LuxAPIConverter::doGeometryExport(HierarchyData& hierarchyData,
 // This is used only by exportMaterial().
 struct LuxMaterialStackEntry
 {
-  BaseMaterial*       baseMaterial;
-  LuxMaterialDataH    luxMaterial;
-  LuxTextureMappingH  mapping;
+  BaseMaterial*       mBaseMaterial;
+  LuxMaterialDataH    mLuxMaterial;
+  LuxTextureMappingH  mMapping;
   
-  LuxMaterialStackEntry() : baseMaterial(0) {}
+  LuxMaterialStackEntry() : mBaseMaterial(0) {}
   LuxMaterialStackEntry(const LuxMaterialStackEntry& other) { *this = other; }
   LuxMaterialStackEntry& operator=(const LuxMaterialStackEntry& other) {
-    baseMaterial = other.baseMaterial;
-    luxMaterial  = other.luxMaterial;
-    mapping      = other.mapping;
+    mBaseMaterial = other.mBaseMaterial;
+    mLuxMaterial  = other.mLuxMaterial;
+    mMapping      = other.mMapping;
     return *this;
   }
 };
@@ -1461,83 +1461,83 @@ Bool LuxAPIConverter::exportMaterial(BaseObject&   object,
     // get texture mapping
     switch (getParameterLong(*textureTag, TEXTURETAG_PROJECTION)) {
       case TEXTURETAG_PROJECTION_SPHERICAL:
-        entry.mapping = gNewNC LuxSphericalMapping(*textureTag, mC4D2LuxScale);
+        entry.mMapping = gNewNC LuxSphericalMapping(*textureTag, mC4D2LuxScale);
         break;
       case TEXTURETAG_PROJECTION_CYLINDRICAL:
-        entry.mapping = gNewNC LuxCylindricalMapping(*textureTag, mC4D2LuxScale);
+        entry.mMapping = gNewNC LuxCylindricalMapping(*textureTag, mC4D2LuxScale);
         break;
       case TEXTURETAG_PROJECTION_FLAT:
-        entry.mapping = gNewNC LuxPlanarMapping(*textureTag, mC4D2LuxScale);
+        entry.mMapping = gNewNC LuxPlanarMapping(*textureTag, mC4D2LuxScale);
         break;
       default:
-        entry.mapping = gNewNC LuxUVMapping(*textureTag);
+        entry.mMapping = gNewNC LuxUVMapping(*textureTag);
     }
-    if (!entry.mapping) { ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMaterial(): Could not allocate texture mapping instance."); }
+    if (!entry.mMapping) { ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMaterial(): Could not allocate texture mapping instance."); }
 
     // obtain material data ...
-    entry.baseMaterial = (BaseMaterial*)getParameterLink(*textureTag,
-                                                         TEXTURETAG_MATERIAL,
-                                                         Mbase);
-    if (!entry.baseMaterial) { continue; }
+    entry.mBaseMaterial = (BaseMaterial*)getParameterLink(*textureTag,
+                                                          TEXTURETAG_MATERIAL,
+                                                          Mbase);
+    if (!entry.mBaseMaterial) { continue; }
 
     // ... from a LuxC4D material:
-    if (entry.baseMaterial->IsInstanceOf(PID_LUXC4D_MATERIAL)) {
-      LuxC4DMaterial* luxC4DMaterial = (LuxC4DMaterial*)entry.baseMaterial->GetNodeData();
+    if (entry.mBaseMaterial->IsInstanceOf(PID_LUXC4D_MATERIAL)) {
+      LuxC4DMaterial* luxC4DMaterial = (LuxC4DMaterial*)entry.mBaseMaterial->GetNodeData();
       if (!luxC4DMaterial) { ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMaterial(): Could not obtain LuxC4DMaterial node data."); }
-      entry.luxMaterial = luxC4DMaterial->getLuxMaterialData(entry.mapping,
-                                                             mC4D2LuxScale,
-                                                             mColorGamma,
-                                                             mTextureGamma,
-                                                             mBumpSampleDistance);
+      entry.mLuxMaterial = luxC4DMaterial->getLuxMaterialData(entry.mMapping,
+                                                              mC4D2LuxScale,
+                                                              mColorGamma,
+                                                              mTextureGamma,
+                                                              mBumpSampleDistance);
 
     // ... from a standard C4D material:
-    } else if (entry.baseMaterial->IsInstanceOf(Mmaterial)) {
-      Bool hasDiffuse      = getParameterLong(*entry.baseMaterial, MATERIAL_USE_COLOR);
-      Bool hasTransparency = getParameterLong(*entry.baseMaterial, MATERIAL_USE_TRANSPARENCY);
-      Bool hasReflection   = getParameterLong(*entry.baseMaterial, MATERIAL_USE_REFLECTION);
-      Bool hasEmission     = getParameterLong(*entry.baseMaterial, MATERIAL_USE_LUMINANCE);
+    } else if (entry.mBaseMaterial->IsInstanceOf(Mmaterial)) {
+      Bool hasDiffuse      = getParameterLong(*entry.mBaseMaterial, MATERIAL_USE_COLOR);
+      Bool hasTransparency = getParameterLong(*entry.mBaseMaterial, MATERIAL_USE_TRANSPARENCY);
+      Bool hasReflection   = getParameterLong(*entry.mBaseMaterial, MATERIAL_USE_REFLECTION);
+      Bool hasEmission     = getParameterLong(*entry.mBaseMaterial, MATERIAL_USE_LUMINANCE);
 
       // D -> diffuse
       // E -> diffuse
       if ((hasDiffuse || hasEmission) && !hasTransparency && !hasReflection) {
-        entry.luxMaterial = convertDiffuseMaterial(entry.mapping,
-                                                   (Material&)(*entry.baseMaterial));
+        entry.mLuxMaterial = convertDiffuseMaterial(entry.mMapping,
+                                                    (Material&)(*entry.mBaseMaterial));
       // T    -> transparent
       // TR   -> transparent
       // DTR  -> transparent
       } else if ((!hasDiffuse && hasTransparency) ||
                  (hasDiffuse && hasTransparency && hasReflection))
       {
-        entry.luxMaterial = convertTransparentMaterial(entry.mapping,
-                                                       (Material&)(*entry.baseMaterial));
+        entry.mLuxMaterial = convertTransparentMaterial(entry.mMapping,
+                                                        (Material&)(*entry.mBaseMaterial));
       // DT   -> translucent
       } else if (hasDiffuse && hasTransparency && !hasReflection) {
-        entry.luxMaterial = convertTranslucentMaterial(entry.mapping,
-                                                       (Material&)(*entry.baseMaterial));
+        entry.mLuxMaterial = convertTranslucentMaterial(entry.mMapping,
+                                                        (Material&)(*entry.mBaseMaterial));
       // R    -> reflective
       } else if (!hasDiffuse && !hasTransparency && hasReflection) {
-        entry.luxMaterial = convertReflectiveMaterial(entry.mapping,
-                                                      (Material&)(*entry.baseMaterial));
+        entry.mLuxMaterial = convertReflectiveMaterial(entry.mMapping,
+                                                       (Material&)(*entry.mBaseMaterial));
       // DR   -> glossy
       } else if (hasDiffuse && !hasTransparency && hasReflection) {
-        entry.luxMaterial = convertGlossyMaterial(entry.mapping,
-                                                  (Material&)(*entry.baseMaterial));
+        entry.mLuxMaterial = convertGlossyMaterial(entry.mMapping,
+                                                   (Material&)(*entry.mBaseMaterial));
       // -    -> dummy
       } else {
-        entry.luxMaterial = convertDummyMaterial(*entry.baseMaterial);
+        entry.mLuxMaterial = convertDummyMaterial(*entry.mBaseMaterial);
       }
 
     // ... from any other material:
     } else {
-      entry.luxMaterial = convertDummyMaterial(*entry.baseMaterial);
+      entry.mLuxMaterial = convertDummyMaterial(*entry.mBaseMaterial);
     }
 
     // only, if we could obtain a LuxMaterialData:
-    if (entry.luxMaterial) {
+    if (entry.mLuxMaterial) {
       luxMaterialStack.push(entry);
       // stop, if we find a material that has no alpha channel, i.e. we can't
       // see any materials underneath
-      if (!entry.luxMaterial->hasAlphaChannel()) { break; }
+      if (!entry.mLuxMaterial->hasAlphaChannel()) { break; }
     }
   }
 
@@ -1555,38 +1555,70 @@ Bool LuxAPIConverter::exportMaterial(BaseObject&   object,
     // for convenience, store reference to stack entry
     LuxMaterialStackEntry& entry(luxMaterialStack[--c]);
 
-    // if it's the first material we export, we might be able to reuse an
-    // already exported material
-    //ReusableMaterial* = mReusableMaterials.get(ReusableMaterialKey(materialData->mBaseMaterial, 
-    //                                                               materialData->
+    // check if we can use an already exported material reuse a material
+    ReusableMaterialKey reusableMatKey(entry.mBaseMaterial, entry.mMapping);
+    ReusableMaterial* reusableMaterial = mReusableMaterials.get(reusableMatKey);
 
-    // determine (unique) material name
-    String c4dMaterialName = object.GetName() + "::" + entry.baseMaterial->GetName();
-    //String c4dMaterialName = materialData->mBaseMaterial->GetName();
-    LONG* usageCount = mMaterialUsage.get(c4dMaterialName);
-    if (!usageCount) {
-      mMaterialUsage.add(c4dMaterialName, 1);
+    // if we could find it, just reuse it
+    if (reusableMaterial) {
+      materialName = reusableMaterial->mName;
+    // if not, export it without name of object and add it to the list of
+    // reusable materials
     } else {
-      ++(*usageCount);
-      c4dMaterialName = c4dMaterialName + " " + LongToString(*usageCount);
+      // determine (unique) material name
+      String c4dMaterialName = entry.mBaseMaterial->GetName();
+      LONG* usageCount = mMaterialUsage.get(c4dMaterialName);
+      if (!usageCount) {
+        mMaterialUsage.add(c4dMaterialName, 1);
+        convert2LuxString(c4dMaterialName, materialName);
+      } else {
+        String testString;
+        do {
+          ++(*usageCount);
+          testString = c4dMaterialName + " " + LongToString(*usageCount);
+        } while (mMaterialUsage.get(testString));
+        convert2LuxString(testString, materialName);
+      }
+      // export material so that it can be reused later
+      if (!entry.mLuxMaterial->sendToAPI(*mReceiver, materialName))
+      {
+        return FALSE;
+      }
+      // add to list of reusable materials
+      mReusableMaterials.add(reusableMatKey,
+                             ReusableMaterial(materialName,
+                                              entry.mLuxMaterial->hasEmissionChannel(),
+                                              entry.mLuxMaterial->getLightGroup()));
     }
 
-    // convert C4D string to LuxString and export material data
-    convert2LuxString(c4dMaterialName, materialName);
-    if (!entry.luxMaterial->sendToAPI(*mReceiver,
-                                      materialName,
-                                      first ? 0 : &prevMaterialName))
-    {
-      return FALSE;
+    // if this material has an alpha channel and it's not the first material,
+    // we have to blend it with the underlying material. the blend material
+    // gets the object name added (to make it unique) and its name will be
+    // used for reference by the object later, but the blend material itself
+    // will not be used
+    if (!first && entry.mLuxMaterial->hasAlphaChannel()) {
+      LuxString objectName;
+      convert2LuxString(object.GetName(), objectName);
+      LuxString blendMatName = objectName + "::" + materialName;
+      if (!entry.mLuxMaterial->blendAndSendToAPI(*mReceiver,
+                                                 materialName,
+                                                 prevMaterialName,
+                                                 blendMatName))
+      {
+        return FALSE;
+      }
+      materialName = blendMatName;
     }
+
+    // store material name for stacking
     prevMaterialName = materialName;
     first = FALSE;
   }
 
   // obtain emission channel and light group from top-most material
-  hasEmissionChannel = luxMaterialStack[0].luxMaterial->hasEmissionChannel();
+  hasEmissionChannel = luxMaterialStack[0].mLuxMaterial->hasEmissionChannel();
   if (hasEmissionChannel) {
-    lightGroup = luxMaterialStack[0].luxMaterial->getLightGroup();
+    lightGroup = luxMaterialStack[0].mLuxMaterial->getLightGroup();
   }
 
   return TRUE;

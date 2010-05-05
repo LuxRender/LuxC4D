@@ -216,18 +216,62 @@ Bool LuxMaterialData::hasAlphaChannel(void)
 /// @param[in]  name
 ///   The name under which the material will be exported. It can then later be
 ///   referenced by it.
-/// @param[in]  underlyingMaterialName  (default: NULL)
-///   Pointer to the name of the underlying material, which becomes important
-///   if this material has an alpha channel. In that case we will mix it with
-///   the underlying material using the alpha channel as amount parameter. If
-///   this pointer is NULL, we would then mix with a null material.
 /// @return
 ///   TRUE if successful, FALSE otherwise.
 Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
-                                const LuxString& name,
-                                const LuxString* underlyingMaterialName)
+                                const LuxString& name)
 {
-  return LuxMaterialData::sendToAPI(receiver, name, underlyingMaterialName, 0);
+  return LuxMaterialData::sendToAPI(receiver, name, 0);
+}
+
+
+/// Mixes the material with another material using this alpha channel. This is
+/// useful for material stacking.
+///
+/// @param[in]  receiver
+///   The Lux API receiver the material will be sent to.
+/// @param[in]  matName
+///   The name of this material (unmixed).
+/// @param[in]  otherMatName
+///   The name of the other (underlying) material.
+/// @param[in]  blendMatName
+///   The name of the mix material. This can be used as a reference to the
+///   mixed materials.
+/// @return
+///   TRUE if successful, FALSE otherwise.
+Bool LuxMaterialData::blendAndSendToAPI(LuxAPI&    receiver,
+                                        LuxString& matName,
+                                        LuxString& otherMatName,
+                                        LuxString& blendMatName)
+{
+  // if we don't have an alpha channel, we can't blend
+  if (!mAlphaChannel.mEnabled) { ERRLOG_RETURN_VALUE(FALSE, "LuxMaterialData::blendAndSendToAPI(): Material has no alpha channel"); }
+
+  // setup no-alpha name and alpha texture
+  LuxString noAlphaMatName(matName + " no alpha");
+  LuxString alphaTexName(matName + ".alpha");
+
+  // setup blend material
+  LuxParamSet mixParamSet(4);
+  LuxString mixType("mix");
+  mixParamSet.addParam(LUX_STRING, "type", &mixType);
+  // if alpha is not inverted, add name of other material as param
+  // "namedmaterial1" and name of this material (no-alpha) as param
+  // "namedmaterial2"
+  if (!mAlphaInverted) {
+    mixParamSet.addParam(LUX_STRING, "namedmaterial1", &otherMatName);
+    mixParamSet.addParam(LUX_STRING, "namedmaterial2", &noAlphaMatName);
+  // if alpha is inverted, add name of underlying material as param
+  // "namedmaterial2" and name of this material as param "namedmaterial1"
+  } else {
+    mixParamSet.addParam(LUX_STRING, "namedmaterial1", &noAlphaMatName);
+    mixParamSet.addParam(LUX_STRING, "namedmaterial2", &otherMatName);
+  }
+  // add amount parameter using the alpha channel texture and write mix material
+  mixParamSet.addParam(LUX_TEXTURE, "amount", &alphaTexName);
+
+  // export blend material
+  return receiver.makeNamedMaterial(blendMatName.c_str(), mixParamSet);
 }
 
 
@@ -238,18 +282,12 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&          receiver,
 /// @param[in]  name
 ///   The name under which the material will be exported. It can then later be
 ///   referenced by it.
-/// @param[in]  bottomMatName
-///   Pointer to the name of the underlying material (can be NULL), which
-///   becomes important if this material has an alpha channel. In that case we
-///   will mix it with the underlying material using the alpha channel as amount
-///   parameter. If this pointer is NULL, we would then mix with a null material.
 /// @param[in]  addParams (optional)
 ///   Pointer to an additional set of parameters for the material (can be NULL).
 /// @return
 ///   TRUE if successful, FALSE otherwise.
 Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
                                 const LuxString&   name,
-                                const LuxString*   bottomMatName,
                                 const LuxParamSet* addParams)
 {
   // initialise parameter set (the maximum possible number of parameters is
@@ -342,7 +380,7 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
   }
 
   // if there is an alpha channel, the mixed material will get the name that
-  // was passed in and the top material will get "<name> opaque" as name
+  // was passed in and the top material will get "<name> no alphe" as name
   LuxString noAlphaMatName(name);
   if (mAlphaChannel.mEnabled) { noAlphaMatName += " no alpha"; }
 
@@ -350,30 +388,23 @@ Bool LuxMaterialData::sendToAPI(LuxAPI&            receiver,
   receiver.makeNamedMaterial(noAlphaMatName.c_str(), paramSet);
 
   // if alpha channel is active, export its texture and create a mix material,
-  // mixing the underlying material with this material
+  // mixing the material with a null material
   if (mAlphaChannel.mEnabled) {
     LuxParamSet mixParamSet(4);
-    LuxString   otherMatName;
-    // export null material, if no underlying material was specified
-    if (!bottomMatName) {
-      otherMatName = "_null";
-    // otherwise use passed in material name
-    } else {
-      otherMatName = *bottomMatName;
-    }
     // add type of mix material
     LuxString mixType("mix");
     mixParamSet.addParam(LUX_STRING, "type", &mixType);
     // if alpha is not inverted, add name of underlying material as param
     // "namedmaterial1" and name of this material as param "namedmaterial2"
+    LuxString nullMatName("_null");
     if (!mAlphaInverted) {
-      mixParamSet.addParam(LUX_STRING, "namedmaterial1", &otherMatName);
+      mixParamSet.addParam(LUX_STRING, "namedmaterial1", &nullMatName);
       mixParamSet.addParam(LUX_STRING, "namedmaterial2", &noAlphaMatName);
     // if alpha is inverted, add name of underlying material as param
     // "namedmaterial2" and name of this material as param "namedmaterial1"
     } else {
       mixParamSet.addParam(LUX_STRING, "namedmaterial1", &noAlphaMatName);
-      mixParamSet.addParam(LUX_STRING, "namedmaterial2", &otherMatName);
+      mixParamSet.addParam(LUX_STRING, "namedmaterial2", &nullMatName);
     }
     // add amount parameter using the alpha channel texture and write mix material
     mixParamSet.addParam(LUX_TEXTURE, "amount", &alphaTextureName);
@@ -410,14 +441,12 @@ LuxGlassData::LuxGlassData()
 
 
 Bool LuxGlassData::sendToAPI(LuxAPI&          receiver,
-                             const LuxString& name,
-                             const LuxString* underlyingMaterialName)
+                             const LuxString& name)
 {
   LuxParamSet extraParams(1);
   return (extraParams.addParam(LUX_BOOL, "architectural", &mArchitectural) &&
             LuxMaterialData::sendToAPI(receiver,
                                        name,
-                                       underlyingMaterialName,
                                        &extraParams));
 }
 
@@ -534,8 +563,7 @@ LuxMetalData::LuxMetalData(void)
 
 
 Bool LuxMetalData::sendToAPI(LuxAPI&          receiver,
-                             const LuxString& name,
-                             const LuxString* underlyingMaterialName)
+                             const LuxString& name)
 {
   LuxParamSet extraParams(1);
   LuxString   metalName;
@@ -551,7 +579,6 @@ Bool LuxMetalData::sendToAPI(LuxAPI&          receiver,
   }
   return LuxMaterialData::sendToAPI(receiver,
                                     name,
-                                    underlyingMaterialName,
                                     &extraParams);
 }
 
