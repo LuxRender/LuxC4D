@@ -112,6 +112,9 @@ BaseList2D* getParameterLink(GeListNode& node,
 BaseTag* findTagForParamObject(BaseObject* object,
                                LONG        tagId);
 
+Bool executeProgram(const Filename& programFileName,
+                    const Filename& sceneFileName);
+
 
 
 /*****************************************************************************

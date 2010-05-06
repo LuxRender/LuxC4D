@@ -64,7 +64,8 @@ public:
                              const GeData& value,
                              LONG&         flags);
 
-  void getFilm(const char*& name,
+  void getFilm(Bool         resume,
+               const char*& name,
                LuxParamSet& paramSet);
   LONG getOutputFilePathSettings(Filename& userDefined);
   void getPixelFilter(const char*& name,

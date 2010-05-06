@@ -209,6 +209,7 @@ STRINGTABLE VPluxc4dsettings
       IDD_FLEXIMAGE_WRITE_EXR             "Write EXR Image File";
       IDD_FLEXIMAGE_WRITE_PNG             "Write PNG Image File";
       IDD_FLEXIMAGE_WRITE_TGA             "Write TGA Image File";
+      IDD_FLEXIMAGE_WRITE_FLM             "Write FLM Resume File";
       IDD_FLEXIMAGE_EXR_CHANNELS          "Channels";
       IDD_FLEXIMAGE_EXR_HALFTYPE          "Half Type";
       IDD_FLEXIMAGE_EXR_COMPRESSION       "Compression";

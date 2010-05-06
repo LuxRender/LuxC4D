@@ -32,6 +32,7 @@
 #include "luxc4dmaterial.h"
 #include "luxc4dportaltag.h"
 #include "luxc4dpreferences.h"
+#include "luxc4dresumerender.h"
 #include "luxc4dsettings.h"
 #include "utilities.h"
 
@@ -83,6 +84,18 @@ Bool PluginStart(void)
   if (!exporterRender->registerPlugin()) {
     gDelete(exporterRender);
     ERRLOG("Could not register LuxC4DExporterRender plugin.");
+    return FALSE;
+  }
+
+  // register LuxC4DResumeRender
+  LuxC4DResumeRender* resumeRender = gNewNC LuxC4DResumeRender;
+  if (!resumeRender) {
+    ERRLOG("Could not allocate LuxC4DResumeRender plugin.");
+    return FALSE;
+  }
+  if (!resumeRender->registerPlugin()) {
+    gDelete(resumeRender);
+    ERRLOG("Could not register LuxC4DResumeRender plugin.");
     return FALSE;
   }
 

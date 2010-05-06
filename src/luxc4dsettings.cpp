@@ -202,6 +202,7 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetBool(IDD_FLEXIMAGE_WRITE_EXR,              FALSE);
   data->SetBool(IDD_FLEXIMAGE_WRITE_PNG,              TRUE);
   data->SetBool(IDD_FLEXIMAGE_WRITE_TGA,              FALSE);
+  data->SetBool(IDD_FLEXIMAGE_WRITE_FLM,              FALSE);
   data->SetLong(IDD_FLEXIMAGE_EXR_CHANNELS,           IDD_WRITE_CHANNELS_RGBA);
   data->SetBool(IDD_FLEXIMAGE_EXR_HALFTYPE,           TRUE);
   data->SetLong(IDD_FLEXIMAGE_EXR_COMPRESSION,        IDD_EXR_COMPRESSION_PIZ);
@@ -397,11 +398,18 @@ Bool LuxC4DSettings::SetDParameter(GeListNode*   node,
 
 /// Obtains the film settings from the settings object.
 ///
+/// @param[in]  resume
+///   If set to TRUE, "write_resume_flm" will be enabled and "restart_resume_flm"
+///   disabled, i.e. we will write an FLM resume file and continue with the
+///   previously written FLM file, if there is one.
+///   If this parameter is set to FALSE, the writing of FLM file depends on the
+///   scene settings and resuming will be disabled.
 /// @param[out]  name
 ///   Will receive the film name.
 /// @param[out]  paramSet
 ///   The set to which the parameters get added.
-void LuxC4DSettings::getFilm(const char*& name,
+void LuxC4DSettings::getFilm(Bool         resume,
+                             const char*& name,
                              LuxParamSet& paramSet)
 {
   // the different film names
@@ -480,7 +488,8 @@ void LuxC4DSettings::getFilm(const char*& name,
   static Descr2Param<LuxBool>    sFleximagePNGGamutClamp    (IDD_FLEXIMAGE_PNG_GAMUT_CLAMP,    "write_png_gamutclamp");
   static Descr2Param<LuxString>  sFleximageTGAChannels      (IDD_FLEXIMAGE_TGA_CHANNELS,       "write_tga_channels");
   static Descr2Param<LuxBool>    sFleximageTGAGamutClamp    (IDD_FLEXIMAGE_TGA_GAMUT_CLAMP,    "write_tga_gamutclamp");
-  
+  static LuxBool                 sFleximageWriteFLM;
+  static LuxBool                 sFleximageRestartFLM;
 
   // set default sampler
   name = sFilmNames[IDD_FILM_FLEXIMAGE];
@@ -541,6 +550,20 @@ void LuxC4DSettings::getFilm(const char*& name,
         copyParam(sFleximageTGAChannels,       paramSet, sImageChannels,    IDD_WRITE_CHANNELS_NUMBER);
         copyParam(sFleximageTGAGamutClamp,     paramSet);
       }
+
+      if (resume) {
+        sFleximageWriteFLM   = TRUE;
+        sFleximageRestartFLM = FALSE;
+      } else if (data->GetBool(IDD_FLEXIMAGE_WRITE_FLM)) {
+        sFleximageWriteFLM   = TRUE;
+        sFleximageRestartFLM = TRUE;
+      } else {
+        sFleximageWriteFLM   = FALSE;
+        sFleximageRestartFLM = FALSE;
+      }
+      paramSet.addParam(LUX_BOOL, "write_resume_flm",   &sFleximageWriteFLM);
+      paramSet.addParam(LUX_BOOL, "restart_resume_flm", &sFleximageRestartFLM);
+
       break;
     // invalid film -> error and return
     default:

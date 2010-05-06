@@ -33,6 +33,9 @@ STRINGTABLE
   IDS_LUXC4D_EXPORTERRENDER       "LuxC4D Export + Render";
   IDS_LUXC4D_EXPORTERRENDER_DESCR "Exports this scene to LuxRender scene file and renders it";
   
+  IDS_LUXC4D_RESUMERENDER         "LuxC4D Resume Render";
+  IDS_LUXC4D_RESUMERENDER_DESCR   "Resumes an already started rendering";
+
   IDS_LUXC4D_SETTINGS         "LuxC4D Scene Settings";
   
   IDS_LUXC4D_LIGHT_TAG        "LuxC4D Light Tag";

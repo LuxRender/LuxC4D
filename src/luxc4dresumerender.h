@@ -23,40 +23,31 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
-#ifndef __LUXC4DEXPORTER_H__
-#define __LUXC4DEXPORTER_H__  1
+#ifndef __LUXC4DRESUMERENDER_H__
+#define __LUXC4DRESUMERENDER_H__ 1
 
 
 
-#include <c4d.h>
-
-#include "c4d_symbols.h"
-
+#include "fixarray1d.h"
+#include "luxc4dexporterrender.h"
 
 
-#define PID_LUXC4D_EXPORTER  1022831
+
+#define PID_LUXC4D_RESUMERENDER 1025205  
 
 
 
 /***************************************************************************//*!
- The CommandData plugin that triggers an export into a .lxs file.
+ The CommandData plugin that resumes rendering with LuxRender.
 *//****************************************************************************/
-class LuxC4DExporter : public CommandData
+class LuxC4DResumeRender : public LuxC4DExporterRender
 {
 public:
 
   Bool registerPlugin(void);
-  virtual Bool Execute(BaseDocument* document);
-
-
-protected:
-
-  Filename mExportedFile;
-
-  Bool exportScene(BaseDocument* document,
-                   Bool          resumeOnly);
+  virtual Bool Execute(BaseDocument* doc);
 };
 
 
 
-#endif  // #ifndef __LUXC4DEXPORTER_H__
+#endif  // #ifndef __LUXC4DRESUMERENDER_H__

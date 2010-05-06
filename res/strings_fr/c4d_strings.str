@@ -33,6 +33,9 @@ STRINGTABLE
   IDS_LUXC4D_EXPORTERRENDER       "Exportation + Rendu LuxC4D";
   IDS_LUXC4D_EXPORTERRENDER_DESCR "Exporter sous un fichier LuxRender et faites le rendu";
   
+  IDS_LUXC4D_RESUMERENDER         "LuxC4D Resume Render";                 // to be translated
+  IDS_LUXC4D_RESUMERENDER_DESCR   "Resumes an already started rendering"; // to be translated
+
   IDS_LUXC4D_SETTINGS         "Réglages LuxC4D";
   
   IDS_LUXC4D_LIGHT_TAG        "Lumière LuxC4D";

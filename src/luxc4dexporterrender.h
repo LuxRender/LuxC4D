@@ -41,18 +41,18 @@
  The CommandData plugin that triggers an export into a .lxs file and then calls
  Lux to render it.
 *//****************************************************************************/
-class LuxC4DExporterRender : private LuxC4DExporter
+class LuxC4DExporterRender : public LuxC4DExporter
 {
 public:
 
   Bool registerPlugin(void);
   virtual Bool Execute(BaseDocument* doc);
-  
-  
-private:
-  
-  Bool executeProgram(const Filename& programFileName,
-                      const Filename& sceneFileName);
+
+
+protected:
+
+  Bool exportAndRender(BaseDocument* document,
+                       Bool          resumeOnly);
 };
 
 

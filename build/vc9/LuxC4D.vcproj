@@ -4733,6 +4733,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\src\luxc4dresumerender.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\src\luxc4dresumerender.h"
+			>
+		</File>
+		<File
 			RelativePath="..\..\src\luxc4dsettings.cpp"
 			>
 		</File>

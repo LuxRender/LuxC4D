@@ -59,8 +59,29 @@ Bool LuxC4DExporter::registerPlugin(void)
 ///   TRUE if successfull, FALSE otherwise.
 Bool LuxC4DExporter::Execute(BaseDocument* document)
 {
+  return exportScene(document, FALSE);
+}
+
+
+
+/*****************************************************************************
+ * Implementation of protected member functions of class LuxC4DExporter.
+ *****************************************************************************/
+
+/// Converts and exports a C4D document/scene.
+///
+/// @param[in]  document
+///   The current document, which will be exported.
+/// @param[in]  resumeOnly
+///   If set to TRUE only the global scene data is exported that enabled resuming
+///   an FLM file.
+/// @return
+///   TRUE if successfull, FALSE otherwise.
+Bool LuxC4DExporter::exportScene(BaseDocument* document,
+                                 Bool          resumeOnly)
+{
   // check if document is valid
-  if (!document)  ERRLOG_RETURN_VALUE(FALSE, "LuxC4DExporter::Execute(): no document passed");
+  if (!document)  ERRLOG_RETURN_VALUE(FALSE, "LuxC4DExporter::exportScene(): no document passed");
 
   // get LuxC4DSettings video post effect node - if available
   LuxC4DSettings* settingsNode = 0;
@@ -137,18 +158,16 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
 
   // initialise file writer
   LuxAPIWriter apiWriter;
-  if (!apiWriter.init(mExportedFile, useRelativePaths)) {
+  if (!apiWriter.init(mExportedFile, useRelativePaths, resumeOnly)) {
     GeOutString(GeLoadString(IDS_ERROR_INITIALISE_LUXAPIWRITER, mExportedFile.GetString()), GEMB_OK);
     return FALSE;
   }
 
   // create exporter and export scene
   LuxAPIConverter converter;
-  if (!converter.convertScene(*document, apiWriter)) {
+  if (!converter.convertScene(*document, apiWriter, resumeOnly)) {
     LONG errorStringID = apiWriter.errorStringID();
-    if (errorStringID == 0) {
-      errorStringID = IDS_ERROR_CONVERSION;
-    }
+    if (errorStringID == 0) { errorStringID = IDS_ERROR_CONVERSION; }
     GeOutString(GeLoadString(errorStringID), GEMB_OK);
     return FALSE;
   }

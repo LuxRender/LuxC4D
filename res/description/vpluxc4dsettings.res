@@ -419,6 +419,10 @@ CONTAINER VPluxc4dsettings
   
           SEPARATOR { LINE; }
         
+          BOOL IDD_FLEXIMAGE_WRITE_FLM  { ANIM OFF; }
+
+          SEPARATOR { LINE; }
+        
           BOOL IDD_FLEXIMAGE_WRITE_EXR  { ANIM OFF; }
           GROUP IDG_FLEXIMAGE_EXR {
             COLUMNS 2;

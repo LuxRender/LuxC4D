@@ -275,3 +275,82 @@ BaseTag* findTagForParamObject(BaseObject* object,
   }
   return 0;
 }
+
+
+#ifdef __PC
+
+#include <process.h>
+
+/// This helper launches a progam using a direct OS call. This way we can pass
+/// more than only one argument and other stuff (e.g. "--noopengl") in the future.
+///
+/// @param[in]  programFileName
+///   The full path of the application to launch.
+/// @param[in]  sceneFileName
+///   The full path of the scene file to open.
+/// @return
+///   TRUE if executed successfully (the application was launched), FALSE
+///   otherwise.
+Bool executeProgram(const Filename& programFileName,
+                    const Filename& sceneFileName)
+{
+  static const SizeT cStrBufferSize = 2048;
+
+  String  programFileNameStr, sceneFileNameStr;
+  wchar_t programFileNameCStr[cStrBufferSize];
+  wchar_t programFileNameCStr2[cStrBufferSize];
+  wchar_t sceneFileNameCStr[cStrBufferSize];
+
+  // make sure that the assumption is correct that wchar_t == UWORD
+  GeAssert( sizeof(wchar_t) == sizeof(UWORD) );
+
+  // copy UNICODE filenames into C strings
+  programFileNameStr = programFileName.GetString();
+  programFileNameStr.GetUcBlockNull((UWORD*)programFileNameCStr,
+                                    cStrBufferSize);
+  programFileNameStr = "\"" + programFileNameStr + "\"";
+  programFileNameStr.GetUcBlockNull((UWORD*)programFileNameCStr2,
+                                    cStrBufferSize);
+  sceneFileNameStr = "\"" + sceneFileName.GetString() + "\"";
+  sceneFileNameStr.GetUcBlockNull((UWORD*)sceneFileNameCStr,
+                                  cStrBufferSize);
+
+  // start new process
+  return _wspawnl(_P_NOWAITO,
+                  programFileNameCStr,
+                  programFileNameCStr2,
+                  sceneFileNameCStr,
+                  NULL)
+                  >= 0 ? TRUE : FALSE;
+}
+
+#else
+
+#include <unistd.h>
+
+/// This helper launches a progam using a direct OS call. This way we can pass
+/// more than only one argument and other stuff (e.g. "--noopengl") in the future.
+///
+/// On Mac OS we do this also to make LuxRender actually open the scene file
+/// which is not working using GeExecuteProgram(). In builds for C4D R9.6, we
+/// also convert the filenames from HFS style to POSIX.
+///
+/// @param[in]  programFileName
+///   The full path of the application to launch.
+/// @param[in]  sceneFileName
+///   The full path of the scene file to open.
+/// @return
+///   TRUE if executed successfully (the application was launched), FALSE
+///   otherwise.
+Bool executeProgram(const Filename& programFileName,
+                    const Filename& sceneFileName)
+{
+  LuxString cmdStr = "\"" +
+                     FilePath(programFileName).getLuxString() +
+                     "\" \"" +
+                     FilePath(sceneFileName).getLuxString() +
+                     "\" &";
+  return ( system(cmdStr.c_str()) >= 0 );
+}
+
+#endif  // #ifdef __PC

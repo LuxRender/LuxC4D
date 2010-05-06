@@ -39,6 +39,8 @@
 /// Constructs a new instance.
 LuxAPIWriter::LuxAPIWriter()
 : mFilesOpen(FALSE),
+  mUseRelativePaths(FALSE),
+  mResumeOnly(FALSE),
   mWorldStarted(FALSE),
   mErrorStringID(0)
 {
@@ -65,10 +67,16 @@ LuxAPIWriter::~LuxAPIWriter(void)
 ///
 /// @param[in]  sceneFile
 ///   The file name of the next scene file to export into.
+/// @param[in]  useRelativePaths
+///   If set to TRUE, all exported file paths will be made relative to the scene
+///   file. If set to FALSE exported file paths are not changed.
+/// @param[in]  resumeOnly
+///   If set to TRUE only the scene file will be written.
 /// @return
 ///   TRUE if successful, otherwise FALSE.
 Bool LuxAPIWriter::init(const Filename &sceneFile,
-                        Bool           useRelativePaths)
+                        Bool           useRelativePaths,
+                        Bool           resumeOnly)
 {
   // if there is already an open file, finish it and close it
   if (mFilesOpen) {
@@ -80,12 +88,13 @@ Bool LuxAPIWriter::init(const Filename &sceneFile,
   }
 
   // just store the filenames - they will be opened later
-  mSceneFilename = sceneFile;
+  mSceneFilename      = sceneFile;
   mSceneFileDirectory = FilePath(sceneFile).getDirectoryPath();
-  mUseRelativePaths = useRelativePaths;
-  mWorldStarted = FALSE;
-  mErrorStringID = 0;
-  mCommentLen = 0;
+  mUseRelativePaths   = useRelativePaths;
+  mResumeOnly         = resumeOnly;
+  mWorldStarted       = FALSE;
+  mErrorStringID      = 0;
+  mCommentLen         = 0;
   return TRUE;
 }
 
@@ -115,24 +124,36 @@ Bool LuxAPIWriter::startScene(const char* head)
   mObjectsFilename = mSceneFilename;
   mObjectsFilename.SetSuffix("lxo");
 
-  // open files
-  if (!mSceneFile->Open(mSceneFilename, GE_WRITE, FILE_DIALOG) ||
-      !mMaterialsFile->Open(mMaterialsFilename, GE_WRITE, FILE_DIALOG) ||
-      !mObjectsFile->Open(mObjectsFilename, GE_WRITE, FILE_DIALOG))
-  {
-    mSceneFile->Close();
-    mMaterialsFile->Close();
-    mObjectsFile->Close();
-    ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
-                           "LuxAPIWriter::startScene(): could not open file '" + mSceneFilename.GetString() + "'");
+  if (mResumeOnly) {
+    // open files in resume mode
+    if (!mSceneFile->Open(mSceneFilename, GE_WRITE, FILE_DIALOG)) {
+      mSceneFile->Close();
+      ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
+                             "LuxAPIWriter::startScene(): could not open file '" + mSceneFilename.GetString() + "'");
+    }
+    mFilesOpen = TRUE;
+    // write header comments
+    return writeLine(*mSceneFile, head) &&
+           writeLine(*mSceneFile, "\n\n# Global Settings\n");
+  } else {
+    // open files in normal mode
+    if (!mSceneFile->Open(mSceneFilename, GE_WRITE, FILE_DIALOG) ||
+        !mMaterialsFile->Open(mMaterialsFilename, GE_WRITE, FILE_DIALOG) ||
+        !mObjectsFile->Open(mObjectsFilename, GE_WRITE, FILE_DIALOG))
+    {
+      mSceneFile->Close();
+      mMaterialsFile->Close();
+      mObjectsFile->Close();
+      ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
+                             "LuxAPIWriter::startScene(): could not open file '" + mSceneFilename.GetString() + "'");
+    }
+    mFilesOpen = TRUE;
+    // write header comments
+    return writeLine(*mSceneFile, head) &&
+           writeLine(*mSceneFile, "\n\n# Global Settings\n") &&
+           writeLine(*mMaterialsFile, "# Materials File\n") &&
+           writeLine(*mObjectsFile, "# Geometry File\n");
   }
-  mFilesOpen = TRUE;
-
-  // write header comments
-  return writeLine(*mSceneFile, head) &&
-         writeLine(*mSceneFile, "\n\n# Global Settings\n") &&
-         writeLine(*mMaterialsFile, "# Materials File\n") &&
-         writeLine(*mObjectsFile, "# Geometry File\n");
 }
 
 
@@ -157,8 +178,10 @@ Bool LuxAPIWriter::endScene(void)
 
   // close the files
   success &= mSceneFile->Close();
-  success &= mMaterialsFile->Close();
-  success &= mObjectsFile->Close();
+  if (!mResumeOnly) {
+    success &= mMaterialsFile->Close();
+    success &= mObjectsFile->Close();
+  }
 
   // check if everything was done correctly
   if (!success) {

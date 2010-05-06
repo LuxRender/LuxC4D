@@ -46,7 +46,8 @@ public:
   ~LuxAPIWriter(void);
 
   Bool init(const Filename& sceneFile,
-            Bool            useRelativePaths);
+            Bool            useRelativePaths,
+            Bool            resumeOnly);
   inline LONG errorStringID(void) const;
 
   virtual Bool startScene(const char* head);
@@ -123,6 +124,7 @@ private:
   Filename            mSceneFilename;
   FilePath            mSceneFileDirectory;
   Bool                mUseRelativePaths;
+  Bool                mResumeOnly;
   AutoAlloc<BaseFile> mSceneFile;
   Filename            mMaterialsFilename;
   AutoAlloc<BaseFile> mMaterialsFile;

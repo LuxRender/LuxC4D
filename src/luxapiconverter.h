@@ -60,7 +60,8 @@ public:
   ~LuxAPIConverter(void);
 
   Bool convertScene(BaseDocument& document,
-                    LuxAPI&       receiver);
+                    LuxAPI&       receiver,
+                    Bool          resumeOnly);
 
   // Callback functions called while Hierarchy traverses the hierarchy.
   virtual void* Alloc(void);
@@ -336,7 +337,7 @@ private:
   void clearTemporaryData(void);
   Bool obtainGlobalSceneData(void);
   
-  Bool exportFilm(void);
+  Bool exportFilm(Bool resume);
   Bool exportCamera(void);
   Bool exportPixelFilter(void);
   Bool exportSampler(void);

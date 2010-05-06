@@ -24,26 +24,25 @@
  ************************************************************************/
 
 #include "filepath.h"
-#include "luxc4dexporterrender.h"
+#include "luxc4dresumerender.h"
 #include "luxc4dpreferences.h"
-#include "utilities.h"
 
 
 
 /*****************************************************************************
- * Implementation of public member functions of class LuxC4DExporterRender.
+ * Implementation of public member functions of class LuxC4DResumeRender.
  *****************************************************************************/
 
 /// Registers this plugin instance in CINEMA 4D.
 ///
 /// @return
 ///   TRUE if successfull, otherwise FALSE.
-Bool LuxC4DExporterRender::registerPlugin(void)
+Bool LuxC4DResumeRender::registerPlugin(void)
 {
-  return RegisterCommandPlugin(PID_LUXC4D_EXPORTERRENDER,
-                               GeLoadString(IDS_LUXC4D_EXPORTERRENDER),
-                               0, "icon_export_render.tif",
-                               GeLoadString(IDS_LUXC4D_EXPORTER_DESCR),
+  return RegisterCommandPlugin(PID_LUXC4D_RESUMERENDER,
+                               GeLoadString(IDS_LUXC4D_RESUMERENDER),
+                               0, "icon_resume_render.tif",
+                               GeLoadString(IDS_LUXC4D_RESUMERENDER_DESCR),
                                this);
 }
 
@@ -55,52 +54,7 @@ Bool LuxC4DExporterRender::registerPlugin(void)
 ///   The current document, which will be exported.
 /// @return
 ///   TRUE if successfull, FALSE otherwise.
-Bool LuxC4DExporterRender::Execute(BaseDocument* document)
+Bool LuxC4DResumeRender::Execute(BaseDocument* document)
 {
-  return exportAndRender(document, FALSE);
-}
-
-
-
-/*****************************************************************************
- * Implementation of protected member functions of class LuxC4DExporterRender.
- *****************************************************************************/
-
-Bool LuxC4DExporterRender::exportAndRender(BaseDocument* document,
-                                           Bool          resumeOnly)
-{
-  // get Lux executable
-  Filename luxPath = gPreferences->getLuxPath();
-  if (!luxPath.Content()) {
-    GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_EMPTY), GEMB_OK);
-    return FALSE;
-  }
-
-#ifdef __MAC
-  // on MacOS, LuxRender is stored in a bundle 
-  if (GeFExist(luxPath, TRUE)) {
-    luxPath += "Contents";
-    luxPath += "MacOS";
-    luxPath += "LuxRender";
-  }
-#endif
-  
-  // check if the LuxRender application path is valid
-  if (!GeFExist(luxPath, FALSE)) {
-    GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_DOESNT_EXIST, luxPath.GetString()), GEMB_OK);
-    return FALSE;
-  }
-
-  // export file
-  if (!exportScene(document, resumeOnly)) {
-    return FALSE;
-  }
-
-  // call LuxRender
-  if (!executeProgram(luxPath, mExportedFile)) {
-    GeOutString(GeLoadString(IDS_ERROR_LUX_PATH_EXECUTE, luxPath.GetString()), GEMB_OK);
-    return FALSE;
-  }
-
-  return TRUE;
+  return exportAndRender(document, TRUE);
 }

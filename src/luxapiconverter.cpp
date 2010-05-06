@@ -92,10 +92,13 @@ LuxAPIConverter::~LuxAPIConverter(void)
 ///   The C4D document that should be converted and exported.
 /// @param[in]  receiver
 ///   The LuxAPI implementation which will consume the converted scene.
+/// @param[in]  resume
+///   If enabled just the global scene data will be written.
 /// @return
 ///   TRUE if the scene could be exported, otherwise FALSE
 Bool LuxAPIConverter::convertScene(BaseDocument& document,
-                                   LuxAPI&       receiver)
+                                   LuxAPI&       receiver,
+                                   Bool          resumeOnly)
 {
   Bool        returnValue = FALSE;
   tagDateTime time;
@@ -125,7 +128,7 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document,
   }
 
   // export global data
-  if (!exportFilm() ||
+  if (!exportFilm(resumeOnly) ||
       !exportCamera() ||
       !exportPixelFilter() ||
       !exportSampler() ||
@@ -135,17 +138,19 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document,
     goto CLEANUP_AND_RETURN;
   }
 
-  // export scene description
-  if (!mReceiver->worldBegin() ||
-      !exportLights() ||
-      !exportStandardMaterials() ||
-      !exportGeometry() ||
-      !exportInfiniteLight() ||
-      !exportAutoLight() ||
+  if (!resumeOnly) {
+    // export scene description
+    if (!mReceiver->worldBegin() ||
+        !exportLights() ||
+        !exportStandardMaterials() ||
+        !exportGeometry() ||
+        !exportInfiniteLight() ||
+        !exportAutoLight() ||
 
-      !mReceiver->worldEnd())
-  {
-    goto CLEANUP_AND_RETURN;
+        !mReceiver->worldEnd())
+    {
+      goto CLEANUP_AND_RETURN;
+    }
   }
 
   // close scene
@@ -351,9 +356,12 @@ Bool LuxAPIConverter::obtainGlobalSceneData(void)
 
 /// Determines the film resolution and converts it into a Lux "Film" statement.
 ///
+/// @param[in]  resume
+///   If set to TRUE, the film parameters will be set to allow resuming a FLM
+///   file.
 /// @return
 ///   TRUE, if successful, FALSE otherwise
-Bool LuxAPIConverter::exportFilm(void)
+Bool LuxAPIConverter::exportFilm(Bool resume)
 {
   // safety checks
   GeAssert(mDocument);
@@ -403,7 +411,7 @@ Bool LuxAPIConverter::exportFilm(void)
   
   // otherwise, obtain settings from object
   const char *name;
-  mLuxC4DSettings->getFilm(name, mTempParamSet);
+  mLuxC4DSettings->getFilm(resume, name, mTempParamSet);
   return mReceiver->film(name, mTempParamSet);
 }
 

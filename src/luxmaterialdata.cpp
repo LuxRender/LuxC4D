@@ -637,14 +637,14 @@ const LuxChannelInfo LuxCarPaintData::sChannelInfos[CHANNEL_COUNT] =
   {
     { LUX_COLOR_TEXTURE, "Kd",      "diff",   TRUE, 0.0, LuxColor(0.0) }, // DIFFUSE
     { LUX_COLOR_TEXTURE, "Ks1",     "spec1",  TRUE, 0.0, LuxColor(0.0) }, // SPECULAR_1
-    { LUX_FLOAT_TEXTURE, "R1",      "r1",     TRUE, 0.0, LuxColor(0.0) }, // R_1
-    { LUX_FLOAT_TEXTURE, "M1",      "m1",     TRUE, 0.0, LuxColor(0.0) }, // M_1
+    { LUX_FLOAT_TEXTURE, "R1",      "r1",     TRUE, 0.0, LuxColor(0.0) }, // R1
+    { LUX_FLOAT_TEXTURE, "M1",      "m1",     TRUE, 0.0, LuxColor(0.0) }, // M1
     { LUX_COLOR_TEXTURE, "Ks2",     "spec2",  TRUE, 0.0, LuxColor(0.0) }, // SPECULAR_2
-    { LUX_FLOAT_TEXTURE, "R2",      "r2",     TRUE, 0.0, LuxColor(0.0) }, // R_2
+    { LUX_FLOAT_TEXTURE, "R2",      "r2",     TRUE, 0.0, LuxColor(0.0) }, // R2
     { LUX_FLOAT_TEXTURE, "M2",      "m2",     TRUE, 0.0, LuxColor(0.0) }, // M2
     { LUX_COLOR_TEXTURE, "Ks3",     "spec3",  TRUE, 0.0, LuxColor(0.0) }, // SPECULAR_3
-    { LUX_FLOAT_TEXTURE, "R3",      "r3",     TRUE, 0.0, LuxColor(0.0) }, // R_3
-    { LUX_FLOAT_TEXTURE, "M3",      "m3",     TRUE, 0.0, LuxColor(0.0) }, // M_3
+    { LUX_FLOAT_TEXTURE, "R3",      "r3",     TRUE, 0.0, LuxColor(0.0) }, // R3
+    { LUX_FLOAT_TEXTURE, "M3",      "m3",     TRUE, 0.0, LuxColor(0.0) }, // M3
     { LUX_COLOR_TEXTURE, "Ka",      "absorp", FALSE },                    // ABSORPTION
     { LUX_FLOAT_TEXTURE, "d",       "adepth", FALSE },                    // ABSORPTION_DEPTH
   };
