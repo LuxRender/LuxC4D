@@ -1024,8 +1024,8 @@ void LuxC4DSettings::getExportFilename(BaseDocument& document,
     path.SetDirectory(document.GetDocumentPath());
     path.SetFile(document.GetDocumentName());
     path.SetSuffix("lxs");
-  // otherwise, just grab the filename from the input field and set the suffix
-  // to .lxs
+  // if the user defines it in the export settings, grab the filename from the
+  // edit field
   } else if (exportFilenameMethod == IDD_DEFINE_EXPORT_FILENAME) {
     path = data->GetFilename(IDD_EXPORT_FILENAME);
     path.SetSuffix("lxs");

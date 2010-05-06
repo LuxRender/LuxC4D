@@ -82,8 +82,8 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
   mExportedFile = Filename();
   if (settingsNode) {
     settingsNode->getExportFilename(*document, mExportedFile, overwritingAllowed);
-    mExportedFile.SetSuffix("lxs");
     if (mExportedFile.Content()) {
+      mExportedFile.SetSuffix("lxs");
       FilePath path(mExportedFile);
       // if the scene file name is not absolute, make it absolute by "attaching"
       // it to the document path
