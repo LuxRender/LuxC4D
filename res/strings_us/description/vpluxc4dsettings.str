@@ -254,9 +254,46 @@ STRINGTABLE VPluxc4dsettings
         IDD_FLEXIMAGE_FILENAME_AS_C4D_OUTPUT_FILE "Like C4D Output File";
         IDD_FLEXIMAGE_FILENAME_DEFINE_HERE        "Define Filename Here";
     
-    
+      IDG_FLEXIMAGE_COLORSPACE              "Color";
+      IDD_FLEXIMAGE_COLORSPACE_PRESET       "Colorspace";
+      IDD_FLEXIMAGE_COLORSPACE_RED_X        "Red XY";
+      IDD_FLEXIMAGE_COLORSPACE_RED_Y        "";
+      IDD_FLEXIMAGE_COLORSPACE_GREEN_X      "Green XY";
+      IDD_FLEXIMAGE_COLORSPACE_GREEN_Y      "";
+      IDD_FLEXIMAGE_COLORSPACE_BLUE_X       "Blue XY";
+      IDD_FLEXIMAGE_COLORSPACE_BLUE_Y       "";
+
+        IDD_FLEXIMAGE_COLORSPACE_CUSTOM       "Custom";
+        IDD_FLEXIMAGE_COLORSPACE_ADOBE_RGB_98 "Adobe RGB 98";
+        IDD_FLEXIMAGE_COLORSPACE_APPLE_RGB    "Apple RGB";
+        IDD_FLEXIMAGE_COLORSPACE_CIE          "CIE (1931) E";
+        IDD_FLEXIMAGE_COLORSPACE_NTSC_1953    "NTSC (FCC 1953)";
+        IDD_FLEXIMAGE_COLORSPACE_NTSC_1979    "NTSC (1979)";
+        IDD_FLEXIMAGE_COLORSPACE_PAL_SECAM    "PAL/SECAM";
+        IDD_FLEXIMAGE_COLORSPACE_ROMM_RGB     "ROMM RGB";
+        IDD_FLEXIMAGE_COLORSPACE_SRGB_HDTV    "sRGB - HDTV";
+
+      IDD_FLEXIMAGE_WHITEPOINT_PRESET       "White Point";
+      IDD_FLEXIMAGE_WHITEPOINT_X            "XY";
+      IDD_FLEXIMAGE_WHITEPOINT_Y            "";
+
+        IDD_FLEXIMAGE_WHITEPOINT_CUSTOM       "Custom";
+        IDD_FLEXIMAGE_WHITEPOINT_9300         "9300";
+        IDD_FLEXIMAGE_WHITEPOINT_A            "A";
+        IDD_FLEXIMAGE_WHITEPOINT_B            "B";
+        IDD_FLEXIMAGE_WHITEPOINT_C            "C";
+        IDD_FLEXIMAGE_WHITEPOINT_D50          "D50";
+        IDD_FLEXIMAGE_WHITEPOINT_D55          "D55";
+        IDD_FLEXIMAGE_WHITEPOINT_D65          "D65";
+        IDD_FLEXIMAGE_WHITEPOINT_D75          "D75";
+        IDD_FLEXIMAGE_WHITEPOINT_E            "E";
+        IDD_FLEXIMAGE_WHITEPOINT_F2           "F2";
+        IDD_FLEXIMAGE_WHITEPOINT_F7           "F7";
+        IDD_FLEXIMAGE_WHITEPOINT_F11          "F11";
+
+
   IDG_EXPORT                          "Export";
-    
+
     IDD_WHICH_EXPORT_FILENAME           "Export Filename";
     IDD_EXPORT_FILENAME                 "";
     IDD_ALLOW_OVERWRITING               "Allow Overwriting";

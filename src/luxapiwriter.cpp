@@ -40,7 +40,7 @@
 LuxAPIWriter::LuxAPIWriter()
 : mFilesOpen(FALSE),
   mUseRelativePaths(FALSE),
-  mResumeOnly(FALSE),
+  mResume(FALSE),
   mWorldStarted(FALSE),
   mErrorStringID(0)
 {
@@ -72,11 +72,15 @@ LuxAPIWriter::~LuxAPIWriter(void)
 ///   file. If set to FALSE exported file paths are not changed.
 /// @param[in]  resumeOnly
 ///   If set to TRUE only the scene file will be written.
+/// @param[out]  resumePossible
+///   Will be set to TRUE if resumeOnly is enabled and we can reuse already
+///   existing .lxm and .lxo files.
 /// @return
 ///   TRUE if successful, otherwise FALSE.
 Bool LuxAPIWriter::init(const Filename &sceneFile,
                         Bool           useRelativePaths,
-                        Bool           resumeOnly)
+                        Bool           resume,
+                        Bool           &sceneFilesExist)
 {
   // if there is already an open file, finish it and close it
   if (mFilesOpen) {
@@ -90,11 +94,22 @@ Bool LuxAPIWriter::init(const Filename &sceneFile,
   // just store the filenames - they will be opened later
   mSceneFilename      = sceneFile;
   mSceneFileDirectory = FilePath(sceneFile).getDirectoryPath();
-  mUseRelativePaths   = useRelativePaths;
-  mResumeOnly         = resumeOnly;
-  mWorldStarted       = FALSE;
-  mErrorStringID      = 0;
-  mCommentLen         = 0;
+  mMaterialsFilename  = mSceneFilename;
+  mMaterialsFilename.SetSuffix("lxm");
+  mObjectsFilename    = mSceneFilename;
+  mObjectsFilename.SetSuffix("lxo");
+
+  // check if the materials and object files already exist
+  sceneFilesExist = (GeFExist(mSceneFilename) &&
+                     GeFExist(mMaterialsFilename) &&
+                     GeFExist(mObjectsFilename));
+
+  // initialise other stuff
+  mUseRelativePaths = useRelativePaths;
+  mResume           = resume && sceneFilesExist;
+  mWorldStarted     = FALSE;
+  mErrorStringID    = 0;
+  mCommentLen       = 0;
   return TRUE;
 }
 
@@ -112,19 +127,13 @@ Bool LuxAPIWriter::startScene(const char* head)
   }
 
   // make sure that the filename actually contains something
-  if (!mSceneFilename.Content()) {
+  if (!mSceneFilename.Content() || !mMaterialsFilename.Content() || !mObjectsFilename.Content()) {
     ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_INTERNAL,
                            "LuxAPIWriter::startScene(): no filename has been set");
   }
 
-  // derive the filenames for the materials and objects files from the scene
-  // filename 
-  mMaterialsFilename = mSceneFilename;
-  mMaterialsFilename.SetSuffix("lxm");
-  mObjectsFilename = mSceneFilename;
-  mObjectsFilename.SetSuffix("lxo");
-
-  if (mResumeOnly) {
+  // open files
+  if (mResume) {
     // open files in resume mode
     if (!mSceneFile->Open(mSceneFilename, GE_WRITE, FILE_DIALOG)) {
       mSceneFile->Close();
@@ -178,7 +187,7 @@ Bool LuxAPIWriter::endScene(void)
 
   // close the files
   success &= mSceneFile->Close();
-  if (!mResumeOnly) {
+  if (!mResume) {
     success &= mMaterialsFile->Close();
     success &= mObjectsFile->Close();
   }

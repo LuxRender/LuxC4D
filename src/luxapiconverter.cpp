@@ -94,11 +94,14 @@ LuxAPIConverter::~LuxAPIConverter(void)
 ///   The LuxAPI implementation which will consume the converted scene.
 /// @param[in]  resume
 ///   If enabled just the global scene data will be written.
+/// @param[in]  forceFullExport
+///   Exports everything, even if resume is TRUE.
 /// @return
 ///   TRUE if the scene could be exported, otherwise FALSE
 Bool LuxAPIConverter::convertScene(BaseDocument& document,
                                    LuxAPI&       receiver,
-                                   Bool          resumeOnly)
+                                   Bool          resume,
+                                   Bool          forceFullExport)
 {
   Bool        returnValue = FALSE;
   tagDateTime time;
@@ -128,7 +131,7 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document,
   }
 
   // export global data
-  if (!exportFilm(resumeOnly) ||
+  if (!exportFilm(resume) ||
       !exportCamera() ||
       !exportPixelFilter() ||
       !exportSampler() ||
@@ -138,7 +141,7 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document,
     goto CLEANUP_AND_RETURN;
   }
 
-  if (!resumeOnly) {
+  if (!resume || forceFullExport) {
     // export scene description
     if (!mReceiver->worldBegin() ||
         !exportLights() ||
@@ -406,6 +409,13 @@ Bool LuxAPIConverter::exportFilm(Bool resume)
     mTempParamSet.addParam(LUX_BOOL,   "write_png",     &writePNG);
     LuxString toneMapKernel("maxwhite");
     mTempParamSet.addParam(LUX_STRING, "tonemapkernel", &toneMapKernel);
+    LuxBool writeResumeFLM, restartResumeFLM;
+    if (resume) {
+      writeResumeFLM   = TRUE;
+      restartResumeFLM = FALSE;
+      mTempParamSet.addParam(LUX_BOOL, "write_resume_flm",   &writeResumeFLM);
+      mTempParamSet.addParam(LUX_BOOL, "restart_resume_flm", &restartResumeFLM);
+    }
     return mReceiver->film("fleximage", mTempParamSet);
   }
   

@@ -61,7 +61,8 @@ public:
 
   Bool convertScene(BaseDocument& document,
                     LuxAPI&       receiver,
-                    Bool          resumeOnly);
+                    Bool          resume,
+                    Bool          forceFullExport);
 
   // Callback functions called while Hierarchy traverses the hierarchy.
   virtual void* Alloc(void);

@@ -72,13 +72,13 @@ Bool LuxC4DExporter::Execute(BaseDocument* document)
 ///
 /// @param[in]  document
 ///   The current document, which will be exported.
-/// @param[in]  resumeOnly
+/// @param[in]  resume
 ///   If set to TRUE only the global scene data is exported that enabled resuming
 ///   an FLM file.
 /// @return
 ///   TRUE if successfull, FALSE otherwise.
 Bool LuxC4DExporter::exportScene(BaseDocument* document,
-                                 Bool          resumeOnly)
+                                 Bool          resume)
 {
   // check if document is valid
   if (!document)  ERRLOG_RETURN_VALUE(FALSE, "LuxC4DExporter::exportScene(): no document passed");
@@ -98,7 +98,7 @@ Bool LuxC4DExporter::exportScene(BaseDocument* document,
 
   // if we have found a LuxC4DSettings object, get the export filename
   // chosen by the user
-  Bool overwritingAllowed = FALSE;
+  Bool overwritingAllowed = resume;
   Bool useRelativePaths = TRUE;
   mExportedFile = Filename();
   if (settingsNode) {
@@ -158,14 +158,15 @@ Bool LuxC4DExporter::exportScene(BaseDocument* document,
 
   // initialise file writer
   LuxAPIWriter apiWriter;
-  if (!apiWriter.init(mExportedFile, useRelativePaths, resumeOnly)) {
+  Bool sceneFilesExist;
+  if (!apiWriter.init(mExportedFile, useRelativePaths, resume, sceneFilesExist)) {
     GeOutString(GeLoadString(IDS_ERROR_INITIALISE_LUXAPIWRITER, mExportedFile.GetString()), GEMB_OK);
     return FALSE;
   }
 
   // create exporter and export scene
   LuxAPIConverter converter;
-  if (!converter.convertScene(*document, apiWriter, resumeOnly)) {
+  if (!converter.convertScene(*document, apiWriter, resume, !sceneFilesExist)) {
     LONG errorStringID = apiWriter.errorStringID();
     if (errorStringID == 0) { errorStringID = IDS_ERROR_CONVERSION; }
     GeOutString(GeLoadString(errorStringID), GEMB_OK);
