@@ -122,6 +122,12 @@ private:
                  LuxParamSet&            paramSet,
                  const char**            cycleEntries,
                  LONG                    cycleEntryCount);
+
+  void setColorspacePreset(BaseContainer& data,
+                           LONG           preset);
+
+  void setWhitePointPreset(BaseContainer& data,
+                           LONG           preset);
 };
 
 

@@ -36,33 +36,33 @@ xcopy /q /s /i ..\..\res %DISTRI_DIR%\LuxC4D\res
 xcopy /q /s /i ..\..\license %DISTRI_DIR%\LuxC4D\license
 
 rem  Bulild all the different configurations
-set CONFIG=R9.6_Debug
-set CONFIG_ZIP=r9.6_debug
-call :BUILD_AND_COMPRESS
+REM set CONFIG=R9.6_Debug
+REM set CONFIG_ZIP=r9.6_debug
+REM call :BUILD_AND_COMPRESS
 set CONFIG=R9.6_Release
 set CONFIG_ZIP=r9.6_release
 call :BUILD_AND_COMPRESS
-set CONFIG=R10.1_Debug
-set CONFIG_ZIP=r10.1_debug
-call :BUILD_AND_COMPRESS
+REM set CONFIG=R10.1_Debug
+REM set CONFIG_ZIP=r10.1_debug
+REM call :BUILD_AND_COMPRESS
 set CONFIG=R10.1_Release
 set CONFIG_ZIP=r10.1_release
 call :BUILD_AND_COMPRESS
-set CONFIG=R10.5_Debug
-set CONFIG_ZIP=r10.5_debug
-call :BUILD_AND_COMPRESS
+REM set CONFIG=R10.5_Debug
+REM set CONFIG_ZIP=r10.5_debug
+REM call :BUILD_AND_COMPRESS
 set CONFIG=R10.5_Release
 set CONFIG_ZIP=r10.5_release
 call :BUILD_AND_COMPRESS
-set CONFIG=R11.0_Debug
-set CONFIG_ZIP=r11.0_debug
-call :BUILD_AND_COMPRESS
+REM set CONFIG=R11.0_Debug
+REM set CONFIG_ZIP=r11.0_debug
+REM call :BUILD_AND_COMPRESS
 set CONFIG=R11.0_Release
 set CONFIG_ZIP=r11.0_release
 call :BUILD_AND_COMPRESS
-set CONFIG=R11.5_Debug
-set CONFIG_ZIP=r11.5_debug
-call :BUILD_AND_COMPRESS
+REM set CONFIG=R11.5_Debug
+REM set CONFIG_ZIP=r11.5_debug
+REM call :BUILD_AND_COMPRESS
 set CONFIG=R11.5_Release
 set CONFIG_ZIP=r11.5_release
 call :BUILD_AND_COMPRESS

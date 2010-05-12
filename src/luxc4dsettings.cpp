@@ -215,6 +215,8 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   data->SetBool(IDD_FLEXIMAGE_PNG_GAMUT_CLAMP,        TRUE);
   data->SetLong(IDD_FLEXIMAGE_TGA_CHANNELS,           IDD_WRITE_CHANNELS_RGB);
   data->SetBool(IDD_FLEXIMAGE_TGA_GAMUT_CLAMP,        TRUE);
+  setColorspacePreset(*data, IDD_FLEXIMAGE_COLORSPACE_SRGB_HDTV);
+  setWhitePointPreset(*data, IDD_FLEXIMAGE_WHITEPOINT_D65);
 
   // set export defaults
   data->SetLong(IDD_WHICH_EXPORT_FILENAME,       IDD_ASK_FOR_EXPORT_FILENAME);
@@ -360,36 +362,68 @@ Bool LuxC4DSettings::SetDParameter(GeListNode*   node,
   BaseContainer* data = getData();
   if (!data)  return FALSE;
 
-  // Metropolis strength + not advanced:
-  if ((id == DescID(IDD_METROPOLIS_STRENGTH)) &&
-      !data->GetBool(IDD_ADVANCED_SAMPLER))
-  {
-    // convert the strength to a large mutation probability
-    data->SetReal(IDD_METROPOLIS_LARGE_MUTATION_PROB, 1.0 - value.GetReal());
-  // Metropolis mutation probability + advanced:
-  } else if ((id == DescID(IDD_METROPOLIS_LARGE_MUTATION_PROB)) &&
-             data->GetBool(IDD_ADVANCED_SAMPLER))
-  {
-    // convert the large mutation probability to strength
-    data->SetReal(IDD_METROPOLIS_STRENGTH, 1.0 - value.GetReal());
-  }
+  switch (id[0].id) {
 
-  // Bidirectional + not advanced:
-  if ((id == DescID(IDD_BIDIRECTIONAL_MAX_DEPTH)) &&
-      !data->GetBool(IDD_ADVANCED_INTEGRATOR))
-  {
-    // apply max. depth to eye and light depth
-    data->SetLong(IDD_BIDIRECTIONAL_EYE_DEPTH,   value.GetLong());
-    data->SetLong(IDD_BIDIRECTIONAL_LIGHT_DEPTH, value.GetLong());
-  // Bidirectional + not advanced:
-  } else if (((id == DescID(IDD_BIDIRECTIONAL_EYE_DEPTH)) ||
-              (id == DescID(IDD_BIDIRECTIONAL_LIGHT_DEPTH))) &&
-             data->GetBool(IDD_ADVANCED_INTEGRATOR))
-  {
-    // set average eye and light depth to max. depth
-    LONG average = (data->GetLong(IDD_BIDIRECTIONAL_EYE_DEPTH) +
-                    data->GetLong(IDD_BIDIRECTIONAL_LIGHT_DEPTH)) >> 1;
-    data->SetLong(IDD_BIDIRECTIONAL_MAX_DEPTH, average);
+    case IDD_METROPOLIS_STRENGTH:
+      // if not advanced, convert new Metropolis strength into large mutation
+      // probability
+      if (!data->GetBool(IDD_ADVANCED_SAMPLER)) {
+        data->SetReal(IDD_METROPOLIS_LARGE_MUTATION_PROB, 1.0 - value.GetReal());
+      }
+      break;
+
+    case IDD_METROPOLIS_LARGE_MUTATION_PROB:
+      // if advanced, convert new large mutation probability into Metropolis
+      // strength
+      if (data->GetBool(IDD_ADVANCED_SAMPLER)) {
+        data->SetReal(IDD_METROPOLIS_STRENGTH, 1.0 - value.GetReal());
+      }
+      break;
+
+    case IDD_BIDIRECTIONAL_MAX_DEPTH:
+      // if not advanced, convert bidirectional depth into eye and light depth
+      if (!data->GetBool(IDD_ADVANCED_INTEGRATOR)) {
+        data->SetLong(IDD_BIDIRECTIONAL_EYE_DEPTH,   value.GetLong());
+        data->SetLong(IDD_BIDIRECTIONAL_LIGHT_DEPTH, value.GetLong());
+      }
+      break;
+
+    case IDD_BIDIRECTIONAL_EYE_DEPTH:
+    case IDD_BIDIRECTIONAL_LIGHT_DEPTH:
+      // if advanced, convert bidirectional eye or light depth into simple depth
+      if (data->GetBool(IDD_ADVANCED_INTEGRATOR)) {
+        LONG average = (data->GetLong(IDD_BIDIRECTIONAL_EYE_DEPTH) +
+                        data->GetLong(IDD_BIDIRECTIONAL_LIGHT_DEPTH)) >> 1;
+        data->SetLong(IDD_BIDIRECTIONAL_MAX_DEPTH, average);
+      }
+      break;
+
+    case IDD_FLEXIMAGE_COLORSPACE_PRESET:
+      setColorspacePreset(*data, value.GetLong());
+      break;
+
+    case IDD_FLEXIMAGE_COLORSPACE_RED_X:
+    case IDD_FLEXIMAGE_COLORSPACE_RED_Y:
+    case IDD_FLEXIMAGE_COLORSPACE_GREEN_X:
+    case IDD_FLEXIMAGE_COLORSPACE_GREEN_Y:
+    case IDD_FLEXIMAGE_COLORSPACE_BLUE_X:
+    case IDD_FLEXIMAGE_COLORSPACE_BLUE_Y:
+      data->SetLong(IDD_FLEXIMAGE_COLORSPACE_PRESET,
+                    IDD_FLEXIMAGE_WHITEPOINT_CUSTOM);
+      break;
+
+    case IDD_FLEXIMAGE_WHITEPOINT_PRESET:
+      setWhitePointPreset(*data, value.GetLong());
+      break;
+
+    case IDD_FLEXIMAGE_WHITEPOINT_X:
+    case IDD_FLEXIMAGE_WHITEPOINT_Y:
+      data->SetLong(IDD_FLEXIMAGE_WHITEPOINT_PRESET,
+                    IDD_FLEXIMAGE_WHITEPOINT_CUSTOM);
+      break;
+
+    default:
+      break;
   }
 
   return SUPER::SetDParameter(node, id, value, flags);
@@ -490,6 +524,10 @@ void LuxC4DSettings::getFilm(Bool         resume,
   static Descr2Param<LuxBool>    sFleximageTGAGamutClamp    (IDD_FLEXIMAGE_TGA_GAMUT_CLAMP,    "write_tga_gamutclamp");
   static LuxBool                 sFleximageWriteFLM;
   static LuxBool                 sFleximageRestartFLM;
+  static LuxFloat                sFleximageColorspaceRed[2];
+  static LuxFloat                sFleximageColorspaceGreen[2];
+  static LuxFloat                sFleximageColorspaceBlue[2];
+  static LuxFloat                sFleximageWhitePoint[2];
 
   // set default sampler
   name = sFilmNames[IDD_FILM_FLEXIMAGE];
@@ -503,6 +541,7 @@ void LuxC4DSettings::getFilm(Bool         resume,
 
   // ... and fetch its settings
   switch (film) {
+
     // film fleximage
     case IDD_FILM_FLEXIMAGE:
       copyParam(sFleximageHaltSPP,           paramSet);
@@ -564,7 +603,22 @@ void LuxC4DSettings::getFilm(Bool         resume,
       paramSet.addParam(LUX_BOOL, "write_resume_flm",   &sFleximageWriteFLM);
       paramSet.addParam(LUX_BOOL, "restart_resume_flm", &sFleximageRestartFLM);
 
+      sFleximageColorspaceRed[0]   = data->GetReal(IDD_FLEXIMAGE_COLORSPACE_RED_X);
+      sFleximageColorspaceRed[1]   = data->GetReal(IDD_FLEXIMAGE_COLORSPACE_RED_Y);
+      sFleximageColorspaceGreen[0] = data->GetReal(IDD_FLEXIMAGE_COLORSPACE_GREEN_X);
+      sFleximageColorspaceGreen[1] = data->GetReal(IDD_FLEXIMAGE_COLORSPACE_GREEN_Y);
+      sFleximageColorspaceBlue[0]  = data->GetReal(IDD_FLEXIMAGE_COLORSPACE_BLUE_X);
+      sFleximageColorspaceBlue[1]  = data->GetReal(IDD_FLEXIMAGE_COLORSPACE_BLUE_Y);
+      paramSet.addParam(LUX_FLOAT, "colorspace_red",   &sFleximageColorspaceRed,   2);
+      paramSet.addParam(LUX_FLOAT, "colorspace_green", &sFleximageColorspaceGreen, 2);
+      paramSet.addParam(LUX_FLOAT, "colorspace_blue",  &sFleximageColorspaceBlue,  2);
+
+      sFleximageWhitePoint[0] = data->GetReal(IDD_FLEXIMAGE_WHITEPOINT_X);
+      sFleximageWhitePoint[1] = data->GetReal(IDD_FLEXIMAGE_WHITEPOINT_Y);
+      paramSet.addParam(LUX_FLOAT, "colorspace_white", &sFleximageWhitePoint, 2);
+
       break;
+
     // invalid film -> error and return
     default:
       ERRLOG_RETURN("LuxC4DSettings::GetFilm(): invalid film found -> using default settings");
@@ -1219,4 +1273,93 @@ void LuxC4DSettings::copyParam(Descr2Param<LuxString>& descr2Param,
   // map entry to string and add that to parameter set
   descr2Param.mParam = cycleEntries[entry];
   paramSet.addParam(LUX_STRING, descr2Param.mParamName, &descr2Param.mParam);
+}
+
+
+///
+void LuxC4DSettings::setColorspacePreset(BaseContainer& data,
+                                         LONG           presetId)
+{
+  static const struct ColorspacePreset {
+    Real mRedX;
+    Real mRedY;
+    Real mGreenX;
+    Real mGreenY;
+    Real mBlueX;
+    Real mBlueY;
+  } cPresets[IDD_FLEXIMAGE_COLORSPACE_NUMBER] =
+    {
+      // IDD_FLEXIMAGE_COLORSPACE_ADOBE_RGB_98
+      { 0.6400, 0.3400,  0.2100, 0.7100,  0.1500, 0.0600 },
+      // IDD_FLEXIMAGE_COLORSPACE_APPLE_RGB
+      { 0.6250, 0.3400,  0.2800, 0.5950,  0.1550, 0.0700 },
+      // IDD_FLEXIMAGE_COLORSPACE_CIE
+      { 0.7347, 0.2653,  0.2738, 0.7174,  0.1666, 0.0089 },
+      // IDD_FLEXIMAGE_COLORSPACE_NTSC_1953
+      { 0.6700, 0.3300,  0.2100, 0.7100,  0.1400, 0.0800 },
+      // IDD_FLEXIMAGE_COLORSPACE_NTSC_1979
+      { 0.6300, 0.3400,  0.3100, 0.5950,  0.1550, 0.0700 },
+      // IDD_FLEXIMAGE_COLORSPACE_PAL_SECAM
+      { 0.6400, 0.3300,  0.2900, 0.6000,  0.1500, 0.0600 },
+      // IDD_FLEXIMAGE_COLORSPACE_ROMM_RGB
+      { 0.7347, 0.2653,  0.1596, 0.8404,  0.0366, 0.0001 },
+      // IDD_FLEXIMAGE_COLORSPACE_SRGB_HDTV
+      { 0.6300, 0.3400,  0.3100, 0.5950,  0.1550, 0.0700 }
+    };
+
+  if ((presetId<=IDD_FLEXIMAGE_COLORSPACE_CUSTOM) || (presetId>=IDD_FLEXIMAGE_COLORSPACE_NUMBER)) {
+    return;
+  }
+  const struct ColorspacePreset& preset(cPresets[presetId]);
+  data.SetLong(IDD_FLEXIMAGE_COLORSPACE_PRESET,  presetId);
+  data.SetReal(IDD_FLEXIMAGE_COLORSPACE_RED_X,   preset.mRedX);
+  data.SetReal(IDD_FLEXIMAGE_COLORSPACE_RED_Y,   preset.mRedY);
+  data.SetReal(IDD_FLEXIMAGE_COLORSPACE_GREEN_X, preset.mGreenX);
+  data.SetReal(IDD_FLEXIMAGE_COLORSPACE_GREEN_Y, preset.mGreenY);
+  data.SetReal(IDD_FLEXIMAGE_COLORSPACE_BLUE_X,  preset.mBlueX);
+  data.SetReal(IDD_FLEXIMAGE_COLORSPACE_BLUE_Y,  preset.mBlueY);
+}
+
+
+void LuxC4DSettings::setWhitePointPreset(BaseContainer& data,
+                                         LONG           presetId)
+{
+  static const struct WhitePointPreset {
+    Real mX;
+    Real mY;
+  } cPresets[IDD_FLEXIMAGE_WHITEPOINT_NUMBER] =
+    {
+      // IDD_FLEXIMAGE_WHITEPOINT_9300
+      { 0.285, 0.293 },
+      // IDD_FLEXIMAGE_WHITEPOINT_A
+      { 0.448, 0.407 },
+      // IDD_FLEXIMAGE_WHITEPOINT_B
+      { 0.348, 0.352 },
+      // IDD_FLEXIMAGE_WHITEPOINT_C
+      { 0.310, 0.316 },
+      // IDD_FLEXIMAGE_WHITEPOINT_D50
+      { 0.346, 0.359 },
+      // IDD_FLEXIMAGE_WHITEPOINT_D55
+      { 0.332, 0.347 },
+      // IDD_FLEXIMAGE_WHITEPOINT_D65
+      { 0.313, 0.329 },
+      // IDD_FLEXIMAGE_WHITEPOINT_D75
+      { 0.313, 0.329 },
+      // IDD_FLEXIMAGE_WHITEPOINT_E
+      { 0.333, 0.333 },
+      // IDD_FLEXIMAGE_WHITEPOINT_F2
+      { 0.372, 0.375 },
+      // IDD_FLEXIMAGE_WHITEPOINT_F7
+      { 0.313, 0.329 },
+      // IDD_FLEXIMAGE_WHITEPOINT_F11
+      { 0.381, 0.377 }
+    };
+
+  if ((presetId<=IDD_FLEXIMAGE_WHITEPOINT_CUSTOM) || (presetId>=IDD_FLEXIMAGE_WHITEPOINT_NUMBER)) {
+    return;
+  }
+  const struct WhitePointPreset& preset(cPresets[presetId]);
+  data.SetLong(IDD_FLEXIMAGE_WHITEPOINT_PRESET, presetId);
+  data.SetReal(IDD_FLEXIMAGE_WHITEPOINT_X,      preset.mX);
+  data.SetReal(IDD_FLEXIMAGE_WHITEPOINT_Y,      preset.mY);
 }

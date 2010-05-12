@@ -56,20 +56,20 @@ STRINGTABLE VPluxc4dsettings
     IDD_METROPOLIS_STRENGTH                     "Puissance";
     IDD_METROPOLIS_MUTATION_RANGE_PIXEL         "";
     IDD_METROPOLIS_MUTATION_RANGE_FRACTION      "";
-    IDD_METROPOLIS_MUTATION_RANGE_TYPE          "Mutation Range";           // to be translated
+    IDD_METROPOLIS_MUTATION_RANGE_TYPE          "Taux de mutation";           
 
-      IDD_METROPOLIS_MUTATION_RANGE_AS_FRACTION   "Fraction of Image Size"; // to be translated
-      IDD_METROPOLIS_MUTATION_RANGE_IN_PIXEL      "In Pixels";              // to be translated
+      IDD_METROPOLIS_MUTATION_RANGE_AS_FRACTION   "Fraction de la taille de l'image"; 
+      IDD_METROPOLIS_MUTATION_RANGE_IN_PIXEL      "En Pixels";            
 
     IDD_ERPT_CHAINLENGTH                  "Longueur de Chaine";
     IDD_ERPT_PIXELSAMPLER                 "Echantillonneur de Pixel";
     IDD_ERPT_PIXELSAMPLES                 "Pixels";
     IDD_ERPT_MUTATION_RANGE_PIXEL         "";
     IDD_ERPT_MUTATION_RANGE_FRACTION      "";
-    IDD_ERPT_MUTATION_RANGE_TYPE          "Mutation Range";             // to be translated
+    IDD_ERPT_MUTATION_RANGE_TYPE          "Taux de mutation";          
 
-      IDD_ERPT_MUTATION_RANGE_AS_FRACTION   "Fraction of Image Size";   // to be translated
-      IDD_ERPT_MUTATION_RANGE_IN_PIXEL      "In Pixels";                // to be translated
+      IDD_ERPT_MUTATION_RANGE_AS_FRACTION   "Fraction de la taille de l'image";   
+      IDD_ERPT_MUTATION_RANGE_IN_PIXEL      "En Pixels";                
 
 
     IDG_INTEGRATION                     "INTEGRATION";
@@ -140,7 +140,7 @@ STRINGTABLE VPluxc4dsettings
     IDD_MITCHELL_FILTER_HEIGHT          "Hauteur";
     IDD_MITCHELL_FILTER_B               "B";
     IDD_MITCHELL_FILTER_C               "C";
-    IDD_MITCHELL_SUPERSAMPLE            "Super Sampling";     // to be translated
+    IDD_MITCHELL_SUPERSAMPLE            "Super-échantillonnage";    
     
 
     IDD_SINC_FILTER_WIDTH               "Largeur";
@@ -210,7 +210,7 @@ STRINGTABLE VPluxc4dsettings
       IDD_FLEXIMAGE_WRITE_EXR             "Ecrire une image EXR";
       IDD_FLEXIMAGE_WRITE_PNG             "Ecrire une image PNG";
       IDD_FLEXIMAGE_WRITE_TGA             "Ecrire une image TGA";
-      IDD_FLEXIMAGE_WRITE_FLM             "Write FLM Resume File";    // to be translated
+      IDD_FLEXIMAGE_WRITE_FLM             "Ecrire un fichier de reprise FLM";   
       IDD_FLEXIMAGE_EXR_CHANNELS          "Canaux";
       IDD_FLEXIMAGE_EXR_HALFTYPE          "Demi-Type";
       IDD_FLEXIMAGE_EXR_COMPRESSION       "Compression";
@@ -255,16 +255,16 @@ STRINGTABLE VPluxc4dsettings
         IDD_FLEXIMAGE_FILENAME_AS_C4D_OUTPUT_FILE "Comme le fichier de sortie C4D";
         IDD_FLEXIMAGE_FILENAME_DEFINE_HERE        "Definir le nom de fichier içi";
 
-      IDG_FLEXIMAGE_COLORSPACE              "Color";            // to be translated
-      IDD_FLEXIMAGE_COLORSPACE_PRESET       "Colorspace";       // to be translated
-      IDD_FLEXIMAGE_COLORSPACE_RED_X        "Red XY";           // to be translated
+      IDG_FLEXIMAGE_COLORSPACE              "Couleur";            
+      IDD_FLEXIMAGE_COLORSPACE_PRESET       "Espace colorimétrique";       
+      IDD_FLEXIMAGE_COLORSPACE_RED_X        "Rouge XY";           
       IDD_FLEXIMAGE_COLORSPACE_RED_Y        "";
-      IDD_FLEXIMAGE_COLORSPACE_GREEN_X      "Green XY";         // to be translated
+      IDD_FLEXIMAGE_COLORSPACE_GREEN_X      "Vert XY";         
       IDD_FLEXIMAGE_COLORSPACE_GREEN_Y      "";
-      IDD_FLEXIMAGE_COLORSPACE_BLUE_X       "Blue XY";          // to be translated
+      IDD_FLEXIMAGE_COLORSPACE_BLUE_X       "Bleu XY";         
       IDD_FLEXIMAGE_COLORSPACE_BLUE_Y       "";
 
-        IDD_FLEXIMAGE_COLORSPACE_CUSTOM       "Custom";         // to be translated
+        IDD_FLEXIMAGE_COLORSPACE_CUSTOM       "Personnel";        
         IDD_FLEXIMAGE_COLORSPACE_ADOBE_RGB_98 "Adobe RGB 98";
         IDD_FLEXIMAGE_COLORSPACE_APPLE_RGB    "Apple RGB";
         IDD_FLEXIMAGE_COLORSPACE_CIE          "CIE (1931) E";
@@ -274,11 +274,11 @@ STRINGTABLE VPluxc4dsettings
         IDD_FLEXIMAGE_COLORSPACE_ROMM_RGB     "ROMM RGB";
         IDD_FLEXIMAGE_COLORSPACE_SRGB_HDTV    "sRGB - HDTV";
 
-      IDD_FLEXIMAGE_WHITEPOINT_PRESET       "White Point";
+      IDD_FLEXIMAGE_WHITEPOINT_PRESET       "Point blanc";
       IDD_FLEXIMAGE_WHITEPOINT_X            "XY";
       IDD_FLEXIMAGE_WHITEPOINT_Y            "";
 
-        IDD_FLEXIMAGE_WHITEPOINT_CUSTOM       "Custom";
+        IDD_FLEXIMAGE_WHITEPOINT_CUSTOM       "Personnel";
         IDD_FLEXIMAGE_WHITEPOINT_9300         "9300";
         IDD_FLEXIMAGE_WHITEPOINT_A            "A";
         IDD_FLEXIMAGE_WHITEPOINT_B            "B";
