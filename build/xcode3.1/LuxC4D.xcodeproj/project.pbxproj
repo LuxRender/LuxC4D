@@ -61,6 +61,8 @@
 		B283D635118F6A8A00EA2DA8 /* luxtexturemapping.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B283D633118F6A8A00EA2DA8 /* luxtexturemapping.cpp */; };
 		B283D636118F6A8A00EA2DA8 /* luxtexturemapping.h in Headers */ = {isa = PBXBuildFile; fileRef = B283D634118F6A8A00EA2DA8 /* luxtexturemapping.h */; };
 		B28A7000109F691700AE738C /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B28A6FFF109F691700AE738C /* CoreFoundation.framework */; };
+		B29771A3119C8FFF0048B709 /* luxc4dresumerender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B29771A1119C8FFF0048B709 /* luxc4dresumerender.cpp */; };
+		B29771A4119C8FFF0048B709 /* luxc4dresumerender.h in Headers */ = {isa = PBXBuildFile; fileRef = B29771A2119C8FFF0048B709 /* luxc4dresumerender.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -149,6 +151,8 @@
 		B283D633118F6A8A00EA2DA8 /* luxtexturemapping.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = luxtexturemapping.cpp; sourceTree = "<group>"; };
 		B283D634118F6A8A00EA2DA8 /* luxtexturemapping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = luxtexturemapping.h; sourceTree = "<group>"; };
 		B28A6FFF109F691700AE738C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
+		B29771A1119C8FFF0048B709 /* luxc4dresumerender.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = luxc4dresumerender.cpp; sourceTree = "<group>"; };
+		B29771A2119C8FFF0048B709 /* luxc4dresumerender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = luxc4dresumerender.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -179,8 +183,6 @@
 		2CCB77C50E6C174600D45D8E /* src */ = {
 			isa = PBXGroup;
 			children = (
-				B283D633118F6A8A00EA2DA8 /* luxtexturemapping.cpp */,
-				B283D634118F6A8A00EA2DA8 /* luxtexturemapping.h */,
 				2C1C0E790FC951990049FF31 /* autoref.h */,
 				B275CAA910A9F2C600C9DF77 /* dlist.h */,
 				B275CAA810A9F2C600C9DF77 /* dlist_impl.h */,
@@ -211,6 +213,8 @@
 				2C46BEC210186E6100CC2CB9 /* luxc4dportaltag.h */,
 				2CE79ABB0EBF7F9600995C2F /* luxc4dpreferences.cpp */,
 				2CE79ABC0EBF7F9600995C2F /* luxc4dpreferences.h */,
+				B29771A1119C8FFF0048B709 /* luxc4dresumerender.cpp */,
+				B29771A2119C8FFF0048B709 /* luxc4dresumerender.h */,
 				2CE1C1D20EABB60500AF4D13 /* luxc4dsettings.cpp */,
 				2CE1C1D30EABB60500AF4D13 /* luxc4dsettings.h */,
 				2C1C0E7A0FC951990049FF31 /* luxmaterialdata.cpp */,
@@ -219,6 +223,8 @@
 				2CCB77D20E6C174600D45D8E /* luxparamset.h */,
 				2C1C0E7C0FC951990049FF31 /* luxtexturedata.cpp */,
 				2C1C0E7D0FC951990049FF31 /* luxtexturedata.h */,
+				B283D633118F6A8A00EA2DA8 /* luxtexturemapping.cpp */,
+				B283D634118F6A8A00EA2DA8 /* luxtexturemapping.h */,
 				2CCB77D30E6C174600D45D8E /* luxtypes.h */,
 				2C1C0E7F0FC951990049FF31 /* rbtreemap.h */,
 				2C1C0E7E0FC951990049FF31 /* rbtreemap_impl.h */,
@@ -336,6 +342,7 @@
 				B27F57E310D17726008C24D3 /* luxc4dmaterial.h in Headers */,
 				B27F57E810D1774B008C24D3 /* mluxc4dmaterial.h in Headers */,
 				B283D636118F6A8A00EA2DA8 /* luxtexturemapping.h in Headers */,
+				B29771A4119C8FFF0048B709 /* luxc4dresumerender.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -417,6 +424,7 @@
 				B27EF62010AC9855009B607E /* filepath.cpp in Sources */,
 				B27F57E210D17726008C24D3 /* luxc4dmaterial.cpp in Sources */,
 				B283D635118F6A8A00EA2DA8 /* luxtexturemapping.cpp in Sources */,
+				B29771A3119C8FFF0048B709 /* luxc4dresumerender.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -27,6 +27,7 @@
 #include <cstdio>
 
 #include "dlist.h"
+#include "filepath.h"
 #include "utilities.h"
 
 
