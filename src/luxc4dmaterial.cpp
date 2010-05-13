@@ -1312,61 +1312,57 @@ void LuxC4DMaterial::setCarpaintPreset(BaseContainer& data,
 {
   static const struct CarpaintPreset {
       Vector mDiffuseColour;
-      Real   mDiffuseBrightness;
       Vector mSpecularColour1;
-      Real   mSpecularBrightness1;
       Real   mSpecularR1;
       Real   mSpecularM1;
       Vector mSpecularColour2;
-      Real   mSpecularBrightness2;
       Real   mSpecularR2;
       Real   mSpecularM2;
       Vector mSpecularColour3;
-      Real   mSpecularBrightness3;
       Real   mSpecularR3;
       Real   mSpecularM3;
     } cPresets[IDD_CARPAINT_TYPE_NUMBER] =
       {
         // IDD_CARPAINT_TYPE_BMW_339,
-        { Vector(0.110,  0.122,  0.126), 1.0,
-          Vector(0.249,  0.276,  0.282), 1.0,  0.92,  0.39,
-          Vector(0.332,  0.346,  0.346), 1.0,  0.87,  0.17,
-          Vector(0.0911, 0.122,  0.126), 1.0,  0.9,   0.013 },
+        { Vector(0.110,  0.122,  0.126 ),
+          Vector(0.249,  0.276,  0.282 ),  0.92,  0.39,
+          Vector(0.332,  0.346,  0.346 ),  0.87,  0.17,
+          Vector(0.0911, 0.122,  0.126 ),  0.9,   0.013 },
         // IDD_CARPAINT_TYPE_FORD_F8,
-        { Vector(0.0346, 0.0387, 0.0424), 1.0,
-          Vector(0.07,   0.0872, 0.110),  1.0, 0.15,  0.32,
-          Vector(0.1,    0.114,  0.134),  1.0, 0.087, 0.11,
-          Vector(0.0837, 0.0806, 0.0877), 1.0, 0.9,   0.013 },
+        { Vector(0.0346, 0.0387, 0.0424),
+          Vector(0.07,   0.0872, 0.110 ),  0.15,  0.32,
+          Vector(0.1,    0.114,  0.134 ),  0.087, 0.11,
+          Vector(0.0837, 0.0806, 0.0877),  0.9,   0.013 },
         // IDD_CARPAINT_TYPE_OPEL_TITAN,
-        { Vector(0.105,  0.114,  0.122),  1.0,
-          Vector(0.239,  0.257,  0.279),  1.0, 0.85,  0.38,
-          Vector(0.332,  0.346,  0.361),  1.0, 0.86,  0.17,
-          Vector(0.0975, 0.118,  0.126),  1.0, 0.9,   0.014 },
+        { Vector(0.105,  0.114,  0.122 ),
+          Vector(0.239,  0.257,  0.279 ),  0.85,  0.38,
+          Vector(0.332,  0.346,  0.361 ),  0.86,  0.17,
+          Vector(0.0975, 0.118,  0.126 ),  0.9,   0.014 },
         // IDD_CARPAINT_TYPE_POLARIS_SILVER,
-        { Vector(0.235,  0.251,  0.266),  1.0,
-          Vector(0.255,  0.286,  0.297),  1.0, 1.0,   0.38,
-          Vector(0.332,  0.332,  0.361),  1.0, 0.92,  0.17,
-          Vector(0.0894, 0.114,  0.122),  1.0, 0.9,   0.013 },
+        { Vector(0.235,  0.251,  0.266 ),
+          Vector(0.255,  0.286,  0.297 ),  1.0,   0.38,
+          Vector(0.332,  0.332,  0.361 ),  0.92,  0.17,
+          Vector(0.0894, 0.114,  0.122 ),  0.9,   0.013 },
         // IDD_CARPAINT_TYPE_2K_ACRYLIC_PAINT,
-        { Vector(0.42,  0.32,  0.1),   1.0,
-          Vector(0.0,   0.0,   0.0),   1.0,  1.0,   0.88,
-          Vector(0.28,  0.26,  0.06),  0.1,  0.9,   0.8,
-          Vector(0.17,  0.075, 0.041), 0.1,  0.17,  0.015 },
+        { Vector(0.648,  0.566,  0.316 ),
+          Vector(0.0,    0.0,    0.0   ),  1.0,   0.88,
+          Vector(0.167,  0.161,  0.0775),  0.9,   0.8,
+          Vector(0.130,  0.0867, 0.064 ),  0.17,  0.015 },
         // IDD_CARPAINT_TYPE_BLUE,
-        { Vector(0.0079, 0.023, 0.1),  1.0,
-          Vector(0.11,  0.15,  0.19),  0.01,  1.0,   0.15,
-          Vector(0.25,  0.3,   0.43),  0.1,   0.94,  0.43,
-          Vector(0.59,  0.74,  0.82),  0.1,   0.17,  0.02 },
+        { Vector(0.0889, 0.152,  0.316 ),
+          Vector(0.0332, 0.0387, 0.0436),  1.0,   0.15,
+          Vector(0.158,  0.173,  0.207 ),  0.94,  0.43,
+          Vector(0.243,  0.272,  0.286 ),  0.17,  0.02  },
         // IDD_CARPAINT_TYPE_BLUE_MATTE,
-        { Vector(0.0099, 0.036, 0.12), 1.0,
-          Vector(0.32,   0.45,  0.59), 0.01,  1.0,   0.16,
-          Vector(0.18,   0.23,  0.28), 1.0,   0.046, 0.075,
-          Vector(0.4,    0.49,  0.51), 0.1,   0.17,  0.034 },
+        { Vector(0.0995, 0.19,   0.346 ),
+          Vector(0.0566, 0.0671, 0.0768),  1.0,   0.16,
+          Vector(0.424,  0.48,   0.529 ),  0.046, 0.075,
+          Vector(0.2,    0.221,  0.226 ),  0.17,  0.034 },
         // IDD_CARPAINT_TYPE_WHITE,
-        { Vector(0.61,   0.63,  0.55), 1.0,
-          Vector(0.00026, 0.031, 0.0000031), 0.01, 0.094, 1.0,
-          Vector(0.13,   0.11,  0.083), 0.1,  0.45,  0.15,
-          Vector(0.49,   0.42,  0.37), 0.1,   0.17,  0.015 }
+        { Vector(0.781,  0.794,  0.742 ),
+          Vector(0.0,    0.0,    0.0   ),  0.094, 1.0,
+          Vector(0.114,  0.105,  0.0911),  0.45,  0.15,
+          Vector(0.221,  0.205,  0.192 ),  0.17,  0.015 }
       };
 
   if ((presetId<=IDD_CARPAINT_TYPE_CUSTOM) || (presetId>=IDD_CARPAINT_TYPE_NUMBER)) {
@@ -1376,20 +1372,20 @@ void LuxC4DMaterial::setCarpaintPreset(BaseContainer& data,
   data.SetLong  (IDD_CARPAINT_TYPE,                      presetId);
   data.SetVector(IDD_DIFFUSE_COLOR,                      preset.mDiffuseColour);
   data.SetReal  (IDD_DIFFUSE_SHADER_STRENGTH,            0.0);
-  data.SetReal  (IDD_DIFFUSE_BRIGHTNESS,                 preset.mDiffuseBrightness);
+  data.SetReal  (IDD_DIFFUSE_BRIGHTNESS,                 1.0);
   data.SetVector(IDD_CARPAINT_SPECULAR_COLOR1,           preset.mSpecularColour1);
   data.SetReal  (IDD_CARPAINT_SPECULAR_SHADER_STRENGTH1, 0.0);
-  data.SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS1,      preset.mSpecularBrightness1);
+  data.SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS1,      1.0);
   data.SetReal  (IDD_CARPAINT_R1,                        preset.mSpecularR1);
   data.SetReal  (IDD_CARPAINT_M1,                        preset.mSpecularM1);
   data.SetVector(IDD_CARPAINT_SPECULAR_COLOR2,           preset.mSpecularColour2);
   data.SetReal  (IDD_CARPAINT_SPECULAR_SHADER_STRENGTH2, 0.0);
-  data.SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS2,      preset.mSpecularBrightness2);
+  data.SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS2,      1.0);
   data.SetReal  (IDD_CARPAINT_R2,                        preset.mSpecularR2);
   data.SetReal  (IDD_CARPAINT_M2,                        preset.mSpecularM2);
   data.SetVector(IDD_CARPAINT_SPECULAR_COLOR3,           preset.mSpecularColour3);
   data.SetReal  (IDD_CARPAINT_SPECULAR_SHADER_STRENGTH3, 0.0);
-  data.SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS3,      preset.mSpecularBrightness3);
+  data.SetReal  (IDD_CARPAINT_SPECULAR_BRIGHTNESS3,      1.0);
   data.SetReal  (IDD_CARPAINT_R3,                        preset.mSpecularR3);
   data.SetReal  (IDD_CARPAINT_M3,                        preset.mSpecularM3);
   data.SetBool  (IDD_TOGGLE_COATING_ABSORPTION,          FALSE);

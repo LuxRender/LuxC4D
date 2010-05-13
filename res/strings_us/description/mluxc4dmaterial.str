@@ -151,10 +151,10 @@ STRINGTABLE Mluxc4dmaterial
     IDD_ROUGHNESS_VALUE     "Strength";
     IDD_ROUGHNESS_SHADER    "Scale Tex.";
 
-    IDD_ROUGHNESS_U_VALUE   "Strength";
+    IDD_ROUGHNESS_U_VALUE   "U Strength";
     IDD_ROUGHNESS_U_SHADER  "Scale Tex.";
 
-    IDD_ROUGHNESS_V_VALUE   "Strength";
+    IDD_ROUGHNESS_V_VALUE   "V Strength";
     IDD_ROUGHNESS_V_SHADER  "Scale Tex.";
 
   IDG_THIN_FILM                   "Thin Film";

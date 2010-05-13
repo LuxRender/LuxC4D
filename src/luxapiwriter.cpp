@@ -596,7 +596,7 @@ Bool LuxAPIWriter::writeSetting(BaseFile&      file,
 
 
 /// Writes a complete statement of the form
-///   <setting> <identifier1>? <identifier2>? <identifier3>? <parameter>*
+///   <setting> <identifier1>? <identifier2>? <identifier3>? <parameter>+
 /// If a parameter is a value array, the values will be in separate lines.
 ///
 /// @param[in]  file
@@ -687,22 +687,18 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
     success &= file.WriteChar('"');
 
     // write token values
-    if (tokenArraySize > 1) {
-      success &= file.WriteBytes((void*)" [\n", 3);
-    } else {
-      success &= file.WriteBytes((void*)" [", 2);
-    }
     switch (tokenType) {
       case LUX_BOOL:
         {
           const LuxBool* values = (const LuxBool*)tokenValue;
           if (tokenArraySize == 1) {
             if (values[0]) {
-              success &= file.WriteBytes((void*)"\"true\"", 6);
+              success &= file.WriteBytes((void*)" [\"true\"", 8);
             } else {
-              success &= file.WriteBytes((void*)"\"false\"", 7);
+              success &= file.WriteBytes((void*)" [\"false\"", 9);
             }
           } else {
+            success &= file.WriteBytes((void*)" [\n", 3);
             for (ULONG i=0; i<tokenArraySize; ++i) {
               if (values[i]) {
                 success &= file.WriteBytes((void*)"\"true\"\n", 7);
@@ -716,10 +712,15 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
       case LUX_INTEGER:
         {
           const LuxInteger* values = (const LuxInteger*)tokenValue;
-          if (tokenArraySize == 1) {
-            valueStringLen = sprintf(valueString, "%d", values[0]);
+          if ((tokenArraySize >= 1) && (tokenArraySize <= 4)) {
+            valueStringLen = sprintf(valueString, " [%d", values[0]);
             success &= file.WriteBytes(valueString, valueStringLen);
+            for (ULONG i=1; i<tokenArraySize; ++i) {
+              valueStringLen = sprintf(valueString, " %d", values[i]);
+              success &= file.WriteBytes(valueString, valueStringLen);
+            }
           } else {
+            success &= file.WriteBytes((void*)" [\n", 3);
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%d\n", values[i]);
               success &= file.WriteBytes(valueString, valueStringLen);
@@ -730,10 +731,15 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
       case LUX_FLOAT:
         {
           const LuxFloat* values = (const LuxFloat*)tokenValue;
-          if (tokenArraySize == 1) {
-            valueStringLen = sprintf(valueString, "%.8g", values[0]);
+          if ((tokenArraySize >= 1) && (tokenArraySize <= 4)) {
+            valueStringLen = sprintf(valueString, " [%.8g", values[0]);
             success &= file.WriteBytes(valueString, valueStringLen);
+            for (ULONG i=1; i<tokenArraySize; ++i) {
+              valueStringLen = sprintf(valueString, " %.8g", values[i]);
+              success &= file.WriteBytes(valueString, valueStringLen);
+            }
           } else {
+            success &= file.WriteBytes((void*)" [\n", 3);
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%.8g\n", values[i]);
               success &= file.WriteBytes(valueString, valueStringLen);
@@ -744,11 +750,12 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
       case LUX_VECTOR:
         {
           const LuxVector* values = (const LuxVector*)tokenValue;
-          if (tokenArraySize == 1) {
-            valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
+          if ((tokenArraySize >= 1) && (tokenArraySize <= 4)) {
+            valueStringLen = sprintf(valueString, " [%.8g %.8g %.8g",
                                      values[0].x, values[0].y, values[0].z);
             success &= file.WriteBytes(valueString, valueStringLen);
           } else {
+            success &= file.WriteBytes((void*)" [\n", 3);
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%.8g %.8g %.8g\n",
                                        values[i].x, values[i].y, values[i].z);
@@ -761,10 +768,11 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
         {
           const LuxColor* values = (const LuxColor*)tokenValue;
           if (tokenArraySize == 1) {
-            valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
+            valueStringLen = sprintf(valueString, " [%.8g %.8g %.8g",
                                      values[0].c[0], values[0].c[1], values[0].c[2]);
             success &= file.WriteBytes(valueString, valueStringLen);
           } else {
+            success &= file.WriteBytes((void*)" [\n", 3);
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%.8g %.8g %.8g\n",
                                        values[i].c[0], values[i].c[1], values[i].c[2]);
@@ -777,10 +785,11 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
         {
           const LuxPoint* values = (const LuxPoint*)tokenValue;
           if (tokenArraySize == 1) {
-            valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
+            valueStringLen = sprintf(valueString, " [%.8g %.8g %.8g",
                                      values[0].x, values[0].y, values[0].z);
             success &= file.WriteBytes(valueString, valueStringLen);
           } else {
+            success &= file.WriteBytes((void*)" [\n", 3);
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%.8g %.8g %.8g\n",
                                        values[i].x, values[i].y, values[i].z);
@@ -793,10 +802,11 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
         {
           const LuxFloat* values = (const LuxFloat*)tokenValue;
           if (tokenArraySize == 2) {
-            valueStringLen = sprintf(valueString, "%.8g %.8g",
+            valueStringLen = sprintf(valueString, " [%.8g %.8g",
                                      values[0], values[1]);
             success &= file.WriteBytes(valueString, valueStringLen);
           } else {
+            success &= file.WriteBytes((void*)" [\n", 3);
             for (ULONG i=1; i<tokenArraySize; i+=2) {
               valueStringLen = sprintf(valueString, "%.8g %.8g\n",
                                        values[i-1], values[i]);
@@ -809,10 +819,11 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
         {
           const LuxNormal* values = (const LuxNormal*)tokenValue;
           if (tokenArraySize == 1) {
-            valueStringLen = sprintf(valueString, "%.8g %.8g %.8g",
+            valueStringLen = sprintf(valueString, " [%.8g %.8g %.8g",
                                      values[0].x, values[0].y, values[0].z);
             success &= file.WriteBytes(valueString, valueStringLen);
           } else {
+            success &= file.WriteBytes((void*)" [\n", 3);
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = sprintf(valueString, "%.8g %.8g %.8g\n",
                                        values[i].x, values[i].y, values[i].z);
@@ -825,10 +836,11 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
         {
           const LuxInteger* values = (const LuxInteger*)tokenValue;
           if (tokenArraySize == 3) {
-            valueStringLen = sprintf(valueString, "%d %d %d",
+            valueStringLen = sprintf(valueString, " [%d %d %d",
                                      values[0], values[1], values[2]);
             success &= file.WriteBytes(valueString, valueStringLen);
           } else {
+            success &= file.WriteBytes((void*)" [\n", 3);
             for (ULONG i=2; i<tokenArraySize; i+=3) {
               valueStringLen = sprintf(valueString, "%d %d %d\n",
                                        values[i-2], values[i-1], values[i]);
@@ -841,10 +853,11 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
         {
           const LuxInteger* values = (const LuxInteger*)tokenValue;
           if (tokenArraySize == 4) {
-            valueStringLen = sprintf(valueString, "%d %d %d %d",
+            valueStringLen = sprintf(valueString, " [%d %d %d %d",
                                      values[0], values[1], values[2], values[3]);
             success &= file.WriteBytes(valueString, valueStringLen);
           } else {
+            success &= file.WriteBytes((void*)" [\n", 3);
             for (ULONG i=3; i<tokenArraySize; i+=4) {
               valueStringLen = sprintf(valueString, "%d %d %d %d\n",
                                        values[i-3], values[i-2], values[i-1], values[i]);
@@ -859,7 +872,7 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
           const LuxString* values = (const LuxString*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = (VLONG)values[0].size();
-            success &= file.WriteChar('"');
+            success &= file.WriteBytes(" [\"", 3);
             if (valueStringLen) {
               LuxString mangled = values[0];
               for (VLONG c=0; c<valueStringLen; ++c) {
@@ -869,6 +882,7 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
             }
             success &= file.WriteChar('"');
           } else {
+            success &= file.WriteBytes(" [\n", 3);
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = (VLONG)values[i].size();
               success &= file.WriteChar('"');

@@ -151,10 +151,10 @@ STRINGTABLE Mluxc4dmaterial
     IDD_ROUGHNESS_VALUE     "Puissance";
     IDD_ROUGHNESS_SHADER    "Texture d'échelle";
 
-    IDD_ROUGHNESS_U_VALUE   "Puissance";
+    IDD_ROUGHNESS_U_VALUE   "Puissance U";
     IDD_ROUGHNESS_U_SHADER  "Texture d'échelle";
 
-    IDD_ROUGHNESS_V_VALUE   "Puissance";
+    IDD_ROUGHNESS_V_VALUE   "Puissance V";
     IDD_ROUGHNESS_V_SHADER  "Texture d'échelle";
 
   IDG_THIN_FILM                   "Film teinté";
