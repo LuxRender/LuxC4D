@@ -46,9 +46,9 @@
  *****************************************************************************/
 
 /// Returns TRUE if two normal vectors are the same (within some error margin).
-static inline Bool equalNormals(const Vector& v1, const Vector& v2)
+static inline Bool equalNormals(const SVector& v1, const SVector& v2)
 {
-  Vector diff(v2-v1);
+  SVector diff(v2-v1);
   return diff.x*diff.x + diff.y*diff.y + diff.z*diff.z < 0.001*0.001 ;
 }
 
@@ -103,9 +103,9 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document,
                                    Bool          resume,
                                    Bool          forceFullExport)
 {
-  Bool        returnValue = FALSE;
-  tagDateTime time;
-  CHAR        buffer[256];
+  Bool     returnValue = FALSE;
+  DateTime time;
+  CHAR     buffer[256];
 
   // show hourglass as mouse pointer
   SetMousePointer(MOUSE_BUSY);
@@ -121,9 +121,13 @@ Bool LuxAPIConverter::convertScene(BaseDocument& document,
   }
 
   // create file head (only important for file export)
-  DateTimeNow(time);
+  GetDateTimeNow(time);
   sprintf(buffer, "# LuxRender scene file\n# Exported by LuxC4D on %d/%d/%d",
+#if _C4D_VERSION < 120
                   (int)time.lDay, (int)time.lMonth, (int)time.lYear);
+#else
+                  (int)time.day, (int)time.month, (int)time.year);
+#endif
 
   // start the scene
   if (!mReceiver->startScene(buffer)) { 
@@ -180,7 +184,7 @@ CLEANUP_AND_RETURN:
 ///    Pointer to the allocated HierarchyData. C4D owns the memory.
 void* LuxAPIConverter::Alloc(void)
 {
-  return gNewNC HierarchyData();
+  return gNew HierarchyData();
 }
 
 
@@ -301,7 +305,7 @@ Bool LuxAPIConverter::obtainGlobalSceneData(void)
 
   // get base container of LuxC4DSettings video post effect node - if available
   mLuxC4DSettings = 0;
-  PluginVideoPost* videoPost = renderData->GetFirstVideoPost();
+  BaseVideoPost* videoPost = renderData->GetFirstVideoPost();
   for (; videoPost; videoPost = videoPost->GetNext()) {
     if (videoPost->GetType() == PID_LUXC4D_SETTINGS) {
       mLuxC4DSettings = (LuxC4DSettings*)videoPost->GetNodeData();
@@ -320,7 +324,7 @@ Bool LuxAPIConverter::obtainGlobalSceneData(void)
   } else {
     mC4D2LuxScale = 0.01;
     mBumpSampleDistance = 0.001 * mC4D2LuxScale;
-    mColorGamma = mTextureGamma = mC4DRenderSettings->GetReal(RDATA_RENDERGAMMA);
+    mColorGamma = mTextureGamma = getRenderGamma(*mC4DRenderSettings);
   }
 
   // obtain stage object if there is one
@@ -536,8 +540,8 @@ Bool LuxAPIConverter::exportPixelFilter(void)
   // if no settings object found, use defaults
   mTempParamSet.clear();
   if (!mLuxC4DSettings) {
-    LuxFloat xWidth = 1.3;
-    LuxFloat yWidth = 1.3;
+    LuxFloat xWidth = 1.3f;
+    LuxFloat yWidth = 1.3f;
     mTempParamSet.addParam(LUX_FLOAT, "xwidth", &xWidth);
     mTempParamSet.addParam(LUX_FLOAT, "ywidth", &yWidth);
     return mReceiver->pixelFilter("gaussian", mTempParamSet);
@@ -639,7 +643,11 @@ Bool LuxAPIConverter::exportLights(void)
   // traverse complete scene hierarchy and export all needed objects
   mDo = &LuxAPIConverter::doLightExport;
   HierarchyData data;
-  return Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER, &data, 0);
+#if _C4D_VERSION >= 120
+  return Run(mDocument, FALSE, 1.0, FALSE, BUILDFLAGS_EXTERNALRENDERER, &data, 0);
+#else
+  return Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER | VFLAG_POLYGONAL, &data, 0);
+#endif
 }
 
 
@@ -1160,8 +1168,8 @@ Bool LuxAPIConverter::exportAutoLight(void)
   // setup and export point light at the position of the camera (works with all
   // integrators)
   PointLightData data;
-  data.mColor = Vector(1.0);
-  data.mGain  = 0.1;
+  data.mColor = LuxColor(1.0f);
+  data.mGain  = 0.1f;
   data.mFrom  = mCamera->GetMg().off * mC4D2LuxScale;
   return exportPointLight(data);
 }
@@ -1260,8 +1268,8 @@ Bool LuxAPIConverter::exportStandardMaterials(void)
 {
   LuxMatteData defaultMaterial;
   defaultMaterial.setChannel(LuxMatteData::DIFFUSE,
-                             gNewNC LuxConstantTextureData(LuxColor(0.8, 0.8, 0.8),
-                                                           mColorGamma));
+                             gNew LuxConstantTextureData(LuxColor(0.8f, 0.8f, 0.8f),
+                                                         mColorGamma));
   if (!defaultMaterial.sendToAPI(*mReceiver, "_default")) {
     ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportStandardMaterials(): Could not export default material.");
   }
@@ -1298,7 +1306,11 @@ Bool LuxAPIConverter::exportGeometry(void)
   mDo = &LuxAPIConverter::doGeometryExport;
   HierarchyData data;
   data.mMaterialName = "_default";
+#if _C4D_VERSION >= 120
+  if (!Run(mDocument, FALSE, 1.0, FALSE, BUILDFLAGS_EXTERNALRENDERER, &data, 0)) {
+#else
   if (!Run(mDocument, FALSE, 1.0, VFLAG_EXTERNALRENDERER | VFLAG_POLYGONAL, &data, 0)) {
+#endif
     return FALSE;
   }
 
@@ -1479,16 +1491,16 @@ Bool LuxAPIConverter::exportMaterial(BaseObject&   object,
     // get texture mapping
     switch (getParameterLong(*textureTag, TEXTURETAG_PROJECTION)) {
       case TEXTURETAG_PROJECTION_SPHERICAL:
-        entry.mMapping = gNewNC LuxSphericalMapping(*textureTag, mC4D2LuxScale);
+        entry.mMapping = gNew LuxSphericalMapping(*textureTag, mC4D2LuxScale);
         break;
       case TEXTURETAG_PROJECTION_CYLINDRICAL:
-        entry.mMapping = gNewNC LuxCylindricalMapping(*textureTag, mC4D2LuxScale);
+        entry.mMapping = gNew LuxCylindricalMapping(*textureTag, mC4D2LuxScale);
         break;
       case TEXTURETAG_PROJECTION_FLAT:
-        entry.mMapping = gNewNC LuxPlanarMapping(*textureTag, mC4D2LuxScale);
+        entry.mMapping = gNew LuxPlanarMapping(*textureTag, mC4D2LuxScale);
         break;
       default:
-        entry.mMapping = gNewNC LuxUVMapping(*textureTag);
+        entry.mMapping = gNew LuxUVMapping(*textureTag);
     }
     if (!entry.mMapping) { ERRLOG_RETURN_VALUE(FALSE, "LuxAPIConverter::exportMaterial(): Could not allocate texture mapping instance."); }
 
@@ -1654,11 +1666,11 @@ Bool LuxAPIConverter::exportMaterial(BaseObject&   object,
 LuxMaterialDataH LuxAPIConverter::convertDummyMaterial(BaseMaterial& material)
 {
   // export dummy matte material with average colour of input material
-  LuxMatteDataH materialData = gNewNC LuxMatteData;
+  LuxMatteDataH materialData = gNew LuxMatteData;
   if (!materialData) { ERRLOG_RETURN_VALUE(materialData, "LuxAPIConverter::convertDummyMaterial(): Could not allocate LuxMatteData"); }
   materialData->setChannel(LuxMatteData::DIFFUSE,
-                           gNewNC LuxConstantTextureData(material.GetAverageColor(),
-                                                         mColorGamma));
+                           gNew LuxConstantTextureData(toSV(material.GetAverageColor()),
+                                                       mColorGamma));
   return materialData;
 }
 
@@ -1676,7 +1688,7 @@ LuxMaterialDataH LuxAPIConverter::convertDiffuseMaterial(LuxTextureMappingH& map
                                                          Material&           material)
 {
   // allocate matte material
-  LuxMatteDataH materialData = gNewNC LuxMatteData;;
+  LuxMatteDataH materialData = gNew LuxMatteData;;
   if (!materialData) { ERRLOG_RETURN_VALUE(materialData, "LuxAPIConverter::convertDiffuseMaterial(): Could not allocate LuxMatteData"); }
 
   // obtain diffuse channel
@@ -1697,7 +1709,7 @@ LuxMaterialDataH LuxAPIConverter::convertDiffuseMaterial(LuxTextureMappingH& map
     LuxFloat roughness = getParameterReal(material, MATERIAL_ILLUMINATION_ROUGHNESS);
     if (roughness > 0.001) {
       materialData->setChannel(LuxMatteData::SIGMA,
-                               gNewNC LuxConstantTextureData(roughness * 180.0));
+                               gNew LuxConstantTextureData(roughness * 180.0));
     }
   }
 
@@ -1723,7 +1735,7 @@ LuxMaterialDataH LuxAPIConverter::convertGlossyMaterial(LuxTextureMappingH& mapp
                                                         Material&           material)
 {
   // allocate glossy material
-  LuxGlossyDataH materialData = gNewNC LuxGlossyData;
+  LuxGlossyDataH materialData = gNew LuxGlossyData;
   if (!materialData) { ERRLOG_RETURN_VALUE(materialData, "LuxAPIConverter::convertGlossyMaterial(): Could not allocate LuxGlossyData"); }
 
   // obtain diffuse channel
@@ -1751,9 +1763,9 @@ LuxMaterialDataH LuxAPIConverter::convertGlossyMaterial(LuxTextureMappingH& mapp
                                           0.0);
     roughness = c4dDispersionToLuxRoughness(roughness);
     materialData->setChannel(LuxGlossyData::UROUGHNESS,
-                             gNewNC LuxConstantTextureData(roughness));
+                             gNew LuxConstantTextureData(roughness));
     materialData->setChannel(LuxGlossyData::VROUGHNESS,
-                             gNewNC LuxConstantTextureData(roughness));
+                             gNew LuxConstantTextureData(roughness));
   }
 
   // obtain bump, emission and alpha channels
@@ -1790,7 +1802,7 @@ LuxMaterialDataH LuxAPIConverter::convertReflectiveMaterial(LuxTextureMappingH& 
   if (roughness < 0.001) {
 
     // allocate mirror material
-    LuxMirrorDataH materialData = gNewNC LuxMirrorData;
+    LuxMirrorDataH materialData = gNew LuxMirrorData;
     if (!materialData) { ERRLOG_RETURN_VALUE(materialData, "LuxAPIConverter::convertReflectiveMaterial(): Could not allocate LuxMirrorData"); }
 
     // obtain specular reflection channel + dispersion
@@ -1815,12 +1827,12 @@ LuxMaterialDataH LuxAPIConverter::convertReflectiveMaterial(LuxTextureMappingH& 
   } else {
 
     // allocate shiny metal material
-    LuxShinyMetalDataH materialData = gNewNC LuxShinyMetalData;
+    LuxShinyMetalDataH materialData = gNew LuxShinyMetalData;
     if (!materialData) { ERRLOG_RETURN_VALUE(materialData, "LuxAPIConverter::convertReflectiveMaterial(): Could not allocate LuxShinyMetalData"); }
 
     // set reflection channel to 0
     materialData->setChannel(LuxShinyMetalData::REFLECTION,
-                             gNewNC LuxConstantTextureData(LuxColor(0.0), 1.0));
+                             gNew LuxConstantTextureData(LuxColor(0.0), 1.0));
 
     // obtain specular reflection channel + dispersion
     if (getParameterLong(material, MATERIAL_USE_REFLECTION)) {
@@ -1833,9 +1845,9 @@ LuxMaterialDataH LuxAPIConverter::convertReflectiveMaterial(LuxTextureMappingH& 
                                                    MATERIAL_REFLECTION_TEXTURESTRENGTH));
       roughness = c4dDispersionToLuxRoughness(roughness);
       materialData->setChannel(LuxShinyMetalData::UROUGHNESS,
-                               gNewNC LuxConstantTextureData(roughness));
+                               gNew LuxConstantTextureData(roughness));
       materialData->setChannel(LuxShinyMetalData::VROUGHNESS,
-                               gNewNC LuxConstantTextureData(roughness));
+                               gNew LuxConstantTextureData(roughness));
     }
 
     // obtain bump, emission and alpha channels
@@ -1878,7 +1890,7 @@ LuxMaterialDataH LuxAPIConverter::convertTransparentMaterial(LuxTextureMappingH&
   if (roughness < 0.001) {
 
     // allocate glass material
-    LuxGlassDataH materialData = gNewNC LuxGlassData;
+    LuxGlassDataH materialData = gNew LuxGlassData;
     if (!materialData) { ERRLOG_RETURN_VALUE(materialData, "LuxAPIConverter::convertTransparentMaterial(): Could not allocate LuxGlassData"); }
 
     // obtain reflection channel
@@ -1908,11 +1920,11 @@ LuxMaterialDataH LuxAPIConverter::convertTransparentMaterial(LuxTextureMappingH&
     if (fabsf(ior - 1.0) < 0.0001) {
       materialData->mArchitectural = TRUE;
       materialData->setChannel(LuxGlassData::IOR,
-                               gNewNC LuxConstantTextureData(1.5));
+                               gNew LuxConstantTextureData(1.5));
     } else {
       materialData->mArchitectural = FALSE;
       materialData->setChannel(LuxGlassData::IOR,
-                               gNewNC LuxConstantTextureData(ior));
+                               gNew LuxConstantTextureData(ior));
     }
 
     // obtain bump, emission and alpha channels
@@ -1926,7 +1938,7 @@ LuxMaterialDataH LuxAPIConverter::convertTransparentMaterial(LuxTextureMappingH&
   } else {
 
     // allocate rough glass material
-    LuxRoughGlassDataH materialData = gNewNC LuxRoughGlassData;
+    LuxRoughGlassDataH materialData = gNew LuxRoughGlassData;
     if (!materialData) { ERRLOG_RETURN_VALUE(materialData, "LuxAPIConverter::convertTransparentMaterial(): Could not allocate LuxRoughGlassData"); }
 
     // obtain reflection channel
@@ -1951,14 +1963,14 @@ LuxMaterialDataH LuxAPIConverter::convertTransparentMaterial(LuxTextureMappingH&
                                                    MATERIAL_TRANSPARENCY_TEXTURESTRENGTH));
       roughness = c4dDispersionToLuxRoughness(roughness);
       materialData->setChannel(LuxRoughGlassData::UROUGHNESS,
-                               gNewNC LuxConstantTextureData(roughness));
+                               gNew LuxConstantTextureData(roughness));
       materialData->setChannel(LuxRoughGlassData::VROUGHNESS,
-                               gNewNC LuxConstantTextureData(roughness));
+                               gNew LuxConstantTextureData(roughness));
     }
 
     // setup IOR texture
     materialData->setChannel(LuxRoughGlassData::IOR,
-                             gNewNC LuxConstantTextureData(ior));
+                             gNew LuxConstantTextureData(ior));
 
     // obtain bump, emission and alpha channels
     addBumpChannel(mapping, material, *materialData);
@@ -1983,7 +1995,7 @@ LuxMaterialDataH LuxAPIConverter::convertTranslucentMaterial(LuxTextureMappingH&
                                                              Material&           material)
 {
   // allocate rough glass material
-  LuxMatteTranslucentDataH materialData = gNewNC LuxMatteTranslucentData;
+  LuxMatteTranslucentDataH materialData = gNew LuxMatteTranslucentData;
   if (!materialData) { ERRLOG_RETURN_VALUE(materialData, "LuxAPIConverter::convertTranslucentMaterial(): Could not allocate LuxMatteTranslucentData"); }
 
   // obtain diffuse channel
@@ -2015,7 +2027,7 @@ LuxMaterialDataH LuxAPIConverter::convertTranslucentMaterial(LuxTextureMappingH&
     LuxFloat roughness = getParameterReal(material, MATERIAL_ILLUMINATION_ROUGHNESS);
     if (roughness > 0.001) {
       materialData->setChannel(LuxMatteTranslucentData::SIGMA,
-                               gNewNC LuxConstantTextureData(roughness * 180.0));
+                               gNew LuxConstantTextureData(roughness * 180.0));
     }
   }
 
@@ -2136,12 +2148,12 @@ Bool LuxAPIConverter::addAlphaChannel(LuxTextureMappingH& mapping,
                         &fullBitmapPath);
 
     // create imagedata texture
-    LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE,
-                                                     mapping,
-                                                     fullBitmapPath,
-                                                     1.0,
-                                                     channel,
-                                                     wrapType);
+    LuxTextureDataH texture = gNew LuxImageMapData(LUX_FLOAT_TEXTURE,
+                                                   mapping,
+                                                   fullBitmapPath,
+                                                   1.0,
+                                                   channel,
+                                                   wrapType);
     if (!texture) { ERRLOG_RETURN_VALUE(FALSE, "Could not allocate alpha channel texture"); }
 
     // set alpha channel and return
@@ -2199,17 +2211,17 @@ LuxTextureDataH LuxAPIConverter::convertFloatChannel(LuxTextureMappingH&       m
                       bitmapPath,
                       Filename(),
                       &fullBitmapPath);
-  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_FLOAT_TEXTURE,
-                                                   mapping,
-                                                   fullBitmapPath,
-                                                   1.0,
-                                                   channel);
+  LuxTextureDataH texture = gNew LuxImageMapData(LUX_FLOAT_TEXTURE,
+                                                 mapping,
+                                                 fullBitmapPath,
+                                                 1.0,
+                                                 channel);
 
   // if strength is not ~1.0, scale texture
   strength *= strengthScale;
   if (fabsf(strength - 1.0) > 0.001) {
-    LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_FLOAT_TEXTURE);
-    scaledTexture->mTexture1 = gNewNC LuxConstantTextureData(strength);
+    LuxScaleTextureDataH scaledTexture = gNew LuxScaleTextureData(LUX_FLOAT_TEXTURE);
+    scaledTexture->mTexture1 = gNew LuxConstantTextureData(strength);
     scaledTexture->mTexture2 = texture;
     texture = scaledTexture;
   }
@@ -2248,11 +2260,11 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(LuxTextureMappingH& mapping
 
   // get texture strength and base colour
   LuxFloat strength = getParameterReal(material, mixerId, 1.0);
-  LuxColor color = getParameterVector(material, colorId);
+  LuxColor color = toSV(getParameterVector(material, colorId));
   if (mColorGamma != 1.0) {
-    color.c[0] = pow(color.c[0], mColorGamma);
-    color.c[1] = pow(color.c[1], mColorGamma);
-    color.c[2] = pow(color.c[2], mColorGamma);
+    color.c[0] = pow(color.c[0], (LuxFloat)mColorGamma);
+    color.c[1] = pow(color.c[1], (LuxFloat)mColorGamma);
+    color.c[2] = pow(color.c[2], (LuxFloat)mColorGamma);
   }
   color *= getParameterReal(material, brightnessId, 1.0);
 
@@ -2260,7 +2272,7 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(LuxTextureMappingH& mapping
   // strength is too small, just create a constant texture of the colour which
   // is also specified in the channel
   if ((strength < 0.001) || !bitmapLink) {
-    return gNewNC LuxConstantTextureData(color, 1.0);
+    return gNew LuxConstantTextureData(color, 1.0);
   }
 
   // if we are here, we've got a bitmap shader -> let's create an imagemap texture
@@ -2270,15 +2282,15 @@ LuxTextureDataH LuxAPIConverter::convertColorChannel(LuxTextureMappingH& mapping
                       bitmapPath,
                       Filename(),
                       &fullBitmapPath);
-  LuxTextureDataH texture = gNewNC LuxImageMapData(LUX_COLOR_TEXTURE,
-                                                   mapping,
-                                                   fullBitmapPath,
-                                                   mTextureGamma);
+  LuxTextureDataH texture = gNew LuxImageMapData(LUX_COLOR_TEXTURE,
+                                                 mapping,
+                                                 fullBitmapPath,
+                                                 mTextureGamma);
 
   // if the texture strength is < 100%, we mix the colour with the texture
   if (strength < 0.999) {
-    LuxMixTextureDataH mixTexture = gNewNC LuxMixTextureData(LUX_COLOR_TEXTURE);
-    mixTexture->mTexture1 = gNewNC LuxConstantTextureData(color, 1.0);
+    LuxMixTextureDataH mixTexture = gNew LuxMixTextureData(LUX_COLOR_TEXTURE);
+    mixTexture->mTexture1 = gNew LuxConstantTextureData(color, 1.0);
     mixTexture->mTexture2 = texture;
     mixTexture->mAmount = strength;
     texture = mixTexture;
@@ -2611,7 +2623,7 @@ Bool LuxAPIConverter::convertAndCacheObject(PolygonObject& object,
 
   // get normals and store them in FixArray1D as we own the memory
   C4DNormalsT normals;
-  Vector*     c4dNormals(0);
+  SVector*    c4dNormals(0);
   if (!noNormals) {
     c4dNormals = object.CreatePhongNormals();
     if (c4dNormals) {
@@ -2643,7 +2655,7 @@ Bool LuxAPIConverter::convertAndCacheObject(PolygonObject& object,
     if (uvwTag && uvs.init(polygonCount*4)) {
       UVWStruct polygonUVWs;
 #if _C4D_VERSION>=115
-      const void* tagData = uvwTag->GetDataAddressR();
+      UVWHandle tagData = uvwTag->GetDataAddressR();
       for (ULONG polygonIx=0; polygonIx<polygonCount; ++polygonIx) {
         uvwTag->Get(tagData, (LONG)polygonIx, polygonUVWs);
 #else
@@ -2831,12 +2843,12 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
   //     if found: store array offset of entry as temporary point index
   //     else:     store array offset of first free entry as temporary point index
   //               store new entry in point2poly map
-  ULONG         polyCount = mPolygonCache.size();
-  CPolygon*     poly;
-  ULONG         newPointCount = 0;
-  Point2PolyN*  point2Poly;
-  const Vector* normal = &(normals[0]);
-  Bool          isQuad;
+  ULONG           polyCount = mPolygonCache.size();
+  CPolygon*       poly;
+  ULONG           newPointCount = 0;
+  Point2PolyN*    point2Poly;
+  const SVector*  normal = &(normals[0]);
+  Bool            isQuad;
   for (ULONG polyIx=0; polyIx<polyCount; ++polyIx) {
     poly   = &mPolygonCache[polyIx];
     isQuad = (poly->c != poly->d);
@@ -2893,8 +2905,8 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
   }
 
   // now determine new node IDs and fill normal and point caches
-  ULONG  newPointIx = 0;
-  Vector normalised;
+  ULONG   newPointIx = 0;
+  SVector normalised;
   for (ULONG pointIx=0; pointIx<pointCount; ++pointIx) {
     for (ULONG point2PolyIx=pointMap[pointIx]; point2PolyIx<pointMap[pointIx+1]; ++point2PolyIx) {
       point2Poly = &(point2PolyMap[point2PolyIx]);
@@ -3090,7 +3102,7 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
   ULONG              newPointCount = 0;
   Point2PolyUN*      point2Poly;
   const LuxVector2D* uv = &(uvs[0]);
-  const Vector*      normal = &(normals[0]);
+  const SVector*     normal = &(normals[0]);
   Bool               isQuad;
   for (ULONG polyIx=0; polyIx<polyCount; ++polyIx) {
     poly   = &mPolygonCache[polyIx];
@@ -3175,8 +3187,8 @@ Bool LuxAPIConverter::convertAndCacheGeometry(PolygonObject&     object,
   }
 
   // now determine new node IDs and fill normal and point caches
-  ULONG  newPointIx = 0;
-  Vector normalised;
+  ULONG   newPointIx = 0;
+  SVector normalised;
   for (ULONG pointIx=0; pointIx<pointCount; ++pointIx) {
     for (ULONG point2PolyIx=pointMap[pointIx]; point2PolyIx<pointMap[pointIx+1]; ++point2PolyIx) {
       point2Poly = &(point2PolyMap[point2PolyIx]);

@@ -24,6 +24,7 @@
  ************************************************************************/
 
 #include "c4d_symbols.h"
+#include "common.h"
 #include "luxapi.h"
 #include "luxc4dportaltag.h"
 #include "tluxc4dportaltag.h"
@@ -58,7 +59,7 @@ Bool LuxC4DPortalTag::registerPlugin(void)
                            TAG_VISIBLE,
                            alloc,
                            "Tluxc4dportaltag",
-                           "icon_portal_tag.tif",
+                           AutoBitmap("icon_portal_tag.tif"),
                            0);
 }
 
@@ -86,9 +87,9 @@ Bool LuxC4DPortalTag::Init(GeListNode* node)
 /// hide descriptions, we don't want to show due to the selection of specific
 /// parameters.
 /// (see C4D API documentation for parameters)
-Bool LuxC4DPortalTag::GetDDescription(GeListNode*  node,
-                                      Description* description,
-                                      LONG&        flags)
+Bool LuxC4DPortalTag::GetDDescription(GeListNode*     node,
+                                      Description*    description,
+                                      DESCFLAGS_DESC& flags)
 {
   // get container for easy access to current values
   BaseContainer* data = getData();
@@ -110,7 +111,7 @@ Bool LuxC4DPortalTag::GetDDescription(GeListNode*  node,
 
   // set flag and return
   flags |= DESCFLAGS_DESC_LOADED;
-  return TRUE;
+  return SUPER::GetDDescription(node, description, flags);
 }
 
 
@@ -127,7 +128,7 @@ Bool LuxC4DPortalTag::GetDEnabling(GeListNode*          node,
 Bool LuxC4DPortalTag::GetDEnabling(GeListNode*          node,
                                    const DescID&        id,
                                    const GeData&        t_data,
-                                   LONG                 flags,
+                                   DESCFLAGS_ENABLE     flags,
                                    const BaseContainer* itemdesc)
 #endif
 {

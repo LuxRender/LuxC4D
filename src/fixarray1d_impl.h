@@ -97,7 +97,7 @@ Bool FixArray1D<T>::init(SizeT size)
   GeAssert(size >= 0);
   erase();
   if (size > 0) {
-    if ((mData = bNewNC T[size]) == 0) {
+    if ((mData = bNew T[size]) == 0) {
       ERRLOG("FixArray1D::init(): could not allocate array of size " + LLongToString(size));
       return FALSE;
     }

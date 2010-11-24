@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="PropsC4DR12.0"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalOptions="/vmg /vms"
+		AdditionalIncludeDirectories="..\..\res;..\..\res\description;$(C4D_ROOT)\resource\_api;$(C4D_ROOT)\resource\_api\c4d_customgui;$(C4D_ROOT)\resource\_api\c4d_libs;$(C4D_ROOT)\resource\_api\c4d_preview;$(C4D_ROOT)\resource\_api\c4d_scaling;$(C4D_ROOT)\resource\_api\c4d_gv;$(C4D_ROOT)\resource\res\description"
+		PreprocessorDefinitions="_C4D_VERSION=120"
+		DisableSpecificWarnings="4100;4201;4244;4245"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalLibraryDirectories="$(C4D_ROOT)\resource\_api_lib"
+	/>
+	<UserMacro
+		Name="C4D_ROOT"
+		Value="..\..\..\..\C4D_R12.0"
+	/>
+</VisualStudioPropertySheet>

@@ -79,17 +79,7 @@ Bool LuxC4DSettings::Init(GeListNode* node)
   }
 
   // get render gamma
-  Real renderGamma;
-  if (c4dRenderSettings) {
-    renderGamma = c4dRenderSettings->GetReal(RDATA_RENDERGAMMA);
-  } else {
-#ifdef __MAC
-    renderGamma = 1.8;
-#else
-    renderGamma = 2.2;
-#endif
-  }
-
+  Real renderGamma = getRenderGamma(*c4dRenderSettings);
 
   // obtain container from node
   BaseContainer* data = getData();
@@ -245,9 +235,9 @@ Bool LuxC4DSettings::Init(GeListNode* node)
 ///   State flags set during loading of description.
 /// @return
 ///   TRUE if successul, FALSE otherwise.
-Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
-                                     Description* description,
-                                     LONG&        flags)
+Bool LuxC4DSettings::GetDDescription(GeListNode*     node,
+                                     Description*    description,
+                                     DESCFLAGS_DESC& flags)
 {
   // obtain container from node
   BaseContainer* data = getData();
@@ -353,10 +343,10 @@ Bool LuxC4DSettings::GetDDescription(GeListNode*  node,
 
 
 ///
-Bool LuxC4DSettings::SetDParameter(GeListNode*   node,
-                                   const DescID& id,
-                                   const GeData& value,
-                                   LONG&         flags)
+Bool LuxC4DSettings::SetDParameter(GeListNode*    node,
+                                   const DescID&  id,
+                                   const GeData&  value,
+                                   DESCFLAGS_SET& flags)
 {
   // obtain container from node
   BaseContainer* data = getData();
@@ -560,7 +550,7 @@ void LuxC4DSettings::getFilm(Bool         resume,
           break;
         case IDD_TONEMAP_KERNEL_LINEAR:
           copyParam(sFleximageLinearSensitivity, paramSet);
-          copyParam(sFleximageLinearExposure,    paramSet, 0.001);
+          copyParam(sFleximageLinearExposure,    paramSet, 0.001f);
           copyParam(sFleximageLinearFStop,       paramSet);
           copyParam(sFleximageLinearGamma,       paramSet);
           break;

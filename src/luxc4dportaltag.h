@@ -55,9 +55,9 @@ public:
   static Bool registerPlugin(void);
 
   virtual Bool Init(GeListNode* node);
-  virtual Bool GetDDescription(GeListNode*  node,
-                               Description* description,
-                               LONG&        flags);
+  virtual Bool GetDDescription(GeListNode*     node,
+                               Description*    description,
+                               DESCFLAGS_DESC& flags);
 #if _C4D_VERSION<115
   virtual Bool GetDEnabling(GeListNode*          node,
                             const DescID&        id,
@@ -68,7 +68,7 @@ public:
   virtual Bool GetDEnabling(GeListNode*          node,
                             const DescID&        id,
                             const GeData&        t_data,
-                            LONG                 flags,
+                            DESCFLAGS_ENABLE     flags,
                             const BaseContainer* itemdesc);
 #endif
 

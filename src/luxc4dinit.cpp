@@ -52,7 +52,7 @@ Bool PluginStart(void)
   }
 
   // register LuxC4DPreferences
-  gPreferences = gNewNC LuxC4DPreferences;
+  gPreferences = gNew LuxC4DPreferences;
   if (!gPreferences) {
     ERRLOG("Could not allocate LuxC4DPreferences plugin.");
     return FALSE;
@@ -64,7 +64,7 @@ Bool PluginStart(void)
   }
 
   // register LuxC4DExporter
-  LuxC4DExporter* exporter = gNewNC LuxC4DExporter;
+  LuxC4DExporter* exporter = gNew LuxC4DExporter;
   if (!exporter) {
     ERRLOG("Could not allocate LuxC4DExporter plugin.");
     return FALSE;
@@ -76,7 +76,7 @@ Bool PluginStart(void)
   }
 
   // register LuxC4DExporterRender
-  LuxC4DExporterRender* exporterRender = gNewNC LuxC4DExporterRender;
+  LuxC4DExporterRender* exporterRender = gNew LuxC4DExporterRender;
   if (!exporterRender) {
     ERRLOG("Could not allocate LuxC4DExporterRender plugin.");
     return FALSE;
@@ -88,7 +88,7 @@ Bool PluginStart(void)
   }
 
   // register LuxC4DResumeRender
-  LuxC4DResumeRender* resumeRender = gNewNC LuxC4DResumeRender;
+  LuxC4DResumeRender* resumeRender = gNew LuxC4DResumeRender;
   if (!resumeRender) {
     ERRLOG("Could not allocate LuxC4DResumeRender plugin.");
     return FALSE;

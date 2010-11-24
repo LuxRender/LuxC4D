@@ -26,6 +26,7 @@
 #include <cstdarg>
 #include <cstdio>
 
+#include "common.h"
 #include "dlist.h"
 #include "filepath.h"
 #include "utilities.h"
@@ -79,15 +80,59 @@ void convert2LuxString(const String&  c4dString,
                        LuxString&     luxString)
 {
 #ifdef __PC
-  const StringEncoding encoding = StXbit;
+  const STRINGENCODING encoding = STRINGENCODING_XBIT;
 #else
-  const StringEncoding encoding = StUTF8;
+  const STRINGENCODING encoding = STRINGENCODING_UTF8;
 #endif
   CHAR buffer[2048];
 
   c4dString.GetCString(buffer, sizeof(buffer), encoding);
   buffer[sizeof(buffer)-1] = '\0';
   luxString = buffer;
+}
+
+
+/// Replacement of SVector::Normalize() as it was added later to Vector and is
+/// not available in R9.6.
+///
+/// @param[in,out]  v
+///   Reference to the vector that will be normalised.
+/// @return
+///   A reference to the input vector, which has been normalised, so that you
+///   can use this function in more alaborate expressions.
+SVector& normalize(SVector& v)
+{
+  SReal vlen = Len(v);
+  if (vlen != 0.0) {
+    v *= 1.0 / vlen;
+  } else {
+    v.x = 1.0;
+    v.y = 0.0;
+    v.z = 0.0;
+  }
+  return v;
+}
+
+
+/// Replacement of LVector::Normalize() as it was added later to Vector and is
+/// not available in R9.6.
+///
+/// @param[in,out]  v
+///   Reference to the vector that will be normalised.
+/// @return
+///   A reference to the input vector, which has been normalised, so that you
+///   can use this function in more alaborate expressions.
+LVector& normalize(LVector& v)
+{
+  LReal vlen = Len(v);
+  if (vlen != 0.0) {
+    v *= 1.0 / vlen;
+  } else {
+    v.x = 1.0;
+    v.y = 0.0;
+    v.z = 0.0;
+  }
+  return v;
 }
 
 
@@ -130,7 +175,7 @@ LONG getParameterLong(C4DAtom& atom,
                       LONG     preset)
 {
   GeData parameter;
-  if (atom.GetParameter(DescLevel(paramID), parameter, 0)) {
+  if (atom.GetParameter(DescLevel(paramID), parameter, DESCFLAGS_GET_0)) {
     return parameter.GetLong();
   }
   return preset;
@@ -153,7 +198,7 @@ Real getParameterReal(C4DAtom& atom,
                       Real     preset)
 {
   GeData parameter;
-  if (atom.GetParameter(DescLevel(paramID), parameter, 0) &&
+  if (atom.GetParameter(DescLevel(paramID), parameter, DESCFLAGS_GET_0) &&
       (parameter.GetType() != DA_NIL))
   {
     return parameter.GetReal();
@@ -178,7 +223,7 @@ Vector getParameterVector(C4DAtom&      atom,
                           const Vector& preset)
 {
   GeData parameter;
-  if (atom.GetParameter(DescLevel(paramID), parameter, 0)) {
+  if (atom.GetParameter(DescLevel(paramID), parameter, DESCFLAGS_GET_0)) {
     return parameter.GetVector();
   }
   return preset;
@@ -201,7 +246,7 @@ String getParameterString(C4DAtom&      atom,
                           const String& preset)
 {
   GeData parameter;
-  if (atom.GetParameter(DescLevel(paramID), parameter, 0)) {
+  if (atom.GetParameter(DescLevel(paramID), parameter, DESCFLAGS_GET_0)) {
     return parameter.GetString();
   }
   return preset;
@@ -224,7 +269,7 @@ Filename getParameterFilename(C4DAtom&        atom,
                               const Filename& preset)
 {
   GeData parameter;
-  if (atom.GetParameter(DescLevel(paramID), parameter, 0)) {
+  if (atom.GetParameter(DescLevel(paramID), parameter, DESCFLAGS_GET_0)) {
     return parameter.GetFilename();
   }
   return preset;
@@ -246,7 +291,7 @@ BaseList2D* getParameterLink(GeListNode& node,
                              LONG        instanceOf)
 {
   GeData parameter;
-  if (node.GetParameter(DescLevel(paramID), parameter, 0)) {
+  if (node.GetParameter(DescLevel(paramID), parameter, DESCFLAGS_GET_0)) {
     BaseLink* link = parameter.GetBaseLink();
     if (link) {
       return link->GetLink(node.GetDocument(), instanceOf);

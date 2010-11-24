@@ -1,7 +1,7 @@
 #! /bin/bash
 
 
-VERSION="0.08_mac"
+VERSION="0.08b_mac"
 DISTRI_DIR="_distri"
 
 

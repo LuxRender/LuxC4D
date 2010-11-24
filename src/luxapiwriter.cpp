@@ -26,6 +26,7 @@
 #include <cstdio>
 
 #include "c4d_symbols.h"
+#include "common.h"
 #include "luxapiwriter.h"
 #include "utilities.h"
 
@@ -135,7 +136,7 @@ Bool LuxAPIWriter::startScene(const char* head)
   // open files
   if (mResume) {
     // open files in resume mode
-    if (!mSceneFile->Open(mSceneFilename, GE_WRITE, FILE_DIALOG)) {
+    if (!mSceneFile->Open(mSceneFilename, FILEOPEN_WRITE, FILEDIALOG_ANY)) {
       mSceneFile->Close();
       ERRLOG_ID_RETURN_VALUE(FALSE, IDS_ERROR_IO,
                              "LuxAPIWriter::startScene(): could not open file '" + mSceneFilename.GetString() + "'");
@@ -146,9 +147,9 @@ Bool LuxAPIWriter::startScene(const char* head)
            writeLine(*mSceneFile, "\n\n# Global Settings\n");
   } else {
     // open files in normal mode
-    if (!mSceneFile->Open(mSceneFilename, GE_WRITE, FILE_DIALOG) ||
-        !mMaterialsFile->Open(mMaterialsFilename, GE_WRITE, FILE_DIALOG) ||
-        !mObjectsFile->Open(mObjectsFilename, GE_WRITE, FILE_DIALOG))
+    if (!mSceneFile->Open(mSceneFilename, FILEOPEN_WRITE, FILEDIALOG_ANY) ||
+        !mMaterialsFile->Open(mMaterialsFilename, FILEOPEN_WRITE, FILEDIALOG_ANY) ||
+        !mObjectsFile->Open(mObjectsFilename, FILEOPEN_WRITE, FILEDIALOG_ANY))
     {
       mSceneFile->Close();
       mMaterialsFile->Close();
@@ -238,7 +239,7 @@ Bool LuxAPIWriter::setComment(const char* text)
 /// LuxAPI::setComment(const String&).
 Bool LuxAPIWriter::setComment(const String& text)
 {
-  mCommentLen = text.GetCString(mComment, sizeof(mComment), StUTF8);
+  mCommentLen = text.GetCString(mComment, sizeof(mComment), STRINGENCODING_UTF8);
   mComment[sizeof(mComment)-1] = '\0';
   return TRUE;
 }

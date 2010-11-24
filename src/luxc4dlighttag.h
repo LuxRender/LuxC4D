@@ -30,6 +30,8 @@
 
 #include <c4d.h>
 
+#include "common.h"
+
 
 
 #define PID_LUXC4D_LIGHT_TAG  1023210
@@ -99,9 +101,9 @@ public:
                                  LightParameters& parameters);
 
   virtual Bool Init(GeListNode* node);
-  virtual Bool GetDDescription(GeListNode*  node,
-                               Description* description,
-                               LONG&        flags);
+  virtual Bool GetDDescription(GeListNode*     node,
+                               Description*    description,
+                               DESCFLAGS_DESC& flags);
   virtual Bool Message(GeListNode *node,
                        LONG       type,
                        void       *data);

@@ -40,7 +40,7 @@
 ///
 NodeData* LuxC4DMaterial::alloc(void)
 {
-  return gNewNC LuxC4DMaterial;
+  return gNew LuxC4DMaterial;
 }
 
 
@@ -123,9 +123,9 @@ Bool LuxC4DMaterial::Init(GeListNode* node)
 
 
 ///
-Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
-                                     Description* description,
-                                     LONG&        flags)
+Bool LuxC4DMaterial::GetDDescription(GeListNode*     node,
+                                     Description*    description,
+                                     DESCFLAGS_DESC& flags)
 {
   // obtain container from node
   BaseContainer* data = getData();
@@ -312,13 +312,13 @@ Bool LuxC4DMaterial::GetDDescription(GeListNode*  node,
 
 
 ///
-Bool LuxC4DMaterial::GetDParameter(GeListNode*   node,
-                                   const DescID& id,
-                                   GeData&       value,
-                                   LONG&         flags)
+Bool LuxC4DMaterial::GetDParameter(GeListNode*    node,
+                                   const DescID&  id,
+                                   GeData&        value,
+                                   DESCFLAGS_GET& flags)
 {
-  // get containter from node
-  BaseContainer* data = ((PluginMaterial*)node)->GetDataInstance();
+  // get container from node
+  BaseContainer* data = ((BaseMaterial*)node)->GetDataInstance();
 
   // special handling for some parameters:
   switch (id[0].id) {
@@ -337,17 +337,17 @@ Bool LuxC4DMaterial::GetDParameter(GeListNode*   node,
 
 
 ///
-Bool LuxC4DMaterial::SetDParameter(GeListNode*   node,
-                                   const DescID& id,
-                                   const GeData& value,
-                                   LONG&         flags)
+Bool LuxC4DMaterial::SetDParameter(GeListNode*    node,
+                                   const DescID&  id,
+                                   const GeData&  value,
+                                   DESCFLAGS_SET& flags)
 {
   // everytime this function is called, something has changed -> keep track of
   // it in counter
   ++mUpdateCount;
 
   // get containter from node
-  BaseContainer *data = ((PluginMaterial*)node)->GetDataInstance();
+  BaseContainer *data = ((BaseMaterial*)node)->GetDataInstance();
 
   // special handling for some parameters:
   switch (id[0].id) {
@@ -415,100 +415,11 @@ Bool LuxC4DMaterial::Message(GeListNode* node,
 Bool LuxC4DMaterial::CopyTo(NodeData*   dest,
                             GeListNode* srcNode,
                             GeListNode* destNode,
-                            LONG        flags,
+                            COPYFLAGS   flags,
                             AliasTrans* aliasTrans)
 {
   ((LuxC4DMaterial*)dest)->mUpdateCount = mUpdateCount;
   return NodeData::CopyTo(dest, srcNode, destNode, flags, aliasTrans);
-}
-
-
-/// Is called only once per rendering - even if there are several instances of
-/// this material.
-LONG LuxC4DMaterial::InitRender(PluginMaterial*   mat,
-                                InitRenderStruct* irs)
-{
-  // store material colour
-  //BaseContainer *data = mat->GetDataInstance();
-  //mColour = data->GetVector(IDD_MATTE_COLOUR);
-
-  //// check if there is a VolumeData available
-  //if (!irs || !irs->vd)  return LOAD_UNKNOWN;
-
-  //// store lights and area lights
-  //LONG lightCount = irs->vd->GetLightCount();
-  //mStandardLights.init(0, lightCount >> 1);
-  //mAreaLights.init(0, lightCount >> 1);
-  //for (LONG lightIndex=0; lightIndex<lightCount; ++lightIndex) {
-  //  RayLight* light = irs->vd->GetLight(lightIndex);
-  //  if (light && light->calc_illum && (light->color != 0.0)) {
-  //    if (light->type == RT_LT_AREA) {
-  //      mAreaLights.push(light);
-  //    } else {
-  //      mStandardLights.push(light);
-  //    }
-  //  }
-  //}
-
-  return LOAD_OK;
-}
-
-
-///
-void LuxC4DMaterial::FreeRender(PluginMaterial* mat)
-{
-  //mStandardLights.erase();
-  //mAreaLights.erase();
-}
-
-
-///
-void LuxC4DMaterial::CalcSurface(PluginMaterial* mat,
-                                 VolumeData*     volumeData)
-{
-  //Vector lightColour, lightVector;
-
-  //// loop over all standard lights and accumulate Oren-Nayar radiance
-  //volumeData->col = 0.0;
-  //for (SizeT light=0; light<mStandardLights.size(); ++light) {
-  //  if (volumeData->IlluminateSurfacePoint(mStandardLights[light],
-  //                                         &lightColour,
-  //                                         &lightVector,
-  //                                         volumeData->p,
-  //                                         volumeData->bumpn,
-  //                                         volumeData->n,
-  //                                         volumeData->orign,
-  //                                         SV(volumeData->ray->v),
-  //                                         volumeData->calc_shadow,
-  //                                         volumeData->lhit,
-  //                                         volumeData->raybits,
-  //                                         TRUE))
-  //  {
-  //    volumeData->col += (mColour^lightColour)*(volumeData->bumpn*lightVector);
-  //  }
-  //}
-
-  //// loop over area lights and accumulate estimated Oren-Nayer radiance
-  //Vector areaDiffuse, areaSpecular;
-  //for (SizeT light=0; light<mAreaLights.size(); ++light) {
-  //  volumeData->CalcArea(mAreaLights[light],
-  //                       FALSE,
-  //                       TRUE,
-  //                       0.0,
-  //                       SV(volumeData->ray->v),
-  //                       volumeData->p,
-  //                       volumeData->bumpn,
-  //                       volumeData->orign,
-  //                       volumeData->raybits,
-  //                       &areaDiffuse,
-  //                       &areaSpecular);
-  //  volumeData->col += areaDiffuse^mColour;
-  //}
-
-  //// lower clipping due to negative lights
-  //if (volumeData->col.x < 0)  volumeData->col.x = 0.0;
-  //if (volumeData->col.y < 0)  volumeData->col.y = 0.0;
-  //if (volumeData->col.z < 0)  volumeData->col.z = 0.0;
 }
 
 
@@ -540,7 +451,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
     // glass
     case IDD_MATERIAL_TYPE_GLASS:
       {
-        LuxGlassDataH glassData = gNewNC LuxGlassData;
+        LuxGlassDataH glassData = gNew LuxGlassData;
         if (!glassData) { return materialData; }
         glassData->mArchitectural = (data->GetBool(IDD_TRANSMISSION_ARCHITECTURAL) != FALSE);
         materialData = glassData;
@@ -565,7 +476,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
                       IDD_IOR_SHADER,
                       *data, mapping, *materialData);
       materialData->setChannel(LuxGlassData::CAUCHY_B,
-                               gNewNC LuxConstantTextureData(data->GetReal(IDD_TRANSMISSION_CAUCHYB)));
+                               gNew LuxConstantTextureData(data->GetReal(IDD_TRANSMISSION_CAUCHYB)));
       getFloatChannel(LuxGlassData::FILM_THICKNESS,
                       IDD_TOGGLE_THIN_FILM,
                       IDD_THIN_FILM_THICKNESS,
@@ -580,7 +491,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
 
     // rough glass
     case IDD_MATERIAL_TYPE_ROUGH_GLASS:
-      materialData = gNewNC LuxRoughGlassData;
+      materialData = gNew LuxRoughGlassData;
       if (!materialData) { return materialData; }
       getColorChannel(LuxRoughGlassData::REFLECTION,
                       IDD_TOGGLE_REFLECTION,
@@ -602,7 +513,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
                       IDD_IOR_SHADER,
                       *data, mapping, *materialData);
       materialData->setChannel(LuxRoughGlassData::CAUCHY_B,
-                               gNewNC LuxConstantTextureData(data->GetReal(IDD_TRANSMISSION_CAUCHYB)));
+                               gNew LuxConstantTextureData(data->GetReal(IDD_TRANSMISSION_CAUCHYB)));
       if (data->GetBool(IDD_ROUGHNESS_ASYMETRIC)) {
         getFloatChannel(LuxRoughGlassData::UROUGHNESS,
                         IDD_TOGGLE_ROUGHNESS,
@@ -630,7 +541,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
 
     // glossy
     case IDD_MATERIAL_TYPE_GLOSSY:
-      materialData = gNewNC LuxGlossyData;
+      materialData = gNew LuxGlossyData;
       if (!materialData) { return materialData; }
       getColorChannel(LuxGlossyData::DIFFUSE,
                       IDD_TOGGLE_DIFFUSE,
@@ -690,7 +601,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
 
     // matte
     case IDD_MATERIAL_TYPE_MATTE:
-      materialData = gNewNC LuxMatteData;
+      materialData = gNew LuxMatteData;
       if (!materialData) { return materialData; }
       getColorChannel(LuxMatteData::DIFFUSE,
                       IDD_TOGGLE_DIFFUSE,
@@ -708,7 +619,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
 
     // matte translucent
     case IDD_MATERIAL_TYPE_MATTE_TRANSLUCENT:
-      materialData = gNewNC LuxMatteTranslucentData;
+      materialData = gNew LuxMatteTranslucentData;
       if (!materialData) { return materialData; }
       getColorChannel(LuxMatteTranslucentData::DIFFUSE,
                       IDD_TOGGLE_DIFFUSE,
@@ -734,7 +645,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
     // metal
     case IDD_MATERIAL_TYPE_METAL:
       {
-        LuxMetalDataH metalData = gNewNC LuxMetalData;
+        LuxMetalDataH metalData = gNew LuxMetalData;
         if (!metalData) { return materialData; }
         LONG metalType = data->GetLong(IDD_METAL_TYPE);
         if (metalType < IDD_METAL_TYPE_NK_FILE) {
@@ -776,7 +687,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
 
     // shiny metal
     case IDD_MATERIAL_TYPE_SHINY_METAL:
-      materialData = gNewNC LuxShinyMetalData;
+      materialData = gNew LuxShinyMetalData;
       if (!materialData) { return materialData; }
       getColorChannel(LuxShinyMetalData::REFLECTION,
                       IDD_TOGGLE_REFLECTION,
@@ -836,7 +747,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
 
     // mirror
     case IDD_MATERIAL_TYPE_MIRROR:
-      materialData = gNewNC LuxMirrorData;
+      materialData = gNew LuxMirrorData;
       if (!materialData) { return materialData; }
       getColorChannel(LuxMirrorData::REFLECTION,
                       IDD_TOGGLE_REFLECTION,
@@ -859,7 +770,7 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
 
     // car paint
     case IDD_MATERIAL_TYPE_CAR_PAINT:
-      materialData = gNewNC LuxCarPaintData;
+      materialData = gNew LuxCarPaintData;
       if (!materialData) { return materialData; }
       getColorChannel(LuxCarPaintData::DIFFUSE,
                       IDD_TOGGLE_DIFFUSE,
@@ -876,9 +787,9 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
                         IDD_CARPAINT_SPECULAR_BRIGHTNESS1,
                         *data, mapping, colorGamma, textureGamma, *materialData);
         materialData->setChannel(LuxCarPaintData::R1,
-                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R1))));
+                                 gNew LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R1))));
         materialData->setChannel(LuxCarPaintData::M1,
-                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_M1))));
+                                 gNew LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_M1))));
       }
       if (data->GetBool(IDD_TOGGLE_CARPAINT_SPECULAR2)) {
         getColorChannel(LuxCarPaintData::SPECULAR_2, 0,
@@ -888,9 +799,9 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
                         IDD_CARPAINT_SPECULAR_BRIGHTNESS2,
                         *data, mapping, colorGamma, textureGamma, *materialData);
         materialData->setChannel(LuxCarPaintData::R2,
-                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R2))));
+                                 gNew LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R2))));
         materialData->setChannel(LuxCarPaintData::M2,
-                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_M2))));
+                                 gNew LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_M2))));
       }
       if (data->GetBool(IDD_TOGGLE_CARPAINT_SPECULAR3)) {
         getColorChannel(LuxCarPaintData::SPECULAR_3, 0,
@@ -900,9 +811,9 @@ LuxMaterialDataH LuxC4DMaterial::getLuxMaterialData(LuxTextureMappingH mapping,
                         IDD_CARPAINT_SPECULAR_BRIGHTNESS3,
                         *data, mapping, colorGamma, textureGamma, *materialData);
         materialData->setChannel(LuxCarPaintData::R3,
-                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R3))));
+                                 gNew LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_R3))));
         materialData->setChannel(LuxCarPaintData::M3,
-                                 gNewNC LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_M3))));
+                                 gNew LuxConstantTextureData(LuxFloat(data->GetReal(IDD_CARPAINT_M3))));
       }
       getColorChannel(LuxCarPaintData::ABSORPTION,
                       IDD_TOGGLE_COATING_ABSORPTION,
@@ -1037,12 +948,12 @@ LuxTextureDataH LuxC4DMaterial::getTextureFromShader(BaseContainer&            d
                       bitmapPath,
                       Filename(),
                       &fullBitmapPath);
-  return gNewNC LuxImageMapData(textureType,
-                                mapping,
-                                fullBitmapPath,
-                                textureGamma,
-                                channel,
-                                wrapType);
+  return gNew LuxImageMapData(textureType,
+                              mapping,
+                              fullBitmapPath,
+                              textureGamma,
+                              channel,
+                              wrapType);
 }
 
 
@@ -1065,8 +976,8 @@ LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG               toggleId,
   LuxTextureDataH unscaledTexture;
   // if shader strength is too low, only use colour
   if (shaderStrength < 0.0001) {
-    unscaledTexture = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)),
-                                                    colorGamma);
+    unscaledTexture = gNew LuxConstantTextureData(LuxColor(data.GetVector(colorId)),
+                                                  colorGamma);
   // otherwise:
   } else {
     // get texture and if that fails, just use the colour
@@ -1076,14 +987,14 @@ LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG               toggleId,
                                            mapping,
                                            textureGamma);
     if (!unscaledTexture) {
-      unscaledTexture = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)),
-                                                      colorGamma);
+      unscaledTexture = gNew LuxConstantTextureData(LuxColor(data.GetVector(colorId)),
+                                                    colorGamma);
     // if we could get a texture and the shader strength is >= 0.0001 and < 0.9999,
     // mix colour and texture (otherwise stick with texture only)
     } else if (shaderStrength < 0.9999) {
-      LuxMixTextureDataH mixedTexture = gNewNC LuxMixTextureData(LUX_COLOR_TEXTURE);
-      mixedTexture->mTexture1 = gNewNC LuxConstantTextureData(LuxColor(data.GetVector(colorId)),
-                                                              colorGamma);
+      LuxMixTextureDataH mixedTexture = gNew LuxMixTextureData(LUX_COLOR_TEXTURE);
+      mixedTexture->mTexture1 = gNew LuxConstantTextureData(LuxColor(data.GetVector(colorId)),
+                                                            colorGamma);
       mixedTexture->mTexture2 = unscaledTexture;
       mixedTexture->mAmount = shaderStrength;
       unscaledTexture = mixedTexture;
@@ -1093,9 +1004,9 @@ LuxTextureDataH LuxC4DMaterial::getColorTexture(LONG               toggleId,
   // if brightness is ~= ~1.0, scale texture with brightness
   Real brightness = brightnessId ? data.GetReal(brightnessId, 1.0) : 1.0;
   if (fabsf(brightness-1.0) > 0.0001) {
-    LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_COLOR_TEXTURE);
+    LuxScaleTextureDataH scaledTexture = gNew LuxScaleTextureData(LUX_COLOR_TEXTURE);
     scaledTexture->mTexture1 = unscaledTexture;
-    scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(LuxColor(brightness), 1.0);
+    scaledTexture->mTexture2 = gNew LuxConstantTextureData(LuxColor(brightness), 1.0);
     return scaledTexture;
   // if brightness == ~1.0, stick with texture obtained above
   } else {
@@ -1146,7 +1057,7 @@ LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                     toggleI
   Real value = scaleFactor * data.GetReal(valueId);
   if (value == 0.0) { return LuxTextureDataH(); }
 
-  LuxTextureDataH valueTexture = gNewNC LuxConstantTextureData(value);
+  LuxTextureDataH valueTexture = gNew LuxConstantTextureData(value);
   LuxTextureDataH shaderTexture = getTextureFromShader(data,
                                                        shaderId,
                                                        LUX_FLOAT_TEXTURE,
@@ -1154,7 +1065,7 @@ LuxTextureDataH LuxC4DMaterial::getFloatTexture(LONG                     toggleI
                                                        1.0,
                                                        channel);
   if (shaderTexture) {
-    LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_FLOAT_TEXTURE);
+    LuxScaleTextureDataH scaledTexture = gNew LuxScaleTextureData(LUX_FLOAT_TEXTURE);
     scaledTexture->mTexture1 = shaderTexture;
     scaledTexture->mTexture2 = valueTexture;
     return scaledTexture;
@@ -1267,19 +1178,19 @@ void LuxC4DMaterial::getAlphaChannel(BaseContainer&     data,
     // only if scaling value is less than 1:
     if (value <= 0.999) {
       // scale texture
-      LuxScaleTextureDataH scaledTexture = gNewNC LuxScaleTextureData(LUX_FLOAT_TEXTURE);
+      LuxScaleTextureDataH scaledTexture = gNew LuxScaleTextureData(LUX_FLOAT_TEXTURE);
       if (scaledTexture) {
         scaledTexture->mTexture1 = texture;
-        scaledTexture->mTexture2 = gNewNC LuxConstantTextureData(value);
+        scaledTexture->mTexture2 = gNew LuxConstantTextureData(value);
         if (mapping->isTiled()) {
           // if tiling is enabled, just use the scaled texture
           texture = scaledTexture;
         } else {
           // if tiling is disabled, add a UV mask texture
-          LuxUVMaskTextureDataH maskedTexture = gNewNC LuxUVMaskTextureData(LUX_FLOAT_TEXTURE);
+          LuxUVMaskTextureDataH maskedTexture = gNew LuxUVMaskTextureData(LUX_FLOAT_TEXTURE);
           maskedTexture->mMapping  = mapping;
           maskedTexture->mInnerTex = scaledTexture;
-          maskedTexture->mOuterTex = gNewNC LuxConstantTextureData(inverted ? 1.0 : 0.0);
+          maskedTexture->mOuterTex = gNew LuxConstantTextureData(inverted ? 1.0 : 0.0);
           texture = maskedTexture;
         }
       }
@@ -1287,13 +1198,13 @@ void LuxC4DMaterial::getAlphaChannel(BaseContainer&     data,
   } else {
     // don't set any alpha, if material is effectively opaque
     if ((!inverted && (value>0.999)) || (inverted && (value<0.001))) { return; }
-    texture = gNewNC LuxConstantTextureData(value);
+    texture = gNew LuxConstantTextureData(value);
     // if tiling is disabled, add a UV mask texture
     if (!mapping->isTiled()) {
-      LuxUVMaskTextureDataH maskedTexture = gNewNC LuxUVMaskTextureData(LUX_FLOAT_TEXTURE);
+      LuxUVMaskTextureDataH maskedTexture = gNew LuxUVMaskTextureData(LUX_FLOAT_TEXTURE);
       maskedTexture->mMapping  = mapping;
       maskedTexture->mInnerTex = texture;
-      maskedTexture->mOuterTex = gNewNC LuxConstantTextureData(inverted ? 1.0 : 0.0);
+      maskedTexture->mOuterTex = gNew LuxConstantTextureData(inverted ? 1.0 : 0.0);
       texture = maskedTexture;
     }
   }

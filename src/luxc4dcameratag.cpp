@@ -58,7 +58,7 @@ Bool LuxC4DCameraTag::registerPlugin(void)
                            TAG_VISIBLE,
                            alloc,
                            "Tluxc4dcameratag",
-                           "icon_camera_tag.tif",
+                           AutoBitmap("icon_camera_tag.tif"),
                            0);
 }
 
@@ -230,9 +230,9 @@ Bool LuxC4DCameraTag::Init(GeListNode* node)
 ///   State flags set during loading of description.
 /// @return
 ///   TRUE if successul, FALSE otherwise.
-Bool LuxC4DCameraTag::GetDDescription(GeListNode*  node,
-                                      Description* description,
-                                      LONG&        flags)
+Bool LuxC4DCameraTag::GetDDescription(GeListNode*     node,
+                                      Description*    description,
+                                      DESCFLAGS_DESC& flags)
 {
   // get container for easy access to current values
   BaseContainer* data = getData();
@@ -261,7 +261,7 @@ Bool LuxC4DCameraTag::GetDDescription(GeListNode*  node,
 
   // set flag and return
   flags |= DESCFLAGS_DESC_LOADED;
-  return TRUE;
+  return SUPER::GetDDescription(node, description, flags);
 }
 
 

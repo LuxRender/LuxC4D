@@ -44,7 +44,8 @@ Bool LuxC4DExporter::registerPlugin(void)
 {
   return RegisterCommandPlugin(PID_LUXC4D_EXPORTER,
                                GeLoadString(IDS_LUXC4D_EXPORTER),
-                               0, "icon_export.tif",
+                               0,
+                               AutoBitmap("icon_export.tif"),
                                GeLoadString(IDS_LUXC4D_EXPORTER_DESCR),
                                this);
 }
@@ -87,7 +88,7 @@ Bool LuxC4DExporter::exportScene(BaseDocument* document,
   LuxC4DSettings* settingsNode = 0;
   RenderData*     renderData = document->GetActiveRenderData();
   if (renderData) {
-    PluginVideoPost* videoPost = renderData->GetFirstVideoPost();
+    BaseVideoPost* videoPost = renderData->GetFirstVideoPost();
     for (; videoPost; videoPost = videoPost->GetNext()) {
       if (videoPost->GetType() == PID_LUXC4D_SETTINGS) {
         settingsNode = (LuxC4DSettings*)videoPost->GetNodeData();
@@ -121,9 +122,9 @@ Bool LuxC4DExporter::exportScene(BaseDocument* document,
   Bool selectFilename = FALSE;
   if (mExportedFile.Content()) {
     if (!overwritingAllowed && GeFExist(mExportedFile)) {
-      LONG answer = GeOutString(GeLoadString(IDS_OVERWRITE_FILE_QUERY,
-                                             mExportedFile.GetFileString()),
-                                GEMB_YESNOCANCEL);
+      GEMB_R answer = GeOutString(GeLoadString(IDS_OVERWRITE_FILE_QUERY,
+                                               mExportedFile.GetFileString()),
+                                  GEMB_YESNOCANCEL);
       if (answer == GEMB_R_CANCEL) { return FALSE; }
       if (answer == GEMB_R_NO) { selectFilename = TRUE; }
     }
@@ -137,9 +138,13 @@ Bool LuxC4DExporter::exportScene(BaseDocument* document,
 
   // ... get export filename, if needed
   if (selectFilename) {
-    LONG answer;
+    GEMB_R answer;
     for (;;) {
-      if (!mExportedFile.FileSelect(FSTYPE_ANYTHING, GE_SAVE, &GeLoadString(IDS_EXPORT_FILENAME_QUERY))) {
+      if (!fileSelect(mExportedFile,
+                      FILESELECTTYPE_ANYTHING,
+                      FILESELECT_SAVE,
+                      GeLoadString(IDS_EXPORT_FILENAME_QUERY)))
+      {
         return FALSE;
       }
       Filename unchanged(mExportedFile);

@@ -76,14 +76,14 @@ template <class T>
 Bool DList<T>::appendFront()
 {
   if (mFront) {
-    mFront->mPrevious = gNewNC Node(0, mFront);
+    mFront->mPrevious = gNew Node(0, mFront);
     if (!mFront->mPrevious) {
       ERRLOG("DList::appendFront(): could not allocate new node for list");
       return FALSE;
     }
     mFront = mFront->mPrevious;
   } else {
-    mFront = mBack = gNewNC Node(0, 0);
+    mFront = mBack = gNew Node(0, 0);
     if (!mFront) {
       ERRLOG("DList::appendFront(): could not allocate new node for list");
       return FALSE;
@@ -98,14 +98,14 @@ template <class T>
 Bool DList<T>::appendBack()
 {
   if (mBack) {
-    mBack->mNext = gNewNC Node(mBack, 0);
+    mBack->mNext = gNew Node(mBack, 0);
     if (!mBack->mNext) {
       ERRLOG("DList::appendBack(): could not allocate new node for list");
       return FALSE;
     }
     mBack = mBack->mNext;
   } else {
-    mFront = mBack = gNewNC Node(0, 0);
+    mFront = mBack = gNew Node(0, 0);
     if (!mFront) {
       ERRLOG("DList::appendBack(): could not allocate new node for list");
       return FALSE;
@@ -152,14 +152,14 @@ template <class T>
 Bool DList<T>::pushFront(const T& value)
 {
   if (mFront) {
-    mFront->mPrevious = gNewNC Node(0, mFront, value);
+    mFront->mPrevious = gNew Node(0, mFront, value);
     if (!mFront->mPrevious) {
       ERRLOG("DList::pushFront(): could not allocate new node for list");
       return FALSE;
     }
     mFront = mFront->mPrevious;
   } else {
-    mFront = mBack = gNewNC Node(0, 0, value);
+    mFront = mBack = gNew Node(0, 0, value);
     if (!mFront) {
       ERRLOG("DList::pushFront(): could not allocate new node for list");
       return FALSE;
@@ -174,14 +174,14 @@ template <class T>
 Bool DList<T>::pushBack(const T& value)
 {
   if (mBack) {
-    mBack->mNext = gNewNC Node(mBack, 0, value);
+    mBack->mNext = gNew Node(mBack, 0, value);
     if (!mBack->mNext) {
       ERRLOG("DList::pushBack(): could not allocate new node for list");
       return FALSE;
     }
     mBack = mBack->mNext;
   } else {
-    mFront = mBack = gNewNC Node(0, 0, value);
+    mFront = mBack = gNew Node(0, 0, value);
     if (!mFront) {
       ERRLOG("DList::pushBack(): could not allocate new node for list");
       return FALSE;

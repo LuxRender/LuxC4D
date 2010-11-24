@@ -30,6 +30,7 @@
 
 #include <c4d.h>
 
+#include "common.h"
 #include "luxparamset.h"
 
 
@@ -56,13 +57,13 @@ public:
   static Bool registerPlugin(void);
 
   virtual Bool Init(GeListNode* node);
-  virtual Bool GetDDescription(GeListNode*  node,
-                               Description* description,
-                               LONG&        flags);
-  virtual Bool SetDParameter(GeListNode*   node,
-                             const DescID& id,
-                             const GeData& value,
-                             LONG&         flags);
+  virtual Bool GetDDescription(GeListNode*     node,
+                               Description*    description,
+                               DESCFLAGS_DESC& flags);
+  virtual Bool SetDParameter(GeListNode*    node,
+                             const DescID&  id,
+                             const GeData&  value,
+                             DESCFLAGS_SET& flags);
 
   void getFilm(Bool         resume,
                const char*& name,

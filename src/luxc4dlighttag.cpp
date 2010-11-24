@@ -55,7 +55,7 @@ Bool LuxC4DLightTag::registerPlugin(void)
                            TAG_VISIBLE,
                            alloc,
                            "Tluxc4dlighttag",
-                           "icon_light_tag.tif",
+                           AutoBitmap("icon_light_tag.tif"),
                            0);
 }
 
@@ -401,9 +401,9 @@ Bool LuxC4DLightTag::Init(GeListNode* node)
 ///   State flags set during loading of description.
 /// @return
 ///   TRUE if successul, FALSE otherwise.
-Bool LuxC4DLightTag::GetDDescription(GeListNode*  node,
-                                     Description* description,
-                                     LONG&        flags)
+Bool LuxC4DLightTag::GetDDescription(GeListNode*     node,
+                                     Description*    description,
+                                     DESCFLAGS_DESC& flags)
 {
   // get tag list node
   BaseTag* tag = (BaseTag*)node;
@@ -483,7 +483,7 @@ Bool LuxC4DLightTag::GetDDescription(GeListNode*  node,
 
   // set flag and return
   flags |= DESCFLAGS_DESC_LOADED;
-  return TRUE;
+  return SUPER::GetDDescription(node, description, flags);
 }
 
 

@@ -30,6 +30,8 @@
 
 #include <string>
 
+#include "common.h"
+
 
 
 #ifndef MAXLONG
@@ -249,14 +251,14 @@ struct LuxNormal
 
   /// Constructor that automatically converts a C4D vector into a Lux normal.
   /// @param c4dVector  The C4D vector to convert.
-  inline LuxNormal(const Vector& c4dVector)
+  inline LuxNormal(const SVector& c4dVector)
   {
     *this = c4dVector;
   }
 
   /// Copies and converts a C4D vector into a Lux normal.
   /// @param c4dVector  The C4D vector to convert.
-  inline LuxNormal& operator=(const Vector& c4dVector)
+  inline LuxNormal& operator=(const SVector& c4dVector)
   {
     x = c4dVector.x;
     y = c4dVector.z;
@@ -391,11 +393,20 @@ struct LuxColor
 
   /// Constructor that automatically converts a C4D vector into a Lux color.
   /// @param[in] c4dVector  The C4D vector to convert.
-  inline LuxColor(const Vector& c4dVector)
+  inline LuxColor(const SVector& c4dVector)
   {
-    c[0] = c4dVector.x;
-    c[1] = c4dVector.y;
-    c[2] = c4dVector.z;
+    c[0] = (LuxFloat)c4dVector.x;
+    c[1] = (LuxFloat)c4dVector.y;
+    c[2] = (LuxFloat)c4dVector.z;
+  }
+
+  /// Constructor that automatically converts a C4D vector into a Lux color.
+  /// @param[in] c4dVector  The C4D vector to convert.
+  inline LuxColor(const LVector& c4dVector)
+  {
+    c[0] = (LuxFloat)c4dVector.x;
+    c[1] = (LuxFloat)c4dVector.y;
+    c[2] = (LuxFloat)c4dVector.z;
   }
 
   ///

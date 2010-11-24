@@ -2,7 +2,7 @@
 
 rem  Here you can configure the compression tool and the version number that will
 rem  be used in the archive filename.
-set VERSION=0.08_win
+set VERSION=0.08b_win
 set PACKER_DIR=c:\program files\7-zip
 set PACKER="%PACKER_DIR%\7za.exe"
 set ARCHIVE_OPT=a -tzip -mx9
@@ -51,20 +51,26 @@ call :BUILD_AND_COMPRESS
 REM set CONFIG=R10.5_Debug
 REM set CONFIG_ZIP=r10.5_debug
 REM call :BUILD_AND_COMPRESS
-set CONFIG=R10.5_Release
-set CONFIG_ZIP=r10.5_release
-call :BUILD_AND_COMPRESS
+REM set CONFIG=R10.5_Release
+REM set CONFIG_ZIP=r10.5_release
+REM call :BUILD_AND_COMPRESS
 REM set CONFIG=R11.0_Debug
 REM set CONFIG_ZIP=r11.0_debug
 REM call :BUILD_AND_COMPRESS
-set CONFIG=R11.0_Release
-set CONFIG_ZIP=r11.0_release
-call :BUILD_AND_COMPRESS
+REM set CONFIG=R11.0_Release
+REM set CONFIG_ZIP=r11.0_release
+REM call :BUILD_AND_COMPRESS
 REM set CONFIG=R11.5_Debug
 REM set CONFIG_ZIP=r11.5_debug
 REM call :BUILD_AND_COMPRESS
 set CONFIG=R11.5_Release
 set CONFIG_ZIP=r11.5_release
+call :BUILD_AND_COMPRESS
+REM set CONFIG=R12.0_Debug
+REM set CONFIG_ZIP=r12.0_debug
+REM call :BUILD_AND_COMPRESS
+set CONFIG=R12.0_Release
+set CONFIG_ZIP=r12.0_release
 call :BUILD_AND_COMPRESS
 
 rem  Remove plugin files
@@ -82,12 +88,12 @@ if not exist %CONFIG%\LuxC4D.cdl (
   goto :PRINT_ERROR_AND_EXIT
 )
 %VC% LuxC4D.sln /rebuild "%CONFIG%|x64"
-if not exist x64\%CONFIG%\LuxC4D.cdl64 (
+if not exist %CONFIG%\LuxC4D.cdl64 (
   set MSG="Build of configuration '%CONFIG% - x64' failed!"
   goto :PRINT_ERROR_AND_EXIT
 )
 xcopy /q /y %CONFIG%\LuxC4D.cdl %DISTRI_DIR%\LuxC4D\
-xcopy /q /y x64\%CONFIG%\LuxC4D.cdl64 %DISTRI_DIR%\LuxC4D\
+xcopy /q /y %CONFIG%\LuxC4D.cdl64 %DISTRI_DIR%\LuxC4D\
 cd %DISTRI_DIR%
 %PACKER% %ARCHIVE_OPT% LuxC4D_%VERSION%_%CONFIG_ZIP%.%ARCHIVE_SUFFIX% LuxC4D
 cd ..

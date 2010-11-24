@@ -85,6 +85,10 @@ void debugLog(const String& msg);
 void convert2LuxString(const String& c4dString,
                        LuxString&    luxString);
 
+SVector& normalize(SVector& v);
+
+LVector& normalize(LVector& v);
+
 void showParameter(Description* description,
                    LONG         paramID,
                    AtomArray*   params,
@@ -121,28 +125,6 @@ Bool executeProgram(const Filename& programFileName,
  * Inlined functions
  *****************************************************************************/
 
-/// Replacement of Vector::Normalize() as it was added later to Vector and is
-/// not available in R9.6.
-///
-/// @param[in,out]  Vector
-///   Reference to the vector that will be normalised.
-/// @return
-///   A reference to the input vector, which has been normalised, so that you
-///   can use this function in more alaborate expressions.
-inline Vector& normalize(Vector& v)
-{
-  Real vlen = Len(v);
-  if (vlen != 0.0f) {
-    v /= vlen;
-  } else {
-    v.x = 1.0;
-    v.y = 0.0;
-    v.z = 0.0;
-  }
-  return v;
-}
-
-
 /// Wrapper which returns the point positions of a PointObject. This is needed
 /// as with R10 the function name changed.
 ///
@@ -173,6 +155,18 @@ inline const CPolygon* getPolygons(PolygonObject& object)
   return object.GetPolygonR();
 #else
   return object.GetPolygon();
+#endif
+}
+
+
+inline Real getRenderGamma(BaseContainer &c4dRenderSettings)
+{
+#if _C4D_VERSION >= 120
+  return 2.2;
+#elif defined(__MAC)
+  return c4dRenderSettings.GetReal(RDATA_RENDERGAMMA, 1.8);
+#else
+  return c4dRenderSettings.GetReal(RDATA_RENDERGAMMA, 2.2);
 #endif
 }
 

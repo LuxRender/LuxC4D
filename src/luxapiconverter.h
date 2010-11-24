@@ -236,8 +236,8 @@ private:
 
   // Union which is used during conversion of vertices with normals.
   union Point2PolyN {
-    const Vector* normalRef;
-    ULONG         newPoint;
+    const SVector* normalRef;
+    ULONG          newPoint;
   };
 
   // Union which is used during conversion of vertices with UVs.
@@ -249,8 +249,8 @@ private:
   // Union which is used during conversion of vertices with UVs and normals.
   union Point2PolyUN {
     struct {
-      const LuxVector2D* uv;
-      const Vector*      normal;
+      const LuxVector2D*  uv;
+      const SVector*      normal;
     }                  ref;
     ULONG              newPoint;
   };
@@ -282,7 +282,7 @@ private:
   /// The container type for storing C4D polygons.
   typedef FixArray1D<CPolygon>                              C4DPolygonsT;
   /// The container type for storing C4D normal vectors.
-  typedef FixArray1D<Vector>                                C4DNormalsT;
+  typedef FixArray1D<SVector>                               C4DNormalsT;
   /// Helper array, which is used during the geometry conversion.
   typedef FixArray1D<ULONG>                                 PointMapT;
 

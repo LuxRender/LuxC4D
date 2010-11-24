@@ -185,7 +185,7 @@ typename RBTreeSet<T>::Node* RBTreeSet<T>::insert(Node*         node,
 {
   // if we have found a leave, add new node to it and return
   if (!node) {
-    mNewNode = gNewNC Node(value);
+    mNewNode = gNew Node(value);
     return mNewNode;
   }
 

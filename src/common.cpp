@@ -24,39 +24,26 @@
  ************************************************************************/
 
 #include "common.h"
-#include "filepath.h"
-#include "luxc4dresumerender.h"
-#include "luxc4dpreferences.h"
 
 
 
-/*****************************************************************************
- * Implementation of public member functions of class LuxC4DResumeRender.
- *****************************************************************************/
+#if _C4D_VERSION < 120
 
-/// Registers this plugin instance in CINEMA 4D.
-///
-/// @return
-///   TRUE if successfull, otherwise FALSE.
-Bool LuxC4DResumeRender::registerPlugin(void)
+
+AutoBitmap::AutoBitmap(const String &name)
 {
-  return RegisterCommandPlugin(PID_LUXC4D_RESUMERENDER,
-                               GeLoadString(IDS_LUXC4D_RESUMERENDER),
-                               0,
-                               AutoBitmap("icon_resume_render.tif"),
-                               GeLoadString(IDS_LUXC4D_RESUMERENDER_DESCR),
-                               this);
+  mBitmap = BaseBitmap::Alloc();
+  if (!mBitmap) { return; }
+  if (mBitmap->Init(GeGetPluginPath()+String("res")+name) != IMAGE_OK) {
+    BaseBitmap::Free(mBitmap);
+  }
 }
 
 
-/// Gets called when the user selects the plugin in the menu. The actual export
-/// will be called from here.
-///
-/// @param[in]  document
-///   The current document, which will be exported.
-/// @return
-///   TRUE if successfull, FALSE otherwise.
-Bool LuxC4DResumeRender::Execute(BaseDocument* document)
+AutoBitmap::~AutoBitmap()
 {
-  return exportAndRender(document, TRUE);
+  BaseBitmap::Free(mBitmap);
 }
+
+
+#endif  // #if _C4D_VERSION < 120

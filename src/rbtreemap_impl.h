@@ -212,7 +212,7 @@ typename RBTreeMap<K,T>::Node* RBTreeMap<K,T>::insert(Node*         node,
 {
   // if we have found a leave, add new node to it and return
   if (!node) {
-    mNewNode = gNewNC Node(key, value);
+    mNewNode = gNew Node(key, value);
     return mNewNode;
   }
 

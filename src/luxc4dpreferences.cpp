@@ -24,6 +24,7 @@
  ************************************************************************/
 
 #include "c4d_symbols.h"
+#include "common.h"
 #include "luxc4dpreferences.h"
 #include "utilities.h"
 
@@ -81,7 +82,11 @@ Bool LuxC4DPreferencesDialog::Command(LONG                 id,
       {
         Filename luxPath;
         GetFilename(IDD_LUXC4D_PREFS_LUX_PATH, luxPath);
-        if (luxPath.FileSelect(FSTYPE_ANYTHING, 0, &GeLoadString(IDS_LUXC4D_PREFS_LUX_PATH_FS_TITLE))) {
+        if (fileSelect(luxPath,
+                       FILESELECTTYPE_ANYTHING,
+                       FILESELECT_LOAD,
+                       GeLoadString(IDS_LUXC4D_PREFS_LUX_PATH_FS_TITLE)))
+        {
           SetFilename(IDD_LUXC4D_PREFS_LUX_PATH, luxPath);
           gPreferences->mSettings.SetFilename(IDV_LUXC4D_PREFS_LUX_PATH, luxPath);
           gPreferences->saveSettings();
@@ -135,7 +140,7 @@ LuxC4DPreferences::~LuxC4DPreferences(void)
 Bool LuxC4DPreferences::Execute(BaseDocument* doc)
 {
   if (!mDialog) {
-    mDialog = gNewNC LuxC4DPreferencesDialog;
+    mDialog = gNew LuxC4DPreferencesDialog;
     if (!mDialog) {
       ERRLOG_RETURN_VALUE(FALSE, "LuxC4DPreferences::Execute(): could not allocate preferences dialog");
     }
@@ -152,7 +157,8 @@ Bool LuxC4DPreferences::registerPlugin(void)
 {
   return RegisterCommandPlugin(PID_LUXC4D_PREFERENCES,
                                GeLoadString(IDS_LUXC4D_PREFERENCES),
-                               0, "icon_preferences.tif",
+                               0,
+                               AutoBitmap("icon_preferences.tif"),
                                GeLoadString(IDS_LUXC4D_PREFERENCES_DESCR),
                                this);
 }

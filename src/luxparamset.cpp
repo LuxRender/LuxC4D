@@ -54,10 +54,10 @@ LuxParamSet::LuxParamSet(LuxParamNumber maxParamNumber)
   }
 
   // allocated arrays for the parameter attributes and values
-  mParamTypes      = bNewNC LuxParamType[mMaxParamNumber];
-  mParamNames      = bNewNC LuxParamName[mMaxParamNumber];
-  mParamValues     = bNewNC LuxParamRef[mMaxParamNumber];
-  mParamArraySizes = bNewNC ULONG[mMaxParamNumber];
+  mParamTypes      = bNew LuxParamType[mMaxParamNumber];
+  mParamNames      = bNew LuxParamName[mMaxParamNumber];
+  mParamValues     = bNew LuxParamRef[mMaxParamNumber];
+  mParamArraySizes = bNew ULONG[mMaxParamNumber];
 
   // if we couldn't allocate all arrays:
   if (!mParamTypes || !mParamNames || !mParamValues || !mParamArraySizes) {

@@ -30,6 +30,7 @@
 
 #include <c4d.h>
 
+#include "common.h"
 #include "luxapi.h"
 #include "luxparamset.h"
 #include "luxtypes.h"
@@ -84,9 +85,9 @@ public:
                                   CameraParameters& parameters);
 
   virtual Bool Init(GeListNode* node);
-  virtual Bool GetDDescription(GeListNode*  node,
-                               Description* description,
-                               LONG&        flags);
+  virtual Bool GetDDescription(GeListNode*     node,
+                               Description*    description,
+                               DESCFLAGS_DESC& flags);
 
 
 private:

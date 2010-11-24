@@ -29,6 +29,7 @@
 
 
 #include <c4d.h>
+#include "common.h"
 #include "luxmaterialdata.h"
 
 
@@ -50,31 +51,25 @@ public:
   static Bool registerPlugin(void);
 
   virtual Bool Init(GeListNode* node);
-  virtual Bool GetDDescription(GeListNode*  node,
-                               Description* description,
-                               LONG&        flags);
-  virtual Bool GetDParameter(GeListNode*   node,
-                             const DescID& id,
-                             GeData&       value,
-                             LONG&         flags);
-  virtual Bool SetDParameter(GeListNode*   node,
-                             const DescID& id,
-                             const GeData& value,
-                             LONG&         flags);
+  virtual Bool GetDDescription(GeListNode*     node,
+                               Description*    description,
+                               DESCFLAGS_DESC& flags);
+  virtual Bool GetDParameter(GeListNode*    node,
+                             const DescID&  id,
+                             GeData&        value,
+                             DESCFLAGS_GET& flags);
+  virtual Bool SetDParameter(GeListNode*    node,
+                             const DescID&  id,
+                             const GeData&  value,
+                             DESCFLAGS_SET& flags);
   virtual Bool Message(GeListNode* node,
                        LONG        type,
                        void*       data);
   virtual Bool CopyTo(NodeData*   dest,
                       GeListNode* srcNode,
                       GeListNode* destNode,
-                      LONG        flags,
+                      COPYFLAGS   flags,
                       AliasTrans* aliasTrans);
-
-  virtual LONG InitRender(PluginMaterial*   mat,
-                          InitRenderStruct* irs);
-  virtual void FreeRender(PluginMaterial *mat);
-  virtual void CalcSurface(PluginMaterial* mat,
-                           VolumeData*     volumeData);
 
   LuxMaterialDataH getLuxMaterialData(LuxTextureMappingH mapping,
                                       LReal              c4d2LuxScale,

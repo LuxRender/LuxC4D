@@ -113,7 +113,7 @@ template<class T, Bool array>
 inline AutoRef<T,array>::AutoRef(T* data)
 {
   if (data) {
-    mRefCount = gNewNC SizeT(1);
+    mRefCount = gNew SizeT(1);
     if (!mRefCount) {
       ERRLOG_RETURN("AutoRef::AutoRef(): Could not allocate reference counter.");
     }
@@ -162,15 +162,15 @@ Bool AutoRef<T,array>::allocate(SizeT nmb)
 {
   clear();
   if (array) {
-    if (!(mData = gNewNC T[nmb])) {
+    if (!(mData = gNew T[nmb])) {
       ERRLOG_RETURN_VALUE(FALSE, "AutoRef::allocate(): Could not allocate data array.");
     }
   } else {
-    if (!(mData = gNewNC T)) {
+    if (!(mData = gNew T)) {
       ERRLOG_RETURN_VALUE(FALSE, "AutoRef::allocate(): Could not allocate data.");
     }
   }
-  if (!(mRefCount = gNewNC SizeT(1))) {
+  if (!(mRefCount = gNew SizeT(1))) {
     if (array) {
       bDelete(mData);
     } else {
@@ -309,7 +309,7 @@ AutoRef<T,array>& AutoRef<T,array>::operator=(T* data)
     clear();
     if (!data)  { return *this; }
     mData = data;
-    if (!(mRefCount = gNewNC SizeT(1)))  {
+    if (!(mRefCount = gNew SizeT(1)))  {
       ERRLOG("AutoRef::operator=(): Could not allocate reference counter.");
     }
   }

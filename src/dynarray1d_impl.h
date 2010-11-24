@@ -115,7 +115,7 @@ Bool DynArray1D<T>::init(SizeT size, SizeT capacity)
   // if the array shoulf not be empty, allocate new memory block and update
   // members
   if (capacity > 0) {
-    if ((mData = bNewNC T[capacity]) == 0) {
+    if ((mData = bNew T[capacity]) == 0) {
       ERRLOG("DynArray1D::Init(): could not allocate array of size " + LLongToString(capacity));
       return FALSE;
     }
@@ -143,7 +143,7 @@ Bool DynArray1D<T>::reserve(SizeT capacity)
   if (mCapacity >= capacity)  return TRUE;
 
   // allocate new memory block
-  T* newData = bNewNC T[capacity];
+  T* newData = bNew T[capacity];
   if (!newData) {
     ERRLOG("DynArray1D::reserve(): could not allocate new arrayof size " + LLongToString(size));
     return FALSE;
@@ -174,7 +174,7 @@ Bool DynArray1D<T>::adaptCapacity(void)
   // if the array is not empty, but its size doesn't match it's capacity:
   } else if (mSize != mCapacity) {
     // allocate new memory block of correct size
-    T* newData = bNewNC T[mSize];
+    T* newData = bNew T[mSize];
     if (!newData) {
       ERRLOG("DynArray1D::adaptCapacity(): could not allocate new array of size " + LLongToString(mSize));
       return FALSE;
@@ -395,7 +395,7 @@ Bool DynArray1D<T>::increaseCapacity(void)
   }
 
   // allocate new (larger) memory block
-  T* newData = bNewNC T[newCapacity];
+  T* newData = bNew T[newCapacity];
   if (!newData) {
     ERRLOG("DynArray1D<T>::increaseCapacity(): could not allocate new array of size " + LLongToString(newCapacity));
     return FALSE;

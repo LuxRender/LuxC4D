@@ -23,6 +23,7 @@
  * along with LuxC4D.  If not, see <http://www.gnu.org/licenses/>.      *
  ************************************************************************/
 
+#include "common.h"
 #include "filepath.h"
 #include "luxc4dexporterrender.h"
 #include "luxc4dpreferences.h"
@@ -42,7 +43,8 @@ Bool LuxC4DExporterRender::registerPlugin(void)
 {
   return RegisterCommandPlugin(PID_LUXC4D_EXPORTERRENDER,
                                GeLoadString(IDS_LUXC4D_EXPORTERRENDER),
-                               0, "icon_export_render.tif",
+                               0,
+                               AutoBitmap("icon_export_render.tif"),
                                GeLoadString(IDS_LUXC4D_EXPORTER_DESCR),
                                this);
 }

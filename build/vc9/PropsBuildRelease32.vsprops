@@ -21,6 +21,6 @@
 		FloatingPointModel="2"
 		RuntimeTypeInfo="false"
 		WarningLevel="4"
-		DisableSpecificWarnings="4996;4127;4530"
+		DisableSpecificWarnings="4996;4127;4530;4800"
 	/>
 </VisualStudioPropertySheet>
