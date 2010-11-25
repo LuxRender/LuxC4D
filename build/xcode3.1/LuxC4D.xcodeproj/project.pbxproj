@@ -42,7 +42,6 @@
 		2CE1C1DA0EABB60500AF4D13 /* luxc4dsettings.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE1C1D30EABB60500AF4D13 /* luxc4dsettings.h */; };
 		2CE1C1DB0EABB60500AF4D13 /* utilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE1C1D40EABB60500AF4D13 /* utilities.h */; };
 		2CE1C1DF0EABB67600AF4D13 /* vpluxc4dsettings.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE1C1DD0EABB67600AF4D13 /* vpluxc4dsettings.h */; };
-		2CE79ABE0EBF7F9600995C2F /* luxc4d.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79AB60EBF7F9600995C2F /* luxc4d.h */; };
 		2CE79ABF0EBF7F9600995C2F /* luxc4dexporterrender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2CE79AB70EBF7F9600995C2F /* luxc4dexporterrender.cpp */; };
 		2CE79AC00EBF7F9600995C2F /* luxc4dexporterrender.h in Headers */ = {isa = PBXBuildFile; fileRef = 2CE79AB80EBF7F9600995C2F /* luxc4dexporterrender.h */; };
 		2CE79AC10EBF7F9600995C2F /* luxc4dlighttag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2CE79AB90EBF7F9600995C2F /* luxc4dlighttag.cpp */; };
@@ -63,6 +62,8 @@
 		B28A7000109F691700AE738C /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B28A6FFF109F691700AE738C /* CoreFoundation.framework */; };
 		B29771A3119C8FFF0048B709 /* luxc4dresumerender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B29771A1119C8FFF0048B709 /* luxc4dresumerender.cpp */; };
 		B29771A4119C8FFF0048B709 /* luxc4dresumerender.h in Headers */ = {isa = PBXBuildFile; fileRef = B29771A2119C8FFF0048B709 /* luxc4dresumerender.h */; };
+		B2B1A5B7129E6D0B00A363A1 /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B2B1A5B5129E6D0B00A363A1 /* common.cpp */; };
+		B2B1A5B8129E6D0B00A363A1 /* common.h in Headers */ = {isa = PBXBuildFile; fileRef = B2B1A5B6129E6D0B00A363A1 /* common.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -125,7 +126,6 @@
 		2CE1C1DD0EABB67600AF4D13 /* vpluxc4dsettings.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = vpluxc4dsettings.h; path = description/vpluxc4dsettings.h; sourceTree = "<group>"; };
 		2CE1C1DE0EABB67600AF4D13 /* vpluxc4dsettings.res */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = vpluxc4dsettings.res; path = description/vpluxc4dsettings.res; sourceTree = "<group>"; };
 		2CE1C1E00EABB68C00AF4D13 /* vpluxc4dsettings.str */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = vpluxc4dsettings.str; path = description/vpluxc4dsettings.str; sourceTree = "<group>"; };
-		2CE79AB60EBF7F9600995C2F /* luxc4d.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = luxc4d.h; sourceTree = "<group>"; };
 		2CE79AB70EBF7F9600995C2F /* luxc4dexporterrender.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = luxc4dexporterrender.cpp; sourceTree = "<group>"; };
 		2CE79AB80EBF7F9600995C2F /* luxc4dexporterrender.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = luxc4dexporterrender.h; sourceTree = "<group>"; };
 		2CE79AB90EBF7F9600995C2F /* luxc4dlighttag.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = luxc4dlighttag.cpp; sourceTree = "<group>"; };
@@ -153,6 +153,8 @@
 		B28A6FFF109F691700AE738C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		B29771A1119C8FFF0048B709 /* luxc4dresumerender.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = luxc4dresumerender.cpp; sourceTree = "<group>"; };
 		B29771A2119C8FFF0048B709 /* luxc4dresumerender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = luxc4dresumerender.h; sourceTree = "<group>"; };
+		B2B1A5B5129E6D0B00A363A1 /* common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = common.cpp; sourceTree = "<group>"; };
+		B2B1A5B6129E6D0B00A363A1 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,6 +186,8 @@
 			isa = PBXGroup;
 			children = (
 				2C1C0E790FC951990049FF31 /* autoref.h */,
+				B2B1A5B5129E6D0B00A363A1 /* common.cpp */,
+				B2B1A5B6129E6D0B00A363A1 /* common.h */,
 				B275CAA910A9F2C600C9DF77 /* dlist.h */,
 				B275CAA810A9F2C600C9DF77 /* dlist_impl.h */,
 				2C171FB80FAEF50200D0D116 /* dynarray1d.h */,
@@ -197,7 +201,6 @@
 				2CE1C1CF0EABB60500AF4D13 /* luxapiconverter.h */,
 				2CCB77CA0E6C174600D45D8E /* luxapiwriter.cpp */,
 				2CCB77CB0E6C174600D45D8E /* luxapiwriter.h */,
-				2CE79AB60EBF7F9600995C2F /* luxc4d.h */,
 				2C2884D20FDC4F1D00E93447 /* luxc4dcameratag.cpp */,
 				2C2884D30FDC4F1D00E93447 /* luxc4dcameratag.h */,
 				2CE1C1D00EABB60500AF4D13 /* luxc4dexporter.cpp */,
@@ -318,7 +321,6 @@
 				2CE1C1DA0EABB60500AF4D13 /* luxc4dsettings.h in Headers */,
 				2CE1C1DB0EABB60500AF4D13 /* utilities.h in Headers */,
 				2CE1C1DF0EABB67600AF4D13 /* vpluxc4dsettings.h in Headers */,
-				2CE79ABE0EBF7F9600995C2F /* luxc4d.h in Headers */,
 				2CE79AC00EBF7F9600995C2F /* luxc4dexporterrender.h in Headers */,
 				2CE79AC20EBF7F9600995C2F /* luxc4dlighttag.h in Headers */,
 				2CE79AC40EBF7F9600995C2F /* luxc4dpreferences.h in Headers */,
@@ -343,6 +345,7 @@
 				B27F57E810D1774B008C24D3 /* mluxc4dmaterial.h in Headers */,
 				B283D636118F6A8A00EA2DA8 /* luxtexturemapping.h in Headers */,
 				B29771A4119C8FFF0048B709 /* luxc4dresumerender.h in Headers */,
+				B2B1A5B8129E6D0B00A363A1 /* common.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -375,7 +378,14 @@
 			isa = PBXProject;
 			buildConfigurationList = 65450B6A085517D90099394F /* Build configuration list for PBXProject "LuxC4D" */;
 			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
 			hasScannedForEncodings = 0;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 65E51686083D10D0005BFD9A;
 			productRefGroup = 65E51686083D10D0005BFD9A;
 			projectDirPath = "";
@@ -425,6 +435,7 @@
 				B27F57E210D17726008C24D3 /* luxc4dmaterial.cpp in Sources */,
 				B283D635118F6A8A00EA2DA8 /* luxtexturemapping.cpp in Sources */,
 				B29771A3119C8FFF0048B709 /* luxc4dresumerender.cpp in Sources */,
+				B2B1A5B7129E6D0B00A363A1 /* common.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1020,6 +1031,127 @@
 			};
 			name = R11.5_Release;
 		};
+		B2B1A5AE129E6C9900A363A1 /* R12.0_Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					x86_64,
+					i386,
+				);
+				C4D_ROOT = ../../../C4D_R12.0;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)";
+				CONFIGURATION_TEMP_DIR = "$(BUILD_DIR)";
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEPLOYMENT_LOCATION = NO;
+				DSTROOT = "";
+				EXPORTED_SYMBOLS_FILE = "$(C4D_ROOT)/resource/_api_lib/export.txt";
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREFIX_HEADER = "$(C4D_ROOT)/resource/_api/ge_mac_flags.h";
+				GCC_PREPROCESSOR_DEFINITIONS = "_C4D_VERSION=120";
+				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(C4D_ROOT)/resource/_api/**",
+					"$(C4D_ROOT)/resource/res/description",
+				);
+				INSTALL_PATH = "";
+				LIBRARY_SEARCH_PATHS = "$(C4D_ROOT)/resource/_api_lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				OBJROOT = "$(BUILD_DIR)";
+				ONLY_LINK_ESSENTIAL_SYMBOLS = YES;
+				OTHER_LDFLAGS = "$(C4D_ROOT)/resource/_api_lib/lib_api_debug.a";
+				PREBINDING = NO;
+				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
+				PRODUCT_NAME = LuxC4D;
+				SEPARATE_SYMBOL_EDIT = YES;
+				SYMROOT = "$(CONFIGURATION)";
+				UNEXPORTED_SYMBOLS_FILE = "$(C4D_ROOT)/resource/_api_lib/unexport.txt";
+			};
+			name = R12.0_Debug;
+		};
+		B2B1A5AF129E6C9900A363A1 /* R12.0_Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				SKIP_INSTALL = NO;
+			};
+			name = R12.0_Debug;
+		};
+		B2B1A5B0129E6CAA00A363A1 /* R12.0_Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					x86_64,
+					i386,
+				);
+				C4D_ROOT = ../../../C4D_R12.0;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)";
+				CONFIGURATION_TEMP_DIR = "$(BUILD_DIR)";
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEPLOYMENT_LOCATION = NO;
+				DEPLOYMENT_POSTPROCESSING = NO;
+				DSTROOT = "";
+				EXPORTED_SYMBOLS_FILE = "$(C4D_ROOT)/resource/_api_lib/export.txt";
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_FAST_MATH = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREFIX_HEADER = "$(C4D_ROOT)/resource/_api/ge_mac_flags.h";
+				GCC_PREPROCESSOR_DEFINITIONS = "_C4D_VERSION=120";
+				GCC_UNROLL_LOOPS = YES;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(C4D_ROOT)/resource/_api/**",
+					"$(C4D_ROOT)/resource/res/description",
+				);
+				LIBRARY_SEARCH_PATHS = "$(C4D_ROOT)/resource/_api_lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				OBJROOT = "$(BUILD_DIR)";
+				ONLY_LINK_ESSENTIAL_SYMBOLS = YES;
+				OTHER_LDFLAGS = "$(C4D_ROOT)/resource/_api_lib/lib_api_release.a";
+				PREBINDING = NO;
+				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
+				PRODUCT_NAME = LuxC4D;
+				SEPARATE_STRIP = YES;
+				SEPARATE_SYMBOL_EDIT = YES;
+				STRIP_STYLE = debugging;
+				SYMROOT = "$(CONFIGURATION)";
+				UNEXPORTED_SYMBOLS_FILE = "$(C4D_ROOT)/resource/_api_lib/unexport.txt";
+			};
+			name = R12.0_Release;
+		};
+		B2B1A5B1129E6CAA00A363A1 /* R12.0_Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				SKIP_INSTALL = NO;
+			};
+			name = R12.0_Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1029,16 +1161,18 @@
 				65450B67085517D80099394F /* R10.5_Debug */,
 				2C2884FA0FDC555500E93447 /* R11.0_Debug */,
 				B273EC7110736B79003ED7E3 /* R11.5_Debug */,
+				B2B1A5AF129E6C9900A363A1 /* R12.0_Debug */,
 				2C171FE50FAEFBE900D0D116 /* R10.1_Debug */,
 				2C171FFD0FAF04D000D0D116 /* R9.6_Debug */,
 				65450B68085517D80099394F /* R10.5_Release */,
 				2C2884FB0FDC555500E93447 /* R11.0_Release */,
 				B273EC7310736B84003ED7E3 /* R11.5_Release */,
+				B2B1A5B1129E6CAA00A363A1 /* R12.0_Release */,
 				2C171FE60FAEFBE900D0D116 /* R10.1_Release */,
 				2C171FFE0FAF04D000D0D116 /* R9.6_Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = R10.5_Debug;
+			defaultConfigurationName = R12.0_Debug;
 		};
 		65450B6A085517D90099394F /* Build configuration list for PBXProject "LuxC4D" */ = {
 			isa = XCConfigurationList;
@@ -1046,16 +1180,18 @@
 				65450B6B085517D90099394F /* R10.5_Debug */,
 				2C2884FC0FDC555500E93447 /* R11.0_Debug */,
 				B273EC7010736B79003ED7E3 /* R11.5_Debug */,
+				B2B1A5AE129E6C9900A363A1 /* R12.0_Debug */,
 				2C171FE70FAEFBE900D0D116 /* R10.1_Debug */,
 				2C171FFF0FAF04D000D0D116 /* R9.6_Debug */,
 				65450B6C085517D90099394F /* R10.5_Release */,
 				2C2884FD0FDC555500E93447 /* R11.0_Release */,
 				B273EC7210736B84003ED7E3 /* R11.5_Release */,
+				B2B1A5B0129E6CAA00A363A1 /* R12.0_Release */,
 				2C171FE80FAEFBE900D0D116 /* R10.1_Release */,
 				2C1720000FAF04D000D0D116 /* R9.6_Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = R10.5_Debug;
+			defaultConfigurationName = R12.0_Debug;
 		};
 /* End XCConfigurationList section */
 	};

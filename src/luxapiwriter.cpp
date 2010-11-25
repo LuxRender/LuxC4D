@@ -873,7 +873,7 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
           const LuxString* values = (const LuxString*)tokenValue;
           if (tokenArraySize == 1) {
             valueStringLen = (VLONG)values[0].size();
-            success &= file.WriteBytes(" [\"", 3);
+            success &= file.WriteBytes((void*)" [\"", 3);
             if (valueStringLen) {
               LuxString mangled = values[0];
               for (VLONG c=0; c<valueStringLen; ++c) {
@@ -883,7 +883,7 @@ Bool LuxAPIWriter::writeSetting(BaseFile&          file,
             }
             success &= file.WriteChar('"');
           } else {
-            success &= file.WriteBytes(" [\n", 3);
+            success &= file.WriteBytes((void*)" [\n", 3);
             for (ULONG i=0; i<tokenArraySize; ++i) {
               valueStringLen = (VLONG)values[i].size();
               success &= file.WriteChar('"');
